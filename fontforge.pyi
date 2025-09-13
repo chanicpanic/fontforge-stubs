@@ -3,7 +3,15 @@ The primary module for interacting with FontForge
 """
 
 from typing import (
-    Any, Tuple, List, Dict, Union, Optional, Iterator, overload, Sequence,
+    Any,
+    Tuple,
+    List,
+    Dict,
+    Union,
+    Optional,
+    Iterator,
+    overload,
+    Sequence,
     Callable,
 )
 
@@ -95,7 +103,12 @@ def preloadCidmap(filename: str, registry: str, order: str, supplement: int) -> 
     """Loads a FontForge cidmap file (first three args are strings, last is an integer)"""
     ...
 
-def printSetup(type: str, printer_or_cmd_or_file: Optional[str] = ..., width: Optional[float] = ..., height: Optional[float] = ...) -> None:
+def printSetup(
+    type: str,
+    printer_or_cmd_or_file: Optional[str] = ...,
+    width: Optional[float] = ...,
+    height: Optional[float] = ...,
+) -> None:
     """
     Prepare to print a font sample.
     The first argument may be one of: "lp", "lpr", "ghostview", "command", "ps-file", "pdf-file".
@@ -174,15 +187,15 @@ def scriptPath() -> Tuple[str, ...]:
     """Returns a tuple listing the directory paths which are searched for python scripts during FontForge initialization."""
     ...
 
-def fonts() -> Tuple['font', ...]:
+def fonts() -> Tuple["font", ...]:
     """Returns a tuple of all fonts currently loaded into FontForge for editing"""
     ...
 
-def activeFont() -> Optional['font']:
+def activeFont() -> Optional["font"]:
     """Returns the font that was active at the time a script was invoked from the UI, otherwise None."""
     ...
 
-def activeGlyph() -> Optional['glyph']:
+def activeGlyph() -> Optional["glyph"]:
     """Returns the glyph that was active at the time a script was invoked from the UI, otherwise None."""
     ...
 
@@ -194,7 +207,7 @@ def fontsInFile(filename: str) -> Tuple[str, ...]:
     """Returns a tuple of all font names found in the specified file."""
     ...
 
-def open(filename: str, flags: Union[int, Tuple[str, ...]] = ...) -> 'font':
+def open(filename: str, flags: Union[int, Tuple[str, ...]] = ...) -> "font":
     """Opens a filename and returns the font it contains (if any)."""
     ...
 
@@ -206,7 +219,7 @@ def unParseTTInstrs(sequence: bytes) -> str:
     """Reverse of parseTTInstrs. Converts a binary string into a human readable string."""
     ...
 
-def unitShape(n: int) -> 'contour':
+def unitShape(n: int) -> "contour":
     """Returns a closed contour which is a regular n-gon."""
     ...
 
@@ -220,16 +233,44 @@ def hasUserInterface() -> bool:
     ...
 
 @overload
-def registerMenuItem(callback: Callable, enable: Callable, data: Any, context: str, hotkey: str, submenu_names: Tuple[Union[str, Tuple[str, ...]], ...], name: Union[str, Tuple[str, ...]]) -> None: ...
+def registerMenuItem(
+    callback: Callable,
+    enable: Callable,
+    data: Any,
+    context: str,
+    hotkey: str,
+    submenu_names: Tuple[Union[str, Tuple[str, ...]], ...],
+    name: Union[str, Tuple[str, ...]],
+) -> None: ...
 @overload
-def registerMenuItem(callback: Callable, enable: Optional[Callable]=..., data: Optional[Any]=..., context: str, hotkey: Optional[str]=..., name: Union[str, Tuple[str, ...]], submenu: Optional[Union[str, Tuple[str, ...], List[Any]]]=..., keyword_only: bool=...) -> None: ...
+def registerMenuItem(
+    callback: Callable,
+    enable: Optional[Callable] = ...,
+    data: Optional[Any] = ...,
+    context: str = ...,
+    hotkey: Optional[str] = ...,
+    name: Union[str, Tuple[str, ...]] = ...,
+    submenu: Optional[Union[str, Tuple[str, ...], List[Any]]] = ...,
+    keyword_only: bool = False,
+) -> None: ...
 @overload
-def registerMenuItem(context: str, divider: bool, submenu: Optional[Union[str, Tuple[str, ...], List[Any]]]=...) -> None: ...
+def registerMenuItem(
+    context: str,
+    divider: bool,
+    submenu: Optional[Union[str, Tuple[str, ...], List[Any]]] = ...,
+) -> None: ...
 def registerMenuItem(*args, **kwargs) -> None:
     """Adds a menu item to the FontForge menu(s) specified by the ``context`` parameter."""
     ...
 
-def registerImportExport(import_function: Optional[Callable], export_function: Optional[Callable], data: Any, name: str, extension: str, extension_list: Optional[str]=...) -> None:
+def registerImportExport(
+    import_function: Optional[Callable],
+    export_function: Optional[Callable],
+    data: Any,
+    name: str,
+    extension: str,
+    extension_list: Optional[str] = ...,
+) -> None:
     """This will add the capability to import or export files of a given type."""
     ...
 
@@ -245,23 +286,41 @@ def postNotice(win_title: str, msg: str) -> None:
     """Creates a little window which will silently vanish after a minute or two and displays the message (a string) in that window."""
     ...
 
-def openFilename(question: str, def_name: Optional[str]=..., filter: Optional[str]=...) -> Optional[str]:
+def openFilename(
+    question: str, def_name: Optional[str] = ..., filter: Optional[str] = ...
+) -> Optional[str]:
     """Pops up a file-open dialog. The result is either a filename or ``None`` if the user canceled the dialog."""
     ...
 
-def saveFilename(question: str, def_name: Optional[str]=..., filter: Optional[str]=...) -> Optional[str]:
+def saveFilename(
+    question: str, def_name: Optional[str] = ..., filter: Optional[str] = ...
+) -> Optional[str]:
     """Pops up a file-save dialog. The result is either a filename or ``None`` if the user canceled the dialog."""
     ...
 
-def ask(title: str, question: str, answers: Tuple[str, ...], default: Optional[int]=..., cancel: Optional[int]=...) -> int:
+def ask(
+    title: str,
+    question: str,
+    answers: Tuple[str, ...],
+    default: Optional[int] = ...,
+    cancel: Optional[int] = ...,
+) -> int:
     """Allows you to ask the user a multiple choice question with buttons."""
     ...
 
-def askChoices(title: str, question: str, answers: Tuple[str, ...], default: Optional[Union[int, Tuple[bool, ...]]]=..., multiple: bool=...) -> Union[int, Tuple[int, ...]]:
+def askChoices(
+    title: str,
+    question: str,
+    answers: Tuple[str, ...],
+    default: Optional[Union[int, Tuple[bool, ...]]] = ...,
+    multiple: bool = ...,
+) -> Union[int, Tuple[int, ...]]:
     """Allows you to ask the user a multiple choice question with a scrollable list."""
     ...
 
-def askString(title: str, question: str, def_string: Optional[str]=...) -> Optional[str]:
+def askString(
+    title: str, question: str, def_string: Optional[str] = ...
+) -> Optional[str]:
     """Allows you to ask the user a question for which a string is the answer."""
     ...
 
@@ -272,6 +331,7 @@ def askMulti(title: str, specification: Any) -> Optional[Dict[str, Any]]:
 # Point class
 class point:
     """Creates a new point. Optionally specifying its x,y location, on-curve status and selected status."""
+
     x: float
     y: float
     on_curve: bool
@@ -280,11 +340,20 @@ class point:
     interpolated: bool
     name: str
 
-    def __init__(self, x: Optional[float]=..., y: Optional[float]=..., on_curve: bool=..., type: int=..., selected: bool=...) -> None: ...
-    def dup(self) -> 'point':
+    def __init__(
+        self,
+        x: Optional[float] = ...,
+        y: Optional[float] = ...,
+        on_curve: bool = ...,
+        type: int = ...,
+        selected: bool = ...,
+    ) -> None: ...
+    def dup(self) -> "point":
         """Returns a copy of the current point."""
         ...
-    def transform(self, matrix: Tuple[float, float, float, float, float, float]) -> None:
+    def transform(
+        self, matrix: Tuple[float, float, float, float, float, float]
+    ) -> None:
         """Transforms the point by the transformation matrix"""
         ...
     def __reduce__(self) -> Any:
@@ -294,13 +363,14 @@ class point:
 # Contour class
 class contour(Sequence[point]):
     """Creates a new contour. A contour is a collection of points."""
+
     is_quadratic: bool
     closed: bool
     name: str
     spiros: Tuple[Tuple[float, float, int, int], ...]
 
-    def __init__(self, is_quadratic: bool=...) -> None: ...
-    def dup(self) -> 'contour':
+    def __init__(self, is_quadratic: bool = ...) -> None: ...
+    def dup(self) -> "contour":
         """Returns a deep copy of the contour."""
         ...
     def isEmpty(self) -> bool:
@@ -309,10 +379,12 @@ class contour(Sequence[point]):
     def boundingBox(self) -> Tuple[float, float, float, float]:
         """Returns a tuple representing a rectangle ``(xmin,ymin, xmax,ymax)`` into which the contour fits."""
         ...
-    def getSplineAfterPoint(self, pos: int) -> Tuple[Tuple[float, ...], Tuple[float, ...]]:
+    def getSplineAfterPoint(
+        self, pos: int
+    ) -> Tuple[Tuple[float, ...], Tuple[float, ...]]:
         """Returns a tuple of two four-element tuples. These tuples are x and y splines for the curve after the specified point."""
         ...
-    def draw(self, pen: 'glyphPen') -> None:
+    def draw(self, pen: "glyphPen") -> None:
         """Draw the contour to the pen argument."""
         ...
     def __reduce__(self) -> Any:
@@ -324,19 +396,19 @@ class contour(Sequence[point]):
     @overload
     def __getitem__(self, i: int) -> point: ...
     @overload
-    def __getitem__(self, s: slice) -> 'contour': ...
+    def __getitem__(self, s: slice) -> "contour": ...
     @overload
     def __setitem__(self, i: int, p: Union[point, Tuple]) -> None: ...
     @overload
-    def __setitem__(self, s: slice, c: Union['contour', Sequence[Tuple]]) -> None: ...
+    def __setitem__(self, s: slice, c: Union["contour", Sequence[Tuple]]) -> None: ...
     def __delitem__(self, i: Union[int, slice]) -> None: ...
     def __len__(self) -> int:
         """The number of points in the contour"""
         ...
-    def __add__(self, other: Union['contour', point, Tuple]) -> 'contour':
+    def __add__(self, other: Union["contour", point, Tuple]) -> "contour":
         """A contour concatenating c and d."""
         ...
-    def __iadd__(self, other: Union['contour', point, Tuple]) -> 'contour':
+    def __iadd__(self, other: Union["contour", point, Tuple]) -> "contour":
         """Appends d to c."""
         ...
     def __contains__(self, p: Union[point, Tuple[float, float]]) -> bool:
@@ -345,16 +417,27 @@ class contour(Sequence[point]):
     def moveTo(self, x: float, y: float) -> None:
         """Adds an initial, on-curve point at ``(x,y)`` to the contour"""
         ...
-    def lineTo(self, x: float, y: float, pos: Optional[int]=...) -> None:
+    def lineTo(self, x: float, y: float, pos: Optional[int] = ...) -> None:
         """Adds an line to the contour."""
         ...
-    def cubicTo(self, cp1: Tuple[float, float], cp2: Tuple[float, float], end: Tuple[float, float], pos: Optional[int]=...) -> None:
+    def cubicTo(
+        self,
+        cp1: Tuple[float, float],
+        cp2: Tuple[float, float],
+        end: Tuple[float, float],
+        pos: Optional[int] = ...,
+    ) -> None:
         """Adds a cubic curve to the contour."""
         ...
-    def quadraticTo(self, cp: Tuple[float, float], end: Tuple[float, float], pos: Optional[int]=...) -> None:
+    def quadraticTo(
+        self,
+        cp: Tuple[float, float],
+        end: Tuple[float, float],
+        pos: Optional[int] = ...,
+    ) -> None:
         """Adds a quadratic curve to the contour."""
         ...
-    def insertPoint(self, p: Union[point, Tuple], pos: Optional[int]=...) -> None:
+    def insertPoint(self, p: Union[point, Tuple], pos: Optional[int] = ...) -> None:
         """Adds point to the contour."""
         ...
     def makeFirst(self, pos: int) -> None:
@@ -366,34 +449,51 @@ class contour(Sequence[point]):
     def reverseDirection(self) -> None:
         """Reverse the order in which the contour is drawn."""
         ...
-    def similar(self, other_contour: 'contour', error: Optional[float]=...) -> bool:
+    def similar(self, other_contour: "contour", error: Optional[float] = ...) -> bool:
         """Checks whether this contour is similar to the other one."""
         ...
-    def xBoundsAtY(self, ybottom: float, ytop: Optional[float]=...) -> Optional[Tuple[float, float]]:
+    def xBoundsAtY(
+        self, ybottom: float, ytop: Optional[float] = ...
+    ) -> Optional[Tuple[float, float]]:
         """Finds the minimum and maximum x positions attained by the contour within a y-range."""
         ...
-    def yBoundsAtX(self, xleft: float, xright: Optional[float]=...) -> Optional[Tuple[float, float]]:
+    def yBoundsAtX(
+        self, xleft: float, xright: Optional[float] = ...
+    ) -> Optional[Tuple[float, float]]:
         """Finds the minimum and maximum y positions attained by the contour within an x-range."""
         ...
-    def addExtrema(self, flags: Optional[str]=..., emsize: Optional[int]=...) -> None:
+    def addExtrema(
+        self, flags: Optional[str] = ..., emsize: Optional[int] = ...
+    ) -> None:
         """If a curve lacks a point at an extrema this command will add one."""
         ...
-    def cluster(self, within: Optional[float]=..., max: Optional[float]=...) -> None:
+    def cluster(
+        self, within: Optional[float] = ..., max: Optional[float] = ...
+    ) -> None:
         """Moves clustered coordinates to a standard central value."""
         ...
     def merge(self, pos: Union[int, Tuple[int, ...]]) -> None:
         """Removes the on-curve point a the given position."""
         ...
-    def round(self, factor: Optional[float]=...) -> None:
+    def round(self, factor: Optional[float] = ...) -> None:
         """Rounds the x and y coordinates."""
         ...
     def selfIntersects(self) -> bool:
         """Returns whether this contour intersects itself."""
         ...
-    def simplify(self, error_bound: Optional[float]=..., flags: Optional[Tuple[str, ...]]=..., tan_bounds: Optional[Any]=..., linefixup: Optional[Any]=..., linelenmax: Optional[Any]=...) -> None:
+    def simplify(
+        self,
+        error_bound: Optional[float] = ...,
+        flags: Optional[Tuple[str, ...]] = ...,
+        tan_bounds: Optional[Any] = ...,
+        linefixup: Optional[Any] = ...,
+        linelenmax: Optional[Any] = ...,
+    ) -> None:
         """Tries to remove excess points on the contour."""
         ...
-    def transform(self, matrix: Tuple[float, float, float, float, float, float]) -> None:
+    def transform(
+        self, matrix: Tuple[float, float, float, float, float, float]
+    ) -> None:
         """Transforms the contour by the matrix"""
         ...
     def addInflections(self) -> None:
@@ -405,7 +505,6 @@ class contour(Sequence[point]):
     def harmonize(self) -> None:
         """For all bezier splines of the contour move the smooth on-curve points between its adjacent control points."""
         ...
-
 
 # Layer class
 class layer(Sequence[contour]):
@@ -420,16 +519,20 @@ class layer(Sequence[contour]):
     def __reduce__(self) -> Any:
         """This function allows the pickler to work on this type."""
         ...
-    def dup(self) -> 'layer':
+    def dup(self) -> "layer":
         """Returns a deep copy of the layer."""
         ...
     def isEmpty(self) -> bool:
         """Returns whether the layer is empty (contains no contour)"""
         ...
-    def addExtrema(self, flags: Optional[str]=..., emsize: Optional[int]=...) -> None:
+    def addExtrema(
+        self, flags: Optional[str] = ..., emsize: Optional[int] = ...
+    ) -> None:
         """If a curve lacks a point at an extrema this command will add one."""
         ...
-    def cluster(self, within: Optional[float]=..., max: Optional[float]=...) -> None:
+    def cluster(
+        self, within: Optional[float] = ..., max: Optional[float] = ...
+    ) -> None:
         """Moves clustered coordinates to a standard central value."""
         ...
     def correctDirection(self) -> None:
@@ -438,7 +541,7 @@ class layer(Sequence[contour]):
     def export(self, filename: str, **kwargs) -> None:
         """Exports the current layer (in outline format) to a file."""
         ...
-    def exclude(self, excluded_layer: 'layer') -> None:
+    def exclude(self, excluded_layer: "layer") -> None:
         """Removes the excluded area from the current contours."""
         ...
     def intersect(self) -> None:
@@ -447,28 +550,44 @@ class layer(Sequence[contour]):
     def removeOverlap(self) -> None:
         """Removes overlapping areas."""
         ...
-    def interpolateNewLayer(self, other_layer: 'layer', amount: float) -> 'layer':
+    def interpolateNewLayer(self, other_layer: "layer", amount: float) -> "layer":
         """Creates (and returns) a new layer which contains splines interpolated from the current layer and the first argument."""
         ...
-    def round(self, factor: Optional[float]=...) -> None:
+    def round(self, factor: Optional[float] = ...) -> None:
         """Rounds the x and y coordinates."""
         ...
     def selfIntersects(self) -> bool:
         """Returns whether any of the contours on this layer intersects any other contour (including itself)."""
         ...
-    def similar(self, other_layer: 'layer', error: Optional[float]=...) -> bool:
+    def similar(self, other_layer: "layer", error: Optional[float] = ...) -> bool:
         """Checks whether this layer is similar to the other one."""
         ...
-    def simplify(self, error_bound: Optional[float]=..., flags: Optional[Tuple[str, ...]]=..., tan_bounds: Optional[Any]=..., linefixup: Optional[Any]=..., linelenmax: Optional[Any]=...) -> None:
+    def simplify(
+        self,
+        error_bound: Optional[float] = ...,
+        flags: Optional[Tuple[str, ...]] = ...,
+        tan_bounds: Optional[Any] = ...,
+        linefixup: Optional[Any] = ...,
+        linelenmax: Optional[Any] = ...,
+    ) -> None:
         """Tries to remove excess points on the layer."""
         ...
-    def stemControl(self, stem_width_scale: float, hscale: Optional[float]=..., stem_height_scale: Optional[float]=..., vscale: Optional[float]=..., xheight: Optional[float]=...) -> None:
+    def stemControl(
+        self,
+        stem_width_scale: float,
+        hscale: Optional[float] = ...,
+        stem_height_scale: Optional[float] = ...,
+        vscale: Optional[float] = ...,
+        xheight: Optional[float] = ...,
+    ) -> None:
         """Allows you to scale counters and stems independently of each other."""
         ...
-    def stroke(self, type: str, *args, **kwargs) -> 'layer':
+    def stroke(self, type: str, *args, **kwargs) -> "layer":
         """Strokes the lines of each contour in the layer according to the supplied parameters."""
         ...
-    def transform(self, matrix: Tuple[float, float, float, float, float, float]) -> None:
+    def transform(
+        self, matrix: Tuple[float, float, float, float, float, float]
+    ) -> None:
         """Transforms the layer by the matrix"""
         ...
     def nltransform(self, xexpr: str, yexpr: str) -> None:
@@ -477,13 +596,17 @@ class layer(Sequence[contour]):
     def boundingBox(self) -> Tuple[float, float, float, float]:
         """Returns a tuple representing a rectangle ``(xmin,ymin, xmax,ymax)`` into which the layer fits."""
         ...
-    def xBoundsAtY(self, ybottom: float, ytop: Optional[float]=...) -> Optional[Tuple[float, float]]:
+    def xBoundsAtY(
+        self, ybottom: float, ytop: Optional[float] = ...
+    ) -> Optional[Tuple[float, float]]:
         """Finds the minimum and maximum x positions attained by the layer within a y-range."""
         ...
-    def yBoundsAtX(self, xleft: float, xright: Optional[float]=...) -> Optional[Tuple[float, float]]:
+    def yBoundsAtX(
+        self, xleft: float, xright: Optional[float] = ...
+    ) -> Optional[Tuple[float, float]]:
         """Finds the minimum and maximum y positions attained by the layer within an x-range."""
         ...
-    def draw(self, pen: 'glyphPen') -> None:
+    def draw(self, pen: "glyphPen") -> None:
         """Draw the layer to the pen argument."""
         ...
     def addInflections(self) -> None:
@@ -501,16 +624,16 @@ class layer(Sequence[contour]):
     @overload
     def __getitem__(self, i: int) -> contour: ...
     @overload
-    def __getitem__(self, s: slice) -> 'layer': ...
+    def __getitem__(self, s: slice) -> "layer": ...
     @overload
     def __setitem__(self, i: int, c: contour) -> None: ...
     @overload
-    def __setitem__(self, s: slice, l: 'layer') -> None: ...
+    def __setitem__(self, s: slice, l: "layer") -> None: ...
     def __delitem__(self, i: Union[int, slice]) -> None: ...
-    def __add__(self, other: Union['layer', contour]) -> 'layer':
+    def __add__(self, other: Union["layer", contour]) -> "layer":
         """A layer concatenating l and m."""
         ...
-    def __iadd__(self, other: Union['layer', contour]) -> 'layer':
+    def __iadd__(self, other: Union["layer", contour]) -> "layer":
         """Appends m to l."""
         ...
 
@@ -524,7 +647,12 @@ class glyphPen:
         """Draws a line from the last point to (x,y) and adds that to the contour."""
         ...
     @overload
-    def curveTo(self, cp1: Tuple[float, float], cp2: Tuple[float, float], end: Tuple[float, float]) -> None: ...
+    def curveTo(
+        self,
+        cp1: Tuple[float, float],
+        cp2: Tuple[float, float],
+        end: Tuple[float, float],
+    ) -> None: ...
     @overload
     def curveTo(self, cp: Tuple[float, float], end: Tuple[float, float]) -> None: ...
     def curveTo(self, *args) -> None:
@@ -539,13 +667,19 @@ class glyphPen:
     def endPath(self) -> None:
         """Ends the contour without closing it."""
         ...
-    def addComponent(self, glyph_name: str, transform: Tuple[float, float, float, float, float, float]=..., selected: bool=...) -> None:
+    def addComponent(
+        self,
+        glyph_name: str,
+        transform: Tuple[float, float, float, float, float, float] = ...,
+        selected: bool = ...,
+    ) -> None:
         """Adds a reference (a component) to the glyph."""
         ...
 
 # Glyph class
 class glyph:
     """The glyph type refers to a glyph object. It has no independent life of its own, it always lives within a font."""
+
     activeLayer: int
     """Returns currently active layer in the glyph (as an integer). May be set to an integer or a layer name to change the active layer."""
     altuni: Optional[Tuple[Tuple[int, int, int], ...]]
@@ -562,11 +696,13 @@ class glyph:
     """The color of the glyph in the fontview. A 6 hex-digit RGB number or -1 for default."""
     comment: str
     """Any comment you wish to associate with the glyph. UTF-8"""
-    dhints: Tuple[Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]], ...]
+    dhints: Tuple[
+        Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]], ...
+    ]
     """A tuple with one entry for each diagonal stem hint."""
     encoding: int
     """Returns the glyph's encoding in the font's encoding. (readonly)"""
-    font: 'font'
+    font: "font"
     """The font containing this glyph. (readonly)"""
     foreground: layer
     """The glyph's foreground layer. This is a *copy* of the glyph's data."""
@@ -598,7 +734,7 @@ class glyph:
     """The left side bearing of the glyph. Setting this value will adjust all layers."""
     manualHints: bool
     """The glyph's hints have been set by hand, and the glyph should not be autohinted without a specific request from the user."""
-    mathKern: Any # This is a complex object with bottomLeft, bottomRight, etc.
+    mathKern: Any  # This is a complex object with bottomLeft, bottomRight, etc.
     """The glyph's math kerning data associated with its vertices."""
     originalgid: int
     """The GID of this glyph in the font it was read from. (readonly)"""
@@ -641,13 +777,24 @@ class glyph:
     vwidth: float
     """The vertical advance width of the glyph."""
 
-    def addAnchorPoint(self, anchor_class_name: str, anchor_type: str, x: float, y: float, ligature_index: Optional[int]=...) -> None:
+    def addAnchorPoint(
+        self,
+        anchor_class_name: str,
+        anchor_type: str,
+        x: float,
+        y: float,
+        ligature_index: Optional[int] = ...,
+    ) -> None:
         """Adds an anchor point."""
         ...
-    def addExtrema(self, flags: Optional[str]=..., emsize: Optional[int]=...) -> None:
+    def addExtrema(
+        self, flags: Optional[str] = ..., emsize: Optional[int] = ...
+    ) -> None:
         """Extrema should be marked by on-curve points. If a curve lacks a point at an extrema this command will add one."""
         ...
-    def addReference(self, glyph_name: str, transform: Tuple[float, ...]=..., selected: bool=...) -> None:
+    def addReference(
+        self, glyph_name: str, transform: Tuple[float, ...] = ..., selected: bool = ...
+    ) -> None:
         """Adds a reference to the specified glyph into the current glyph."""
         ...
     def addHint(self, is_vertical: bool, start: float, width: float) -> None:
@@ -687,19 +834,30 @@ class glyph:
     def changeWeight(self, stroke_width: float, **kwargs) -> None:
         """Changes the weight (thickness) of the glyph."""
         ...
-    def condenseExtend(self, c_factor: float, c_add: float, sb_factor: Optional[float]=..., sb_add: Optional[float]=..., correct: bool=...) -> None:
+    def condenseExtend(
+        self,
+        c_factor: float,
+        c_add: float,
+        sb_factor: Optional[float] = ...,
+        sb_add: Optional[float] = ...,
+        correct: bool = ...,
+    ) -> None:
         """Condenses or extends the size of the counters and side-bearings of the glyph."""
         ...
-    def clear(self, layer: Optional[Union[int, str]]=...) -> None:
+    def clear(self, layer: Optional[Union[int, str]] = ...) -> None:
         """Clears the contents of the glyph."""
         ...
-    def cluster(self, within: Optional[float]=..., max: Optional[float]=...) -> None:
+    def cluster(
+        self, within: Optional[float] = ..., max: Optional[float] = ...
+    ) -> None:
         """Moves clustered coordinates to a standard central value."""
         ...
     def correctDirection(self) -> None:
         """Orients all contours so that external ones are clockwise and internal counter-clockwise."""
         ...
-    def doUndoLayer(self, layer: Optional[Union[int, str]]=..., redo: bool=...) -> None:
+    def doUndoLayer(
+        self, layer: Optional[Union[int, str]] = ..., redo: bool = ...
+    ) -> None:
         """Equivalent to the 'Undo' or 'Redo' UI menu item for a layer."""
         ...
     def exclude(self, excluded_layer: layer) -> None:
@@ -723,7 +881,9 @@ class glyph:
     def isWorthOutputting(self) -> bool:
         """Returns whether the glyph is worth outputting into a font file."""
         ...
-    def preserveLayerAsUndo(self, layer: Optional[Union[int, str]]=..., dohints: bool=...) -> None:
+    def preserveLayerAsUndo(
+        self, layer: Optional[Union[int, str]] = ..., dohints: bool = ...
+    ) -> None:
         """Preserves the current state of a layer so that whatever you do after can be undone by the user."""
         ...
     def removeOverlap(self) -> None:
@@ -732,43 +892,50 @@ class glyph:
     def removePosSub(self, lookup_subtable_name: str) -> None:
         """Removes all data from the glyph corresponding to the given lookup-subtable."""
         ...
-    def round(self, factor: Optional[float]=...) -> None:
+    def round(self, factor: Optional[float] = ...) -> None:
         """Rounds the x and y coordinates of each point in the glyph."""
         ...
     def selfIntersects(self) -> bool:
         """Returns whether any of the contours in this glyph intersects any other contour in the glyph (including itself)."""
         ...
-    def setLayer(self, layer_obj: layer, layer_index: Union[int, str], flags: Optional[Tuple[str, ...]]=...) -> None:
+    def setLayer(
+        self,
+        layer_obj: layer,
+        layer_index: Union[int, str],
+        flags: Optional[Tuple[str, ...]] = ...,
+    ) -> None:
         """An alternative to assigning to glyph.layers, glyph.background, or glyph.foreground."""
         ...
-    def simplify(self, error_bound: Optional[float]=..., **kwargs) -> None:
+    def simplify(self, error_bound: Optional[float] = ..., **kwargs) -> None:
         """Tries to remove excess points in the glyph if doing so will not perturb the curve by more than error-bound."""
         ...
     def stroke(self, type: str, *args, **kwargs) -> None:
         """Strokes the contours of the glyph according to the supplied parameters."""
         ...
-    def transform(self, matrix: Tuple[float, ...], flags: Optional[Tuple[str, ...]]=...) -> None:
+    def transform(
+        self, matrix: Tuple[float, ...], flags: Optional[Tuple[str, ...]] = ...
+    ) -> None:
         """Transforms the glyph by the matrix."""
         ...
     def nltransform(self, xexpr: str, yexpr: str) -> None:
         """Applies non-linear transformations to all points in the current layer."""
         ...
-    def unlinkRef(self, ref_name: Optional[str]=...) -> None:
+    def unlinkRef(self, ref_name: Optional[str] = ...) -> None:
         """Unlinks the reference to the glyph named ref-name."""
         ...
     def unlinkThisGlyph(self) -> None:
         """Unlinks all the references to the current glyph within any other glyph in the font."""
         ...
-    def useRefsMetrics(self, ref_name: str, flag: bool=...) -> None:
+    def useRefsMetrics(self, ref_name: str, flag: bool = ...) -> None:
         """Finds a reference with the given name and sets the 'use_my_metrics' flag on it."""
         ...
-    def validate(self, force: bool=...) -> int:
+    def validate(self, force: bool = ...) -> int:
         """Validates the glyph and returns the validation_state of the glyph."""
         ...
-    def draw(self, pen: 'glyphPen') -> None:
+    def draw(self, pen: "glyphPen") -> None:
         """Draw the glyph's outline to the pen argument."""
         ...
-    def glyphPen(self, replace: bool=...) -> 'glyphPen':
+    def glyphPen(self, replace: bool = ...) -> "glyphPen":
         """Creates a new glyphPen which will draw into the current glyph."""
         ...
     def addInflections(self) -> None:
@@ -795,53 +962,53 @@ class selection:
 
     This type may not be pickled.
     """
-    
+
     @property
     def byGlyphs(self) -> selection:
         """
         Returns another selection, just the same as this one except that its
         iterator function will return glyphs (rather than encoding slots) and
         will only return those entries for which glyphs exist.
-        
+
         This is read-only.
         """
         ...
-        
+
     def __iter__(self) -> Iterator[Any]:
         """
         Returns an iterator for the selection which will return all selected
         encoding slots in encoding order.
         """
         ...
-        
+
     def all(self) -> None:
         """
         Select everything.
         """
         ...
-        
+
     def none(self) -> None:
         """
         Deselect everything.
         """
         ...
-        
+
     def changed(self) -> None:
         """
         Select all glyphs which have changed.
         """
         ...
-        
+
     def invert(self) -> None:
         """
         Invert the selection.
         """
         ...
-        
+
     def select(self, *args: SelectionArg) -> None:
         """
         Select items based on the provided arguments.
-        
+
         Args:
             *args: An arbitrary number of arguments. Each argument may be:
                 - A glyph name (str)
@@ -849,22 +1016,22 @@ class selection:
                   code point depending on flags)
                 - A fontforge.glyph object
                 - A tuple of flags (e.g., ("more",), ("unicode", "ranges"))
-        
+
         The first argument can be a tuple of flags to modify the selection behavior.
         If the first argument is not a flag tuple, or doesn't specify "more"
         or "less", the selection is cleared before adding the new items.
         """
         ...
-        
+
     def __getitem__(self, key: Union[int, str, Glyph]) -> bool:
         """
         Gets the selection status of a glyph by its encoding value, name,
         unicode string, or glyph object.
-        
+
         Args:
             key: The value to check for selection. Can be an integer, string
                  (glyph name or "uXXXXX"), or a fontforge.glyph object.
-        
+
         Returns:
             bool: True if the glyph is selected, False otherwise.
         """
@@ -919,513 +1086,513 @@ class Math:
 
     ScriptPercentScaleDown: int
     """Percentage scale down for script level 1."""
-    
+
     ScriptScriptPercentScaleDown: int
     """Percentage scale down for script level 2."""
-    
+
     DelimitedSubFormulaMinHeight: int
     """Minimum height at which to treat a delimited expression as a subformula."""
-    
+
     DisplayOperatorMinHeight: int
     """Minimum height of n-ary operators (integration, summation, etc.)."""
-    
+
     MathLeading: int
     """White space to be left between math formulae to ensure proper line spacing."""
-    
+
     AxisHeight: int
     """Axis height of the font."""
-    
+
     AccentBaseHeight: int
     """Maximum (ink) height of accent base that does not require raising the accents."""
-    
+
     FlattenedAccentBaseHeight: int
     """Maximum (ink) height of accent base that does not require flattening the accents."""
-    
+
     SubscriptShiftDown: int
     """
     The standard shift down applied to subscript elements. Positive for
     moving downward.
     """
-    
+
     SubscriptTopMax: int
     """
     Maximum height of the (ink) top of subscripts that does not require moving
     subscripts further down.
     """
-    
+
     SubscriptBaselineDropMin: int
     """
     Maximum allowed drop of the baseline of subscripts relative to the bottom of
     the base. Used for bases that are treated as a box or extended shape.
     Positive for subscript baseline dropped below base bottom.
     """
-    
+
     SuperscriptShiftUp: int
     """Standard shift up applied to superscript elements."""
-    
+
     SuperscriptShiftUpCramped: int
     """Standard shift of superscript relative to base in cramped mode."""
-    
+
     SuperscriptBottomMin: int
     """
     Minimum allowed height of the bottom of superscripts that does not require
     moving them further up.
     """
-    
+
     SuperscriptBaselineDropMax: int
     """
     Maximum allowed drop of the baseline of superscripts relative to the top of
     the base. Used for bases that are treated as a box or extended shape.
     Positive for superscript baseline below base top.
     """
-    
+
     SubSuperscriptGapMin: int
     """Minimum gap between the superscript and subscript ink."""
-    
+
     SuperscriptBottomMaxWithSubscript: int
     """
     The maximum level to which the (ink) bottom of superscript can be pushed to
     increase the gap between superscript and subscript, before subscript starts
     being moved down.
     """
-    
+
     SpaceAfterScript: int
     """Extra white space to be added after each sub/superscript."""
-    
+
     UpperLimitGapMin: int
     """
     Minimum gap between the bottom of the upper limit, and the top of the base
     operator.
     """
-    
+
     UpperLimitBaselineRiseMin: int
     """
     Minimum distance between the baseline of an upper limit and the bottom of
     the base operator.
     """
-    
+
     LowerLimitGapMin: int
     """
     Minimum gap between (ink) top of the lower limit, and (ink) bottom of the
     base operator.
     """
-    
+
     LowerLimitBaselineDropMin: int
     """
     Minimum distance between the baseline of the lower limit and bottom of the
     base operator.
     """
-    
+
     StackTopShiftUp: int
     """Standard shift up applied to the top element of a stack."""
-    
+
     StackTopDisplayStyleShiftUp: int
     """
     Standard shift up applied to the top element of a stack in display style.
     """
-    
+
     StackBottomShiftDown: int
     """
     Standard shift down applied to the bottom element of a stack. Positive
     values indicate downward motion.
     """
-    
+
     StackBottomDisplayStyleShiftDown: int
     """
     Standard shift down applied to the bottom element of a stack in display
     style. Positive values indicate downward motion.
     """
-    
+
     StackGapMin: int
     """
     Minimum gap between bottom of the top element of a stack, and the top of
     the bottom element.
     """
-    
+
     StackDisplayStyleGapMin: int
     """
     Minimum gap between bottom of the top element of a stack and the top of the
     bottom element in display style.
     """
-    
+
     StretchStackTopShiftUp: int
     """Standard shift up applied to the top element of the stretch stack."""
-    
+
     StretchStackBottomShiftDown: int
     """
     Standard shift down applied to the bottom element of the stretch stack.
     Positive values indicate downward motion.
     """
-    
+
     StretchStackGapAboveMin: int
     """
     Minimum gap between the ink of the stretched element and the ink bottom of
     the element above.
     """
-    
+
     StretchStackGapBelowMin: int
     """
     Minimum gap between the ink of the stretched element and the ink top of
     the element below.
     """
-    
+
     FractionNumeratorShiftUp: int
     """Standard shift up applied to the numerator."""
-    
+
     FractionNumeratorDisplayStyleShiftUp: int
     """Standard shift up applied to the numerator in display style."""
-    
+
     FractionDenominatorShiftDown: int
     """
     Standard shift down applied to the denominator. Positive values indicate
     downward motion.
     """
-    
+
     FractionDenominatorDisplayStyleShiftDown: int
     """
     Standard shift down applied to the denominator in display style. Positive
     values indicate downward motion.
     """
-    
+
     FractionNumeratorGapMin: int
     """
     Minimum tolerated gap between the ink bottom of the numerator and the ink of
     the fraction bar.
     """
-    
+
     FractionNumeratorDisplayStyleGapMin: int
     """
     Minimum tolerated gap between the ink bottom of the numerator and the ink of
     the fraction bar in display style.
     """
-    
+
     FractionRuleThickness: int
     """Thickness of the fraction bar."""
-    
+
     FractionDenominatorGapMin: int
     """
     Minimum tolerated gap between the ink top of the denominator and the ink of
     the fraction bar.
     """
-    
+
     FractionDenominatorDisplayStyleGapMin: int
     """
     Minimum tolerated gap between the ink top of the denominator and the ink of
     the fraction bar in display style.
     """
-    
+
     SkewedFractionHorizontalGap: int
     """
     Horizontal distance between the top and bottom elements of a skewed fraction.
     """
-    
+
     SkewedFractionVerticalGap: int
     """
     Vertical distance between the ink of the top and bottom elements of a skewed
     fraction.
     """
-    
+
     OverbarVerticalGap: int
     """Distance between the overbar and the ink top of the base."""
-    
+
     OverbarRuleThickness: int
     """Thickness of the overbar."""
-    
+
     OverbarExtraAscender: int
     """Extra white space reserved above the overbar."""
-    
+
     UnderbarVerticalGap: int
     """Distance between underbar and the (ink) bottom of the base."""
-    
+
     UnderbarRuleThickness: int
     """Thickness of the underbar."""
-    
+
     UnderbarExtraDescender: int
     """Extra white space reserved below the underbar."""
-    
+
     RadicalVerticalGap: int
     """Space between the ink to of the expression and the bar over it."""
-    
+
     RadicalDisplayStyleVerticalGap: int
     """
     Space between the ink top of the expression and the bar over it in display
     style.
     """
-    
+
     RadicalRuleThickness: int
     """
     Thickness of the radical rule in designed or constructed radical signs.
     """
-    
+
     RadicalExtraAscender: int
     """Extra white space reserved above the radical."""
-    
+
     RadicalKernBeforeDegree: int
     """
     Extra horizontal kern before the degree of a radical if such be present.
     """
-    
+
     RadicalKernAfterDegree: int
     """
     Negative horizontal kern after the degree of a radical if such be present.
     """
-    
+
     RadicalDegreeBottomRaisePercent: int
     """
     Height of the bottom of the radical degree, if such be present, in
     proportion to the ascender of the radical sign.
     """
-    
+
     MinConnectorOverlap: int
     """Minimum overlap of connecting glyphs during glyph construction."""
-    
+
     MathLeadingDeviceTable: DeviceTable | None
     """
     White space to be left between math formulae to ensure proper line spacing.
     """
-    
+
     AxisHeightDeviceTable: DeviceTable | None
     """Axis height of the font."""
-    
+
     AccentBaseHeightDeviceTable: DeviceTable | None
     """
     Maximum (ink) height of accent base that does not require raising the accents.
     """
-    
+
     FlattenedAccentBaseHeightDeviceTable: DeviceTable | None
     """
     Maximum (ink) height of accent base that does not require flattening the accents.
     """
-    
+
     SubscriptShiftDownDeviceTable: DeviceTable | None
     """
     The standard shift down applied to subscript elements. Positive for
     moving downward.
     """
-    
+
     SubscriptTopMaxDeviceTable: DeviceTable | None
     """
     Maximum height of the (ink) top of subscripts that does not require moving
     subscripts further down.
     """
-    
+
     SubscriptBaselineDropMinDeviceTable: DeviceTable | None
     """
     Maximum allowed drop of the baseline of subscripts relative to the bottom of
     the base. Used for bases that are treated as a box or extended shape.
     Positive for subscript baseline dropped below base bottom.
     """
-    
+
     SuperscriptShiftUpDeviceTable: DeviceTable | None
     """Standard shift up applied to superscript elements."""
-    
+
     SuperscriptShiftUpCrampedDeviceTable: DeviceTable | None
     """Standard shift of superscript relative to base in cramped mode."""
-    
+
     SuperscriptBottomMinDeviceTable: DeviceTable | None
     """
     Minimum allowed height of the bottom of superscripts that does not require
     moving them further up.
     """
-    
+
     SuperscriptBaselineDropMaxDeviceTable: DeviceTable | None
     """
     Maximum allowed drop of the baseline of superscripts relative to the top of
     the base. Used for bases that are treated as a box or extended shape.
     Positive for superscript baseline below base top.
     """
-    
+
     SubSuperscriptGapMinDeviceTable: DeviceTable | None
     """Minimum gap between the superscript and subscript ink."""
-    
+
     SuperscriptBottomMaxWithSubscriptDeviceTable: DeviceTable | None
     """
     The maximum level to which the (ink) bottom of superscript can be pushed to
     increase the gap between superscript and subscript, before subscript starts
     being moved down.
     """
-    
+
     SpaceAfterScriptDeviceTable: DeviceTable | None
     """Extra white space to be added after each sub/superscript."""
-    
+
     UpperLimitGapMinDeviceTable: DeviceTable | None
     """
     Minimum gap between the bottom of the upper limit, and the top of the base
     operator.
     """
-    
+
     UpperLimitBaselineRiseMinDeviceTable: DeviceTable | None
     """
     Minimum distance between the baseline of an upper limit and the bottom of
     the base operator.
     """
-    
+
     LowerLimitGapMinDeviceTable: DeviceTable | None
     """
     Minimum gap between (ink) top of the lower limit, and (ink) bottom of the
     base operator.
     """
-    
+
     LowerLimitBaselineDropMinDeviceTable: DeviceTable | None
     """
     Minimum distance between the baseline of the lower limit and bottom of the
     base operator.
     """
-    
+
     StackTopShiftUpDeviceTable: DeviceTable | None
     """Standard shift up applied to the top element of a stack."""
-    
+
     StackTopDisplayStyleShiftUpDeviceTable: DeviceTable | None
     """
     Standard shift up applied to the top element of a stack in display style.
     """
-    
+
     StackBottomShiftDownDeviceTable: DeviceTable | None
     """
     Standard shift down applied to the bottom element of a stack. Positive
     values indicate downward motion.
     """
-    
+
     StackBottomDisplayStyleShiftDownDeviceTable: DeviceTable | None
     """
     Standard shift down applied to the bottom element of a stack in display
     style. Positive values indicate downward motion.
     """
-    
+
     StackGapMinDeviceTable: DeviceTable | None
     """
     Minimum gap between bottom of the top element of a stack, and the top of
     the bottom element.
     """
-    
+
     StackDisplayStyleGapMinDeviceTable: DeviceTable | None
     """
     Minimum gap between bottom of the top element of a stack and the top of the
     bottom element in display style.
     """
-    
+
     StretchStackTopShiftUpDeviceTable: DeviceTable | None
     """Standard shift up applied to the top element of the stretch stack."""
-    
+
     StretchStackBottomShiftDownDeviceTable: DeviceTable | None
     """
     Standard shift down applied to the bottom element of the stretch stack.
     Positive values indicate downward motion.
     """
-    
+
     StretchStackGapAboveMinDeviceTable: DeviceTable | None
     """
     Minimum gap between the ink of the stretched element and the ink bottom of
     the element above.
     """
-    
+
     StretchStackGapBelowMinDeviceTable: DeviceTable | None
     """
     Minimum gap between the ink of the stretched element and the ink top of
     the element below.
     """
-    
+
     FractionNumeratorShiftUpDeviceTable: DeviceTable | None
     """Standard shift up applied to the numerator."""
-    
+
     FractionNumeratorDisplayStyleShiftUpDeviceTable: DeviceTable | None
     """Standard shift up applied to the numerator in display style."""
-    
+
     FractionDenominatorShiftDownDeviceTable: DeviceTable | None
     """
     Standard shift down applied to the denominator. Positive values indicate
     downward motion.
     """
-    
+
     FractionDenominatorDisplayStyleShiftDownDeviceTable: DeviceTable | None
     """
     Standard shift down applied to the denominator in display style. Positive
     values indicate downward motion.
     """
-    
+
     FractionNumeratorGapMinDeviceTable: DeviceTable | None
     """
     Minimum tolerated gap between the ink bottom of the numerator and the ink of
     the fraction bar.
     """
-    
+
     FractionNumeratorDisplayStyleGapMinDeviceTable: DeviceTable | None
     """
     Minimum tolerated gap between the ink bottom of the numerator and the ink of
     the fraction bar in display style.
     """
-    
+
     FractionRuleThicknessDeviceTable: DeviceTable | None
     """Thickness of the fraction bar."""
-    
+
     FractionDenominatorGapMinDeviceTable: DeviceTable | None
     """
     Minimum tolerated gap between the ink top of the denominator and the ink of
     the fraction bar.
     """
-    
+
     FractionDenominatorDisplayStyleGapMinDeviceTable: DeviceTable | None
     """
     Minimum tolerated gap between the ink top of the denominator and the ink of
     the fraction bar in display style.
     """
-    
+
     SkewedFractionHorizontalGapDeviceTable: DeviceTable | None
     """
     Horizontal distance between the top and bottom elements of a skewed fraction.
     """
-    
+
     SkewedFractionVerticalGapDeviceTable: DeviceTable | None
     """
     Vertical distance between the ink of the top and bottom elements of a skewed
     fraction.
     """
-    
+
     OverbarVerticalGapDeviceTable: DeviceTable | None
     """Distance between the overbar and the ink top of the base."""
-    
+
     OverbarRuleThicknessDeviceTable: DeviceTable | None
     """Thickness of the overbar."""
-    
+
     OverbarExtraAscenderDeviceTable: DeviceTable | None
     """Extra white space reserved above the overbar."""
-    
+
     UnderbarVerticalGapDeviceTable: DeviceTable | None
     """Distance between underbar and the (ink) bottom of the base."""
-    
+
     UnderbarRuleThicknessDeviceTable: DeviceTable | None
     """Thickness of the underbar."""
-    
+
     UnderbarExtraDescenderDeviceTable: DeviceTable | None
     """Extra white space reserved below the underbar."""
-    
+
     RadicalVerticalGapDeviceTable: DeviceTable | None
     """Space between the ink to of the expression and the bar over it."""
-    
+
     RadicalDisplayStyleVerticalGapDeviceTable: DeviceTable | None
     """
     Space between the ink top of the expression and the bar over it in display
     style.
     """
-    
+
     RadicalRuleThicknessDeviceTable: DeviceTable | None
     """
     Thickness of the radical rule in designed or constructed radical signs.
     """
-    
+
     RadicalExtraAscenderDeviceTable: DeviceTable | None
     """Extra white space reserved above the radical."""
-    
+
     RadicalKernBeforeDegreeDeviceTable: DeviceTable | None
     """
     Extra horizontal kern before the degree of a radical if such be present.
     """
-    
+
     RadicalKernAfterDegreeDeviceTable: DeviceTable | None
     """
     Negative horizontal kern after the degree of a radical if such be present.
     """
-    
+
     def exists(self) -> bool:
         """
         Returns whether the font currently has an underlying math table
@@ -1433,22 +1600,21 @@ class Math:
         will create such a table.
         """
         ...
-    
+
     def clear(self) -> None:
         """Removes any underlying math table from the font."""
         ...
-
 
 class font:
     """
     The font type refers to a fontforge :class:`font` object. It generally contains
     a list of :class:`glyphs <fontforge.glyph>`, an encoding to order those glyphs,
-    a fontname, a list of GPOS/GSUB lookups and many other things. 
-    This type may not be pickled. 
+    a fontname, a list of GPOS/GSUB lookups and many other things.
+    This type may not be pickled.
     """
 
     def __init__(self) -> None:
-        """Creates a new font. """
+        """Creates a new font."""
         ...
 
     # ------------------
@@ -1670,7 +1836,12 @@ class font:
     Can be set to None, a double, or an integer. 
     """
 
-    size_feature: Optional[Union[Tuple[float], Tuple[float, float, float, int, Tuple[Tuple[Union[str, int], str], ...]]]]
+    size_feature: Optional[
+        Union[
+            Tuple[float],
+            Tuple[float, float, float, int, Tuple[Tuple[Union[str, int], str], ...]],
+        ]
+    ]
     """
     The OpenType 'size' feature.
     If only design size is specified, returns a single-element tuple. 
@@ -1733,77 +1904,77 @@ class font:
     @property
     def capHeight(self) -> int:
         """
-        (readonly) Computes the Cap Height (height of capital letters). 
-        A negative number indicates the value could not be computed. 
+        (readonly) Computes the Cap Height (height of capital letters).
+        A negative number indicates the value could not be computed.
         """
         ...
 
     @property
     def cidsubfontcnt(self) -> int:
-        """(readonly) Returns the number of subfonts in this cid-keyed font. """
+        """(readonly) Returns the number of subfonts in this cid-keyed font."""
         ...
 
     @property
     def cidsubfontnames(self) -> Optional[Tuple[str, ...]]:
-        """(readonly) Returns a tuple of the subfont names in this cid-keyed font. """
+        """(readonly) Returns a tuple of the subfont names in this cid-keyed font."""
         ...
 
     @property
     def gpos_lookups(self) -> Tuple[str, ...]:
-        """(readonly) Returns a tuple of all positioning lookup names in the font. """
+        """(readonly) Returns a tuple of all positioning lookup names in the font."""
         ...
 
     @property
     def gsub_lookups(self) -> Tuple[str, ...]:
-        """(readonly) Returns a tuple of all substitution lookup names in the font. """
+        """(readonly) Returns a tuple of all substitution lookup names in the font."""
         ...
 
     @property
     def is_cid(self) -> bool:
-        """(readonly) Indicates whether the font is a cid-keyed font or not. """
+        """(readonly) Indicates whether the font is a cid-keyed font or not."""
         ...
 
     @property
     def layer_cnt(self) -> int:
-        """(readonly) The number of layers in the font. """
+        """(readonly) The number of layers in the font."""
         ...
 
     @property
     def loadState(self) -> int:
-        """(readonly) A bitmask indicating non-fatal errors found when loading the font. """
+        """(readonly) A bitmask indicating non-fatal errors found when loading the font."""
         ...
 
     @property
     def path(self) -> str:
         """
-        (readonly) Returns the name of the file from which the font was read. 
-        For a new font, returns a made up filename like "Untitled1.sfd". 
+        (readonly) Returns the name of the file from which the font was read.
+        For a new font, returns a made up filename like "Untitled1.sfd".
         """
         ...
 
     @property
     def privateState(self) -> int:
-        """(readonly) Checks the (PostScript) Private dictionary and returns a bitmask of common errors. """
+        """(readonly) Checks the (PostScript) Private dictionary and returns a bitmask of common errors."""
         ...
 
     @property
     def sfd_path(self) -> Optional[str]:
-        """(readonly) Returns a string (or None) containing the name of the sfd file associated with this font. """
+        """(readonly) Returns a string (or None) containing the name of the sfd file associated with this font."""
         ...
 
     @property
     def sfnt_names(self) -> Tuple[Tuple[Union[str, int], Union[str, int], str], ...]:
         """
-        (readonly) The strings in the sfnt 'name' table. A tuple of all MS names. 
-        Each name is a tuple of ``(language, strid, string)``. 
+        (readonly) The strings in the sfnt 'name' table. A tuple of all MS names.
+        Each name is a tuple of ``(language, strid, string)``.
         """
         ...
 
     @property
     def xHeight(self) -> int:
         """
-        (readonly) Computes the X Height (height of lower case letters). 
-        A negative number indicates the value could not be computed. 
+        (readonly) Computes the X Height (height of lower case letters).
+        A negative number indicates the value could not be computed.
         """
         ...
 
@@ -1816,16 +1987,16 @@ class font:
         ...
 
     def __contains__(self, name: str) -> bool:
-        """Returns whether the font contains a glyph with the given name. """
+        """Returns whether the font contains a glyph with the given name."""
         ...
 
     def __len__(self) -> int:
-        """The number of glyph slots in the current encoding. """
+        """The number of glyph slots in the current encoding."""
         ...
 
     def __getitem__(self, key: Union[int, str]) -> glyph:
         """
-        If ``key`` is an integer, returns the glyph at that encoding. 
+        If ``key`` is an integer, returns the glyph at that encoding.
         If a string, returns the glyph with that name. May not be assigned to. [cite: 135, 136]
         """
         ...
@@ -1834,8 +2005,10 @@ class font:
     # -- METHODS --
     # ------------------
 
-    def addAnchorClass(self, lookup_subtable_name: str, new_anchor_class_name: str) -> None:
-        """Adds an anchor class to the specified (anchor) subtable. """
+    def addAnchorClass(
+        self, lookup_subtable_name: str, new_anchor_class_name: str
+    ) -> None:
+        """Adds an anchor class to the specified (anchor) subtable."""
         ...
 
     @overload
@@ -1886,7 +2059,7 @@ class font:
     ) -> None: ...
     def addKerningClass(self, *args, **kwargs) -> None:
         """
-        Creates a new subtable and a new kerning class in the named lookup. 
+        Creates a new subtable and a new kerning class in the named lookup.
         This method has multiple signatures for manual kerning, auto-kerning with
         pre-defined classes, auto-kerning with glyph lists, and auto-kerning with
         the font's selection. [cite: 138, 141, 145, 147]
@@ -1898,12 +2071,14 @@ class font:
         new_lookup_name: str,
         type: str,
         flags: Optional[Tuple[str, ...]],
-        feature_script_lang_tuple: Tuple[Tuple[str, Tuple[Tuple[str, Tuple[str, ...]], ...]], ...],
+        feature_script_lang_tuple: Tuple[
+            Tuple[str, Tuple[Tuple[str, Tuple[str, ...]], ...]], ...
+        ],
         after_lookup_name: Optional[str] = None,
     ) -> None:
         """
-        Creates a new lookup with the given name, type and flags. 
-        It will tag it with any indicated features. 
+        Creates a new lookup with the given name, type and flags.
+        It will tag it with any indicated features.
         """
         ...
 
@@ -1914,8 +2089,8 @@ class font:
         after_subtable_name: Optional[str] = None,
     ) -> None:
         """
-        Creates a new subtable within the specified lookup. 
-        If you want to create a contextual subtable, use :meth:`font.addContextualSubtable`. 
+        Creates a new subtable within the specified lookup.
+        If you want to create a contextual subtable, use :meth:`font.addContextualSubtable`.
         """
         ...
 
@@ -1934,9 +2109,9 @@ class font:
         fclassnames: Optional[Tuple[str, ...]] = None,
     ) -> None:
         """
-        Creates a new subtable within the specified contextual lookup. 
-        The ``type`` should be one of "glyph", "class", "coverage" or "reversecoverage". 
-        The ``rule`` specifies a string to match and lookups to apply. 
+        Creates a new subtable within the specified contextual lookup.
+        The ``type`` should be one of "glyph", "class", "coverage" or "reversecoverage".
+        The ``rule`` specifies a string to match and lookups to apply.
         """
         ...
 
@@ -1952,9 +2127,9 @@ class font:
         stem_height_factor: Optional[float] = None,
     ) -> None:
         """
-        For each selected letter, this function will create a corresponding small caps glyph. 
+        For each selected letter, this function will create a corresponding small caps glyph.
         If you set the ``symbol`` keyword to ``True`` it will also create small caps
-        variants of digits and symbols. 
+        variants of digits and symbols.
         """
         ...
 
@@ -1966,8 +2141,8 @@ class font:
         offsets: Tuple[int, ...],
     ) -> None:
         """
-        Changes the kerning class in the named subtable. 
-        The classes arguments are tuples of tuples of glyph names. 
+        Changes the kerning class in the named subtable.
+        The classes arguments are tuples of tuples of glyph names.
         """
         ...
 
@@ -1993,38 +2168,40 @@ class font:
     ) -> None: ...
     def autoKern(self, *args, **kwargs) -> None:
         """
-        This command will automatically generate kerning pairs for the named subtable. 
-        If no glyph lists are specified it will look at all pairs of the glyphs in the selection. 
+        This command will automatically generate kerning pairs for the named subtable.
+        If no glyph lists are specified it will look at all pairs of the glyphs in the selection.
         """
         ...
 
-    def appendSFNTName(self, language: Union[str, int], strid: Union[str, int], string: str) -> None:
+    def appendSFNTName(
+        self, language: Union[str, int], strid: Union[str, int], string: str
+    ) -> None:
         """
-        Adds a new (or replaces an old) string in the sfnt 'name' table. 
-        Language may be either the English name of the language/locale or its numeric ID. 
-        Strid may be one of the (english) string names (Copyright, etc.) or its numeric value. 
+        Adds a new (or replaces an old) string in the sfnt 'name' table.
+        Language may be either the English name of the language/locale or its numeric ID.
+        Strid may be one of the (english) string names (Copyright, etc.) or its numeric value.
         """
         ...
 
     def buildOrReplaceAALTFeatures(self) -> None:
         """
         Removes any existing AALT features and creates new ones containing all
-        possible single and alternate substutions available for each glyph. 
+        possible single and alternate substutions available for each glyph.
         """
         ...
 
     def close(self) -> None:
         """
         Frees memory for the current font.
-        Warning: Any python references to it will become invalid. 
+        Warning: Any python references to it will become invalid.
         """
         ...
 
     def createChar(self, uni: int, name: Optional[str] = None) -> glyph:
         """
-        Create (and return) a character at the specified unicode codepoint. 
+        Create (and return) a character at the specified unicode codepoint.
         To create a glyph with no unicode codepoint, set the first argument to -1
-        and specify a name. 
+        and specify a name.
         """
         ...
 
@@ -2039,81 +2216,104 @@ class font:
         layer: Optional[Union[str, int]] = None,
     ) -> None:
         """
-        Generates a font. The type is determined by the font's extension. 
-        Flags can be 'apple', 'opentype', 'no-hints', etc. 
+        Generates a font. The type is determined by the font's extension.
+        Flags can be 'apple', 'opentype', 'no-hints', etc.
         """
         ...
 
-    def mergeFonts(self, filename: Union[str, font], preserveCrossFontKerning: Optional[bool] = None) -> None:
-        """Merges the font in the file into the current font. """
+    def mergeFonts(
+        self,
+        filename: Union[str, font],
+        preserveCrossFontKerning: Optional[bool] = None,
+    ) -> None:
+        """Merges the font in the file into the current font."""
         ...
 
     def reencode(self, encoding: str, force: Optional[bool] = None) -> None:
-        """Reencodes the current font into the given encoding. """
+        """Reencodes the current font into the given encoding."""
         ...
 
     def revert(self) -> None:
         """
-        Reloads the font from the disk. 
+        Reloads the font from the disk.
         Warning: If you have any references to glyphs which live in the font those
         references will no longer be valid, and using them will cause crashes. [cite: 342, 343]
         """
         ...
 
     def save(self, filename: Optional[str] = None) -> None:
-        """Saves the font to an sfd file. """
+        """Saves the font to an sfd file."""
         ...
 
     # --- Selection-Based Methods ---
 
     def addExtrema(self) -> None:
-        """If a curve in any selected glyph lacks a point at a significant extremum, this command will add one. """
+        """If a curve in any selected glyph lacks a point at a significant extremum, this command will add one."""
         ...
 
     def autoHint(self) -> None:
-        """Generates PostScript hints for all selected glyphs. """
+        """Generates PostScript hints for all selected glyphs."""
         ...
 
     def autoInstr(self) -> None:
-        """Generates TrueType instructions for all selected glyphs. """
+        """Generates TrueType instructions for all selected glyphs."""
         ...
 
     def build(self) -> None:
         """
         If any selected character is a composite, this command clears it and inserts
-        references to its components. 
+        references to its components.
         """
         ...
 
     def copy(self) -> None:
-        """Copies all selected glyphs into FontForge's internal clipboard. """
+        """Copies all selected glyphs into FontForge's internal clipboard."""
         ...
 
     def cut(self) -> None:
-        """Copies all selected glyphs into FontForge's internal clipboard and then clears them. """
+        """Copies all selected glyphs into FontForge's internal clipboard and then clears them."""
         ...
 
     def paste(self) -> None:
-        """Pastes the clipboard into the selected glyphs, removing what was there before. """
+        """Pastes the clipboard into the selected glyphs, removing what was there before."""
         ...
 
     def removeOverlap(self) -> None:
-        """Removes overlapping areas in all selected glyphs. """
+        """Removes overlapping areas in all selected glyphs."""
         ...
 
     def round(self, factor: Optional[float] = None) -> None:
         """
-        Rounds the x and y coordinates of each point in all selected glyphs. 
-        If factor is specified: new_coord = round(factor*old-coord)/factor. 
+        Rounds the x and y coordinates of each point in all selected glyphs.
+        If factor is specified: new_coord = round(factor*old-coord)/factor.
         """
         ...
 
     @overload
-    def stroke(self, type: str, width: float, CAP: Optional[str] = None, JOIN: Optional[str] = None, ANGLE: Optional[float] = None, **kwargs) -> None: ...
+    def stroke(
+        self,
+        type: str,
+        width: float,
+        CAP: Optional[str] = None,
+        JOIN: Optional[str] = None,
+        ANGLE: Optional[float] = None,
+        **kwargs,
+    ) -> None: ...
     @overload
-    def stroke(self, type: str, width: float, minor_width: float, ANGLE: Optional[float] = None, CAP: Optional[str] = None, JOIN: Optional[str] = None, **kwargs) -> None: ...
+    def stroke(
+        self,
+        type: str,
+        width: float,
+        minor_width: float,
+        ANGLE: Optional[float] = None,
+        CAP: Optional[str] = None,
+        JOIN: Optional[str] = None,
+        **kwargs,
+    ) -> None: ...
     @overload
-    def stroke(self, type: str, width: float, height: float, angle: float, **kwargs) -> None: ...
+    def stroke(
+        self, type: str, width: float, height: float, angle: float, **kwargs
+    ) -> None: ...
     @overload
     def stroke(self, type: str, contour: contour, **kwargs) -> None: ...
     def stroke(self, *args, **kwargs) -> None:
@@ -2124,9 +2324,13 @@ class font:
         """
         ...
 
-    def transform(self, matrix: Tuple[float, float, float, float, float, float], flags: Optional[Tuple[str, ...]] = None) -> None:
+    def transform(
+        self,
+        matrix: Tuple[float, float, float, float, float, float],
+        flags: Optional[Tuple[str, ...]] = None,
+    ) -> None:
         """
-        Transforms all selected glyphs by the matrix. 
+        Transforms all selected glyphs by the matrix.
         Flags include 'activeLayer', 'guide', 'noWidth', 'round', etc. [cite: 400, 401, 402, 403]
         """
         ...
