@@ -12,12 +12,27 @@ from typing import (
     Iterator,
     overload,
     Sequence,
+    TypedDict,
     Callable,
+    Final,
 )
 
 # Module attributes
 
-hooks: dict[str, Callable[[Union[font, glyph]], Any]]
+class GlobalHooks(TypedDict):
+    newFontHook: Callable[[font], None]
+    """
+    This function will be called when a new font has been created.
+    """
+
+    loadFontHook: Callable[[font], None]
+    """
+    This function will be called when a font is loaded from disk.
+    (if a font has an "initScriptString" entry in its persistent
+    dictionary, that script will be invoked before this function).
+    """
+
+hooks: GlobalHooks
 """
 A dictionary which the user may fill to associate certain FontForge
 events with a python function to be run when those events happen.
@@ -25,37 +40,60 @@ The function will be passed the font (or possibly glyph) for which
 the relevant event occurred.
 """
 
-splineCorner: int
+splineCorner: Final = 0
 """A point type enumeration of value 0"""
 
-splineCurve: int
+splineCurve: Final = 1
 """A point type enumeration of value 1"""
 
-splineHVCurve: int
+splineHVCurve: Final = 2
 """A point type enumeration of value 2"""
 
-splineTangent: int
+splineTangent: Final = 3
 """A point type enumeration of value 3"""
 
-spiroG4: int
-"""A spiro point type enumeration of value 1. A Spiro G4 curve point"""
+spiroG4: Final = 1
+"""A spiro point type enumeration of value 1.
 
-spiroG2: int
-"""A spiro point type enumeration of value 2. A Spiro G2 curve point"""
+A Spiro G4 curve point"""
 
-spiroCorner: int
-"""A spiro point type enumeration of value 3. A Spiro corner point"""
+spiroG2: Final = 2
+"""
+A spiro point type enumeration of value 2.
 
-spiroLeft: int
-"""A spiro point type enumeration of value 4. A Spiro left "tangent" point"""
+A Spiro G2 curve point
+"""
 
-spiroRight: int
-"""A spiro point type enumeration of value 5. A Spiro right "tangent" point"""
+spiroCorner: Final = 3
+"""
+A spiro point type enumeration of value 3.
 
-spiroOpen: int
-"""A spiro point type enumeration of value 6. This may only be used on the first point in a spiro tuple. It indicates that the tuple describes an open contour."""
+A Spiro corner point
+"""
 
-unspecifiedMathValue: Any
+spiroLeft: Final = 4
+"""
+A spiro point type enumeration of value 4.
+
+A Spiro left "tangent" point
+"""
+
+spiroRight: Final = 5
+"""
+A spiro point type enumeration of value 5.
+
+A Spiro right "tangent" point
+"""
+
+spiroOpen: Final = 6
+"""
+A spiro point type enumeration of value 6.
+
+This may only be used on the first point in a spiro tuple. It indicates that
+the tuple describes an open contour.
+"""
+
+unspecifiedMathValue: Final
 """A constant, used when the value is unspecified"""
 
 # Module functions
