@@ -1030,34 +1030,79 @@ def askMulti(
 
 # Point class
 class point:
-    """Creates a new point. Optionally specifying its x,y location, on-curve status and selected status."""
-
-    x: float
-    y: float
-    on_curve: bool
-    selected: bool
-    type: int
-    interpolated: bool
-    name: str
-
     def __init__(
         self,
-        x: Optional[float] = ...,
-        y: Optional[float] = ...,
-        on_curve: bool = ...,
-        type: int = ...,
-        selected: bool = ...,
-    ) -> None: ...
-    def dup(self) -> "point":
+        x: float = 0,
+        y: float = 0,
+        on_curve: bool = True,
+        type: Literal[0, 1, 2, 3] = 0,
+        selected: bool = False,
+    ) -> None:
+        """
+        Creates a new point. Optionally specifying its x,y location, on-curve status
+        and selected status. x and y must be supplied together,
+        """
+        ...
+
+    x: float
+    """The x location of the point"""
+
+    y: float
+    """The y location of the point"""
+
+    on_curve: bool
+    """Whether this is an on curve point or an off curve point (a control point)"""
+
+    selected: bool
+    """
+    The value of this member also determines the selected status in the UI on
+    setting a layer. FontForge usually retains the selection status of any point
+    between and that of an on-curve point when saving, whether or not a UI is present.
+    """
+
+    type: Literal[0, 1, 2, 3]
+    """
+    For an on-curve point, its FontForge point type.
+    
+    There are four types: :data:`fontforge.splineCorner`, :data:`fontforge.splineCurve`,
+    :data:`fontforge.splineHVCurve` and :data:`fontforge.splineTangent`.
+    
+    A new point will have type :data:`splineCorner`. When assigning a layer to
+    :attr:`glyph.layers`, :attr:`glyph.background` or :attr:`glyph.foreground`
+    the type value is ignored. To influence the type FontForge will associate
+    with an on-curve point use :meth:`glyph.setLayer`.
+    """
+
+    interpolated: bool
+    """
+    ``True`` if FontForge treats this (quadratic, on-curve) point as interpolated.
+    All interpolated points should be mid-way between their off-curve points,
+    but some such points are not treated as interpolated. This flag is ignored
+    when setting a layer.
+    
+    Older versions of FontForge omitted interpolated points. This was equivalent
+    to executing the following on a contour: ::
+    
+       c[:] = [ p for p in c if not p.interpolated ]
+    
+    This member will be false for a point marked "Never interpolate" in FontForge
+    but there is currently no way of setting or preserving that mark when a layer
+    is replaced using the Python interfaces. A "round trip" through a Python
+    contour therefore clears that mark on any points that have it, and FontForge
+    treats mid-placed and omitted :attr:`on_curve` points as equivalent.
+    """
+
+    name: str
+    """The point name (generally there is no name)"""
+
+    def dup(self) -> point:
         """Returns a copy of the current point."""
         ...
+
     def transform(
-        self, matrix: Tuple[float, float, float, float, float, float]
+        self, matrix: tuple[float, float, float, float, float, float]
     ) -> None:
         """Transforms the point by the transformation matrix"""
-        ...
-    def __reduce__(self) -> Any:
-        """This function allows the pickler to work on this type."""
         ...
 
 # Contour class
