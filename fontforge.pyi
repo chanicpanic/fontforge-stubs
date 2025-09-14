@@ -15,7 +15,12 @@ from typing import (
     TypedDict,
     Callable,
     Final,
+    Literal,
+    Iterable,
+    TypeVar,
 )
+
+T = TypeVar("T")
 
 # Module attributes
 
@@ -97,6 +102,7 @@ unspecifiedMathValue: Final
 """A constant, used when the value is unspecified"""
 
 # Module functions
+
 def getPrefs(pref_name: str) -> Any:
     """returns the value of the named preference item"""
     ...
@@ -125,8 +131,12 @@ def readOtherSubrsFile(filename: str) -> None:
     """Sets the type1 PostScript OtherSubrs to the stuff found in the file."""
     ...
 
-def loadEncodingFile(filename: str, encname: Optional[str] = ...) -> Optional[str]:
-    """Loads an encoding file, returns the name of the encoding or ``None``."""
+def loadEncodingFile(filename: str, encname: str | None = None) -> str | None:
+    """
+    Loads an encoding file, returns the name of the encoding or ``None``. When
+    loading encodings in Unicode consortium format, an encname has to be specified
+    or the encoding will be ignored and ``None`` will be returned.
+    """
     ...
 
 def loadNamelist(filename: str) -> None:
@@ -138,67 +148,154 @@ def loadNamelistDir(dirname: str) -> None:
     ...
 
 def preloadCidmap(filename: str, registry: str, order: str, supplement: int) -> None:
-    """Loads a FontForge cidmap file (first three args are strings, last is an integer)"""
+    """Loads a FontForge cidmap file"""
     ...
 
 def printSetup(
-    type: str,
-    printer_or_cmd_or_file: Optional[str] = ...,
-    width: Optional[float] = ...,
-    height: Optional[float] = ...,
+    type: Literal["lp", "lpr", "ghostview", "command", "ps-file", "pdf-file"],
+    printer_or_cmd_or_file: str | None = None,
+    width: float | None = None,
+    height: float | None = None,
 ) -> None:
     """
     Prepare to print a font sample.
-    The first argument may be one of: "lp", "lpr", "ghostview", "command", "ps-file", "pdf-file".
+    The first argument may be one of:
+
+    lp:
+
+      Queues postscript output to the printer using lp.
+      You may use the optional second argument to specify the printer name.
+
+    lpr:
+
+      Queues postscript output to the printer using lpr.
+      You may use the optional second argument to specify the printer name.
+
+    ghostview:
+
+      Displays the output using ghostview (or gv). The second argument is ignored.
+
+    command:
+
+      Use a custom shell command to print the output.
+      The second argument should contain the command and its arguments.
+
+    ps-file:
+
+      Dump the postscript output to a file. The second argument specifies the filename.
+
+    pdf-file:
+
+      Dump the output as pdf to a file. The second argument specifies the filename.
+
+    The third and fourth arguments are optional and specify the page size
+    (in points) for the output. The third argument is the page width and the
+    fourth is the height. These settings remain until changed.
     """
     ...
 
-def nameFromUnicode(uni: int, namelist: Optional[Any] = ...) -> str:
-    """Finds the glyph name associated with a given unicode codepoint."""
+def nameFromUnicode(uni: int, namelist: str | None = None) -> str:
+    """
+    Finds the glyph name associated with a given unicode codepoint. If a
+    namelist is specified the name will be taken from that.
+    """
     ...
 
 def UnicodeAnnotationFromLib(n: int) -> str:
-    """Returns the Unicode Annotations for this value as described by www.unicode.org."""
+    """
+    Returns the Unicode Annotations for this value as described by
+    www.unicode.org. If there is no unicode annotation for this value, or no
+    library available, then return empty string "". It can execute with no
+    current font.
+    """
     ...
 
 def UnicodeBlockCountFromLib(n: int) -> int:
-    """Return the number of Unicode Blocks as described by www.unicode.org."""
+    """
+    Return the number of Unicode Blocks as described by www.unicode.org.
+    Currently, the blocks are {0..233}, spanning unicode values {uni0..uni10FFFF}.
+    If there is no value, then return -1. This can execute with no current font.
+    """
     ...
 
 def UnicodeBlockEndFromLib(n: int) -> int:
-    """Returns the Unicode Block end value as described by www.unicode.org."""
+    """
+    Returns the Unicode Block end value as described by www.unicode.org.
+    Currently, the blocks are {0..233}, spanning unicode values {uni0..uni10FFFF}.
+    If there is no value, then return -1. This can execute with no current font.
+    """
     ...
 
 def UnicodeBlockNameFromLib(n: int) -> str:
-    """Returns the Unicode Block Name as described by www.unicode.org."""
+    """
+    Returns the Unicode Block Name as described by www.unicode.org.
+    Currently, the blocks are {0..233}, spanning unicode values {uni0..uni10FFFF}.
+    If there is no value, then return empty string "". This can execute with no
+    current font.
+    """
     ...
 
 def UnicodeBlockStartFromLib(n: int) -> int:
-    """Returns the Unicode Block start value as described by www.unicode.org."""
+    """
+    Returns the Unicode Block start value as described by www.unicode.org.
+    Currently, the blocks are {0..233}, spanning unicode values {uni0..uni10FFFF}.
+    If there is no value, then return -1. This can execute with no current font.
+    """
     ...
 
 def unicodeFromName(glyphname: str) -> int:
-    """Looks up glyph name in its dictionary and if it is associated with a unicode code point returns that number. Otherwise it returns -1"""
+    """
+    Looks up glyph name in its dictionary and if it is associated with a unicode
+    code point returns that number. Otherwise it returns -1
+    """
     ...
 
 def UnicodeNameFromLib(n: int) -> str:
-    """Returns the Unicode Name for this value as described by www.unicode.org."""
+    """
+    Returns the Unicode Name for this value as described by www.unicode.org.
+    If there is no unicode name for this value, then return empty string "".
+    It can execute with no current font.
+    """
     ...
 
 def UnicodeNamesListVersion() -> str:
-    """Return the Unicode Nameslist Version (as described by www.unicode.org)."""
+    """
+    Return the Unicode Nameslist Version (as described by www.unicode.org).
+
+    This can execute with no current font.
+    """
     ...
 
 def UnicodeNames2FromLib(val: int) -> str:
-    """This function returns the formal alias for the unicode value given, or an empty string if there is no such alias."""
+    """
+    Errors and corrections happen, therefore names can be corrected in the next
+    Unicode Nameslist version. This function returns the formal alias for the
+    unicode value given, or an empty string if there is no such alias.
+    """
     ...
 
 def scriptFromUnicode(n: int) -> str:
-    """Return the script tag for the given Unicode codepoint."""
+    """
+    Return the script tag for the given Unicode codepoint. So, for ``ord('Q')``,
+    it would return ``latn``. This is most useful with :meth:`font.addLookup()`,
+    like: ::
+
+       # Add a `mark` lookup for an arbitrary glyph...
+       script = fontforge.scriptFromUnicode(glyph.unicode)
+       font.addLookup("l1", "gpos_mark2base", None, (("mark",((script,("dflt")),)),))
+       font.addLookupSubtable("l1", "l1-1")
+       font.addAnchorClass("l1-1", "top")
+    """
     ...
 
 def SpiroVersion() -> str:
-    """Returns the version of LibSpiro available to FontForge."""
+    """
+    Returns the version of LibSpiro available to FontForge. Versions 0.1 to 0.5
+    do not have a method to indicate version numbers, but there is a limited
+    method to estimate versions {'0.0'..'0.5'}. '0.0' if FontForge has no LibSpiro
+    available. '0.1' if LibSpiro 20071029 is available. '0.2' if LibSpiro 0.2 to
+    0.5 is available. LibSpiro 0.6 and higher reports back its version available.
+    """
     ...
 
 def version() -> str:
@@ -206,63 +303,244 @@ def version() -> str:
     ...
 
 def loadPlugins() -> None:
-    """Discovers and loads FontForge python plugins according to the current configuration, if not already loaded."""
+    """
+    Discovers and loads FontForge python plugins according to the current
+    configuration, if not already loaded. This is primarily intended when
+    importing FontForge into a python process but can also be when loading
+    is delayed by the ``-skippyplug`` command-line flag.
+    """
     ...
 
-def getPluginInfo() -> List[Dict[str, Any]]:
-    """Returns a list of dictionary objects describing configured and/or discovered plugins."""
+class PluginInfo(TypedDict):
+    """
+    Information describing configured and/or discovered plugins.
+
+    Some of these values will be ``None`` if the plugin has not been loaded
+    and a few more will be ``None`` if the plugin was not discovered.
+    """
+
+    name: str | None
+    """
+    The name of the plugin as defined by its author.
+    """
+
+    enabled: Literal["On", "Off", "New"] | None
+    """
+    "On" if the plugin is enabled, "Off" if it is disabled, "New" if the
+    user has not yet configured this plugin.
+    """
+
+    status: Literal["Not Found", "Couldn't Load", "Couldn't Start", "Unloaded"] | None
+    """
+    "Not Found" if the plugin is configured but was not discovered.
+    "Couldn't Load" if the plugin was discovered and its load status is
+    "On" but the relevant module could not be imported. "Couldn't Start"
+    if the module could be imported but the initialization function
+    was missing or returned an error. "Unloaded" if the plugin was discovered
+    and its load status is "On" but loading has not been attempted (most
+    likely because of a configuration change or startup flag). ``None``
+    if the plugin was discovered but has load status "Off" or New" or if
+    it was loaded successfully.
+    """
+
+    package_name: str | None
+    """
+    The name of the Python package containing the plugin.
+    """
+
+    module_name: str | None
+    """
+    The name of the Python module carrying the initialization function.
+    """
+
+    attrs: Any | None
+    """
+    Additional sub-objects or properties of the module needed to pick
+    out the location of the initialization function (if any).
+    """
+
+    prefs: bool | None
+    """
+    A boolean indicating whether the plugin has configurable preferences.
+    """
+
+    package_url: str | None
+    """
+    The "Home-page" URL listed in the package, if any.
+    """
+
+    summary: str | None
+    """
+    The "Summary" line in the package's metadata with a brief description
+    of the plugin.
+    """
+
+def getPluginInfo() -> list[PluginInfo]:
+    """
+    Returns a list of dictionary objects describing configured and/or discovered
+    plugins. Configured plugins are listed first in loading order followed by
+    any newly discovered plugins.
+    """
     ...
 
-def configurePlugins(plugins: List[Dict[str, Any]]) -> None:
-    """This method allows plugins to be reconfigured using the Python API."""
+class PluginConfiguration(TypedDict):
+    name: str
+    """
+    The name of the plugin as defined by its author.
+    """
+
+    enabled: Literal["On", "Off"]
+    """
+    "On" if the plugin is enabled, "Off" if it is disabled.
+    """
+
+def configurePlugins(plugins: Iterable[PluginConfiguration]) -> None:
+    """
+    This method allows plugins to be reconfigured using the Python API. It
+    accepts a list (or any other iterable object) of dictionaries similar to
+    those provided by ``getPluginInfo()`` except that only the ``name`` and
+    ``enabled`` fields are examined. The ``name`` value must be the name of a
+    known (currently configured or discovered) plugin.  The ``enabled`` value
+    must be "On" or "Off". The configuration will be updated to correspond to
+    the listed plugins in the specified order.
+
+    If a plugin that was *not* discovered is missing from the list it will be
+    removed from the configuration. Any missing but discovered plugins will
+    be added to the end of the configuration list with load status "New".
+    """
     ...
 
 def runInitScripts() -> None:
-    """Runs the system or user initialization scripts, if not already run."""
+    """
+    Runs the system or user initialization scripts, if not already run. This is
+    primarily intended when importing FontForge into a python process.
+    """
     ...
 
-def scriptPath() -> Tuple[str, ...]:
+def scriptPath() -> tuple[str, ...]:
     """Returns a tuple listing the directory paths which are searched for python scripts during FontForge initialization."""
     ...
 
-def fonts() -> Tuple["font", ...]:
+def fonts() -> tuple[font, ...]:
     """Returns a tuple of all fonts currently loaded into FontForge for editing"""
     ...
 
-def activeFont() -> Optional["font"]:
-    """Returns the font that was active at the time a script was invoked from the UI, otherwise None."""
+def activeFont() -> font | None:
+    """
+    If the script were invoked from the File->Execute Script... dialog, or
+    invoked by a menu item in the font view, this returns the font that was
+    active at the time. Otherwise it returns ``None``.
+    """
     ...
 
-def activeGlyph() -> Optional["glyph"]:
-    """Returns the glyph that was active at the time a script was invoked from the UI, otherwise None."""
+def activeGlyph() -> glyph | None:
+    """
+    If the script were invoked from the File->Execute Script... dialog or a menu
+    item from an outline glyph window or a glyph import/export command this
+    returns the glyph that was active at the time. Otherwise it returns ``None``.
+    """
     ...
 
 def activeLayer() -> int:
-    """This returns the currently active layer as an integer."""
+    """
+    This returns the currently active layer as an integer between 0 (inclusive)
+    and the font/glyph's layer count (exclusive). It may also be set to -1 if the
+    current glyph window is displaying the font's guideline layer.
+    """
     ...
 
-def fontsInFile(filename: str) -> Tuple[str, ...]:
-    """Returns a tuple of all font names found in the specified file."""
+def fontsInFile(filename: str) -> tuple[str, ...]:
+    """
+    Returns a tuple of all font names found in the specified file. The tuple may
+    be empty if FontForge couldn't find any.
+    """
     ...
 
-def open(filename: str, flags: Union[int, Tuple[str, ...]] = ...) -> "font":
-    """Opens a filename and returns the font it contains (if any)."""
+def open(
+    filename: str,
+    flags: tuple[
+        Literal[
+            "fstypepermitted", "allglyphsinttc", "fontlint", "hidewindow", "alltables"
+        ],
+        ...,
+    ]
+    | int
+    | None = None,
+) -> "font":
+    """
+    Opens a filename and returns the font it contains (if any). The optional
+    ``flags`` argument can be string tuple or integer combination of the
+    following flags:
+
+    fstypepermitted (1)
+
+      The user has the appropriate license to examine the font no matter what
+      the fstype setting is.
+
+    allglyphsinttc (4)
+
+      Load all glyphs from the 'glyf' table of a ttc font (rather than only the
+      glyphs used in the font picked).
+
+    fontlint (8)
+
+      Report more error conditions.
+
+    hidewindow (16)
+
+      Do not create a view window for this font even if the UI is active.
+
+      Note:
+
+        This option supports efficient bulk processing of fonts in scripts run
+        through the UI but using it can be tricky. Open fonts will be listed at
+        the bottom of the "Window" menu but choosing them will have no effect.
+
+        If some fonts are not closed you may need to "force-quit" the
+        application using your OS.
+
+    alltables (32)
+
+      Retain all recognized font tables that do not have a native format.
+    """
     ...
 
 def parseTTInstrs(string: str) -> bytes:
-    """Returns a binary string each byte of which corresponds to a truetype instruction."""
+    """
+    Returns a binary string each byte of which corresponds to a truetype
+    instruction. The input string should contain a set of instruction names as ::
+
+       "SRP0 MIRP[min,rnd,black]"
+    """
     ...
 
 def unParseTTInstrs(sequence: bytes) -> str:
     """Reverse of parseTTInstrs. Converts a binary string into a human readable string."""
     ...
 
-def unitShape(n: int) -> "contour":
-    """Returns a closed contour which is a regular n-gon."""
+def unitShape(n: int) -> contour:
+    """
+    Returns a closed contour which is a regular n-gon. The contour will be
+    inscribed in the unit circle. If n is negative, then the contour will be
+    circumscribed around the unit circle. A value of 0 will produce a unit circle.
+    If n==1 it is treated as if n were -4 -- a circumscribed square where each
+    side is 2 units long (this is for historical reasons). Behavior is undefined
+    for n=2,-1,-2.
+    """
     ...
 
-def registerGlyphSeparationHook(hook: Optional[Callable]) -> None:
-    """Registers a python routine which FontForge will call to figure out the optical separation between two glyphs."""
+def registerGlyphSeparationHook[T](
+    hook: Callable[[glyph, glyph, Any, T | None], int] | None = None,
+    arg: T | None = None,
+) -> None:
+    """
+    The GlyphSeparationHook is a python routine which FontForge will call when
+    it wants to figure out the optical separation between two glyphs. If you
+    never call this, or if you call it with a value of ``None`` FontForge will
+    use a built-in default. This routine gets called during AutoWidth, AutoKern,
+    and computing the optical left and right side bearings (for 'lfbd' and 'rtbd'
+    features).
+    """
     ...
 
 # User Interface Module Functions
