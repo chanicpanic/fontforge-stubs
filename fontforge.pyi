@@ -18,6 +18,12 @@ from typing import (
     Literal,
     Iterable,
     TypeVar,
+    Hashable,
+    TypeAlias,
+)
+
+from typing_extensions import (
+    NotRequired,
 )
 
 T = TypeVar("T")
@@ -544,104 +550,482 @@ def registerGlyphSeparationHook[T](
     ...
 
 # User Interface Module Functions
+
 def hasUserInterface() -> bool:
     """Returns ``True`` if this session of FontForge has a user interface"""
     ...
 
 @overload
-def registerMenuItem(
-    callback: Callable,
-    enable: Callable,
-    data: Any,
-    context: str,
-    hotkey: str,
-    submenu_names: Tuple[Union[str, Tuple[str, ...]], ...],
-    name: Union[str, Tuple[str, ...]],
+def registerMenuItem[T](
+    callback: Callable[[T | None, glyph | font], None],
+    enable: Callable[[T | None, glyph | font], bool] | None,
+    data: T | None,
+    context: Literal["Font", "Glyph"] | tuple[Literal["Font"], Literal["Glyph"]],
+    hotkey: str | None,
+    *submenu_names: str | tuple[str, str] | tuple[str, str, str],
+    name: str | tuple[str, str] | tuple[str, str, str],
 ) -> None: ...
 @overload
-def registerMenuItem(
-    callback: Callable,
-    enable: Optional[Callable] = ...,
-    data: Optional[Any] = ...,
-    context: str = ...,
-    hotkey: Optional[str] = ...,
-    name: Union[str, Tuple[str, ...]] = ...,
-    submenu: Optional[Union[str, Tuple[str, ...], List[Any]]] = ...,
+def registerMenuItem[T](
+    callback: Callable[[T | None, glyph | font], None],
+    enable: Callable[[T | None, glyph | font], bool] | None = None,
+    data: T | None = None,
+    context: Literal["Font", "Glyph"] | tuple[Literal["Font"], Literal["Glyph"]] = ...,
+    hotkey: str | None = None,
+    name: str | tuple[str, str] | tuple[str, str, str] = ...,
+    *,
+    submenu: str
+    | tuple[str, str]
+    | tuple[str, str, str]
+    | list[str | tuple[str, str] | tuple[str, str, str]]
+    | None = None,
     keyword_only: bool = False,
 ) -> None: ...
 @overload
 def registerMenuItem(
-    context: str,
-    divider: bool,
-    submenu: Optional[Union[str, Tuple[str, ...], List[Any]]] = ...,
+    *,
+    context: Literal["Font", "Glyph"] | tuple[Literal["Font"], Literal["Glyph"]],
+    divider: Literal[True],
+    submenu: str
+    | tuple[str, str]
+    | tuple[str, str, str]
+    | list[str | tuple[str, str] | tuple[str, str, str]]
+    | None = None,
 ) -> None: ...
 def registerMenuItem(*args, **kwargs) -> None:
-    """Adds a menu item to the FontForge menu(s) specified by the ``context`` parameter."""
+    """
+    If FontForge has a user interface this will add this menu item to the
+    FontForge menu(s) specified by the ``context`` parameter. This second
+    keyword interface is explained in the ``divider`` section.
+
+    Note: The positional interface is forward-compatible with earlier
+    verions of FontForge.
+
+    callback:
+
+      This is the function that will be called when the menu item is activated.
+      It will be passed two arguments, the first is the data value specified
+      here (which defaults to ``None``) and the second is a :class:`fontforge.glyph`
+      or :class:`fontforge.font` object (depending on the ``context``).
+      The callback's return value is ignored.
+
+    enable:
+
+      When specified this function is called with the same arguments as ``callback``
+      right before the menu or submenu is diplayed. When it returns ``True``
+      the menu item will be enabled and when it returns ``False`` it will be
+      disabled. (When ``enable`` is ``None`` the menu item is always enabled.)
+
+    data:
+
+      ``data`` can be whatever you want; it defaults to ``None``. FontForge
+      passes it to both of the above functions. It can be used to provide
+      context or default arguments for the function (so that one function can
+      be used for multiple menu items.)
+
+    context:
+
+      Currently this can the string ``"Font"``, the string ``"Glyph"``
+      or the tuple ``("Font", "Glyph")``). ``"Font"`` will add the menu item
+      to the FontView "Tools" menu or its submenu, while ``"Glyph"`` will
+      add it to the CharView tools menu or its submenu.
+
+    hotkey:
+
+      ``hotkey`` must be either ``None`` or a string in hotkey format
+      Because hotkeys are a "limited resource" this string is only a `suggestion`;
+      it has no effect when the specified HotKey is already taken.
+      Therefore, before picking a candidate HotKey you should at least verify
+      that it is not already used by the relevant window in FontForge.
+
+      Even when the specified HotKey is taken a user can still specify their
+      own in the HotKeys file. You can make this easier to do, now and in the
+      future, by providing the full triplet of names for each "level" using
+      the current interface.
+
+    name:
+
+      ``name`` can be a string but ideally it is a tuple of three strings
+      ``(localized_name, english_name, identifier_string)`` or of two strings
+      ``(english_name, identifier_string)``. Use the three-tuple version when
+      your plugin or other extension is localized and the two-tuple version
+      when it is not localized or the user has configured the base locale.
+
+      Note: The ``english_name`` and ``localized_name`` can and should
+      include a *mnemonic*, picked out by a leading underscore. However,
+      mnemonics at the top level (so the first ``submenu`` name or the ``name``
+      if ``submenu`` is ``None``) are taken as a suggestion, similar to the
+      ``hotkey`` argument.
+
+      The ``identifier_string`` should be a single alphanumeric (plus
+      underscores, but no spaces) string to identify this menu item. In the
+      future this will serve as the representation of the menu item in menu
+      configuration files, allowing a user or administrator to put the item
+      where they like. It should include the name of your plugin or an
+      abbreviation of it. For a plugin called "Feature File Helpers" and an
+      item with (English) name "Save Fragment" a reasonable option would be
+      "FeatFileHelp_SaveFragment". (This is for the future, as configurable
+      menus are not yet supported by FontForge.)
+
+    submenu:
+
+      Note: ``submenu`` is a keyword-only argument.
+
+      ``submenu`` can be any of: ``None``, a string, a two-tuple or three-tuple
+      as with ``name``, or a Python *list* of any of these, with each
+      specifying a level of sub-menu. (You cannot specify muitple levels of
+      submenu with a tuple, as this would be ambiguous.) The tuple elements are
+      analogous to ``name``: a three-tuple of ``(localized_name, english_name,
+      identifier_string)``, a two-tuple of ``(english_name,
+      identifier_string)``, or a string which is treated as the
+      ``localized_name``. Submenus can and should also specify a *mnemonic*.
+
+      In the future the ``identfier_string`` will allow a whole submenu to be
+      moved to a different location in the menu hierarchy.
+
+    submenu_names:
+
+      When using the positional interface, each of these "intermediate" entries
+      can be a three-tuple, two-tuple, or string, corresponding to an entry
+      in the ``submenu`` list.
+
+    keyword_only:
+
+      When ``keyword_only`` is ``False`` (the default) the function will attempt
+      to fall back to the positional interface and any reported errors will be
+      relative to that interface. If you're having trouble with keyword parameters
+      set ``keyword_only`` to ``True`` to see a more specific error message.
+
+    divider:
+
+      This special form of the function adds a horizontal line to the menu.
+      The ``context`` keyword is required and ``divider`` must be set to ``True``.
+      If the ``submenu`` keyword is omitted the divider is added to the top level.
+    """
     ...
 
-def registerImportExport(
-    import_function: Optional[Callable],
-    export_function: Optional[Callable],
-    data: Any,
+def registerImportExport[T](
+    import_function: Callable[[T | None, glyph, str, bool], None] | None,
+    export_function: Callable[[T | None, glyph, str], None] | None,
+    data: T | None,
     name: str,
     extension: str,
-    extension_list: Optional[str] = ...,
+    extension_list: str | None = None,
 ) -> None:
-    """This will add the capability to import or export files of a given type."""
+    """
+    This will add the capability to import or export files of a given type,
+    presumably a way of specifying the splines in a given glyph.
+
+    import_function:
+
+       The function to call to import a file into a glyph. It will be called
+       with: The data argument (specified below), A pointer to the glyph into
+       which the import is to happen, A filename, A flag indicating whether the
+       import should go to the background layer or foreground. This function may
+       be ``None``. In which case there is no import method for this file type.
+
+    export_function:
+
+       The function to call to export a glyph into a file. It will be called
+       with: The data argument (see below), a pointer to the glyph, and a
+       filename. This function may be ``None``, in which case there is no export
+       method for this file type.
+
+    data:
+
+       Anything you like (including ``None``). It will be passed to the
+       import/export routines and can provide them with context if they need that.
+
+    name:
+
+       The name to be displayed in the user interface for this file type.
+       This may just be the extension, or it might be something more informative.
+
+    extension:
+
+       This is the default extension for this file type. It is used by the
+       export dialog to pick an extension for the generated filename.
+
+    extension_list:
+
+       Some file types have more than one common extension. The import dialog
+       needs to filter all possible filenames of this file type. This argument
+       should be a comma separated list of extensions. It may be omitted, in
+       which case it defaults to being the same as the "extension" argument above.
+    """
     ...
 
 def logWarning(msg: str) -> None:
-    """Adds the message (a string) to FontForge's Warnings window."""
+    """
+    Adds the message (a string) to FontForge's Warnings window. (if you wish to
+    display a % character you must represent it as two percents). If there is no
+    user interface the output will go to stderr.
+    """
     ...
 
 def postError(win_title: str, msg: str) -> None:
-    """Creates a popup dialog to display the message (a string) in that dlg."""
+    """
+    Creates a popup dialog to display the message (a string) in that dlg. (if you
+    wish to display a % character you must represent it as two percents). If
+    there is no user interface the output will go to stderr.
+    """
     ...
 
 def postNotice(win_title: str, msg: str) -> None:
-    """Creates a little window which will silently vanish after a minute or two and displays the message (a string) in that window."""
+    """
+    Creates a little window which will silently vanish after a minute or two and
+    displays the message (a string) in that window. (if you wish to display a %
+    character you must represent it as two percents). If there is no user
+    interface the output will go to stderr.
+    """
     ...
 
 def openFilename(
-    question: str, def_name: Optional[str] = ..., filter: Optional[str] = ...
-) -> Optional[str]:
-    """Pops up a file-open dialog. The result is either a filename or ``None`` if the user canceled the dialog."""
+    question: str,
+    def_name: str | None = None,
+    filter: str | None = None,
+) -> str | None:
+    """
+    All arguments are strings. The first is a question asked to the user (for
+    which a filename to open is presumed to be the answer). The second is
+    optional and provides a default filename. The third is optional and provides
+    a filter (like "*.sfd")
+
+    The result is either a filename or ``None`` if the user canceled the dialog.
+
+    Throws an exception if there is no user interface.
+    """
     ...
 
 def saveFilename(
-    question: str, def_name: Optional[str] = ..., filter: Optional[str] = ...
-) -> Optional[str]:
-    """Pops up a file-save dialog. The result is either a filename or ``None`` if the user canceled the dialog."""
+    question: str,
+    def_name: str | None = None,
+    filter: str | None = None,
+) -> str | None:
+    """
+    All arguments are strings. The first is a question asked to the user (for
+    which a filename to save something to is presumed to be the answer). The
+    second is optional and provides a default filename. The third is optional and
+    provides a filter (like "*.sfd")
+
+    The result is either a filename or ``None`` if the user canceled the dialog.
+
+    Throws an exception if there is no user interface.
+    """
+
     ...
 
 def ask(
     title: str,
     question: str,
-    answers: Tuple[str, ...],
-    default: Optional[int] = ...,
-    cancel: Optional[int] = ...,
+    answers: tuple[str, ...],
+    default: int | None = None,
+    cancel: int | None = None,
 ) -> int:
-    """Allows you to ask the user a multiple choice question with buttons."""
+    """
+    Allows you to ask the user a multiple choice question. It pops up a dialog
+    posing the question with a list of buttons ranged underneath it -- one for
+    each answer.
+
+    The first argument is the dialog's title, the second is the question to be
+    asked, the third is a tuple of strings -- each string will become a button,
+    the fourth and fifth arguments are optional, the fourth is the index in the
+    answer array that will be the default answer (the one invoked if the user
+    presses the [Return] key), and the fifth is the answer invoked if the user
+    presses the [Escape] key. If omitted the default answer will be the first,
+    and the cancel answer will be the last.
+
+    The function returns the index in the answer array of the answer chosen by
+    the user.
+
+    Throws an exception if there is no user interface.
+    """
     ...
 
+@overload
 def askChoices(
     title: str,
     question: str,
-    answers: Tuple[str, ...],
-    default: Optional[Union[int, Tuple[bool, ...]]] = ...,
-    multiple: bool = ...,
-) -> Union[int, Tuple[int, ...]]:
-    """Allows you to ask the user a multiple choice question with a scrollable list."""
+    answers: tuple[str, ...],
+    default: int | None = None,
+    multiple: Literal[False] = False,
+) -> int: ...
+@overload
+def askChoices(
+    title: str,
+    question: str,
+    answers: tuple[str, ...],
+    default: int | tuple[bool, ...] | None = None,
+    multiple: Literal[True] = True,
+) -> int:
     ...
+    """
+    Allows you to ask the user a multiple choice question. It pops up a dialog
+    posing the question with a scrollable list of choices -- one for each answer.
+    
+    The first argument is the dialog's title, the second is the question to be
+    asked, the third is a tuple of strings -- each string will become a button,
+    the fourth and fifth arguments are optional, the fourth is the index in the
+    answer array that will be the default answer (the one invoked if the user
+    presses the [Return] key). If omitted the default answer will be the first.
+    
+    The fifth argument means that multiple options can be selected. If true,
+    the fourth argument should be a tuple of Boolean values or a single integer
+    index into the answer tuple. So, if there are three options, it should look
+    like ``(True, False, True)``, which would select the first and last option.
+    
+    The function returns the index in the answer array of the answer chosen by
+    the user. If the user cancels the dialog, a -1 is returned.
+    
+    Throws an exception if there is no user interface.
+    """
 
 def askString(
-    title: str, question: str, def_string: Optional[str] = ...
-) -> Optional[str]:
-    """Allows you to ask the user a question for which a string is the answer."""
+    title: str,
+    question: str,
+    def_string: str | None = None,
+) -> str | None:
+    """
+    Allows you to ask the user a question for which a string is the answer.
+
+    The first argument is the dialog's title, the second is the question to be
+    asked, the third is optional and specified a default answer.
+
+    The function returns the string the user typed or ``None`` if they cancelled
+    the dialog.
+
+    Throws an exception if there is no user interface.
+    """
     ...
 
-def askMulti(title: str, specification: Any) -> Optional[Dict[str, Any]]:
-    """This method raises a dialog with multiple questions for the user."""
+class BaseQuestion(TypedDict):
+    """
+    Represents common keys for questions passed to ``askMulti``.
+
+    At least ``question`` or ``tag`` must have a value.
+    """
+
+    question: str | None
+    """
+    The label string which is displayed before the answer field.
+    This key must be present but the value can be ``None`` if no label is needed.
+    """
+
+    tag: NotRequired[Hashable]
+    """
+    The value that will be used as the key corresponding to this question in
+    the ``askMulti`` result dictionary. If not provided, the ``question`` value
+    will be used.
+    """
+
+    align: NotRequired[object]
+    """
+    A boolean-evaluable value (ideally ``True`` or ``False``) that indicates whether,
+    when the dialog is being laid out, the label for this question should be
+    aligned with the other labels of the same category. When absent the default
+    is ``True``. (This has no effect when the ``question`` value is ``None``,
+    so if you want an aligned, empty label use a space as the ``question`` value.)
+    """
+
+class StringQuestion(BaseQuestion):
+    """
+    Represents a string question that displays the label followed by a text
+    entry field.
+    """
+
+    type: Literal["string"]
+
+    default: NotRequired[str]
+    """The initial value of the answer entry field."""
+
+class Answer(TypedDict):
+    """Represents potential answer for a ``ChoiceQuestion``."""
+
+    name: str
+    """The string the user will choose among."""
+
+    tag: NotRequired[object]
+    """
+    The value used to report the answer in the ``askMulti`` result dictionary.
+    If not present, the ``name`` string will be used.
+    """
+
+    default: NotRequired[object]
+    """
+    A boolean-evaluable value that indicates whether the answer is selected
+    when the dialog is presented.
+    """
+
+class ChoiceQuestion(BaseQuestion):
+    """
+    Represents a choice question that asks the user to pick a subset of given
+    answers.
+    """
+
+    type: Literal["choice"]
+
+    answers: list[Answer]
+    """A list of potential answers."""
+
+    multiple: NotRequired[object]
+    """
+    A boolean-evaluable value that indicates whether the user must choose exactly
+    one answer or can choose multiple, or potentially, no answers. When absent,
+    the default is ``False``. When ``multiple`` is ``False`` there must be at
+    most one answer for which ``default`` is ``True``.
+    """
+
+    checks: NotRequired[object]
+    """
+    A boolean-evaluable value that defaults to ``False``. By default a choice
+    question is presented with a (potentially) scrolling vertical list similar
+    to a pop-up menu. When ``checks`` is ``True`` and ``multiple`` is ``False``
+    the answers are presented as radio buttons. When ``checks`` is ``True`` and
+    ``multiple`` is ``True`` the answers are presented as checkboxes.
+    """
+
+class PathnameQuestion(BaseQuestion):
+    """
+    Represents open pathname and save pathname questions that display an entry
+    field followed by a button to raise a browser.
+    """
+
+    type: Literal["openpath", "savepath"]
+
+    default: NotRequired[str]
+    """An initial pathname value."""
+
+    filter: NotRequired[str]
+    """Optional file filter."""
+
+Question: TypeAlias = StringQuestion | ChoiceQuestion | PathnameQuestion
+"""A question that may be passed to ``askMulti``."""
+
+class Category(TypedDict):
+    """Represents a group of questions."""
+
+    category: str | None
+    """A label to display to the user."""
+
+    questions: list[Question]
+    """A list of questions."""
+
+def askMulti(
+    title: str,
+    specification: Question | list[Question] | Category | list[Category],
+) -> dict[Hashable, object | tuple[object, ...]] | None:
+    """
+    This method raises a dialog with multiple questions for the user, optionally
+    organized into separate tabs.  The answers can be choices (similar to
+    :func:`fontforge.askChoices()`) a string (similar to
+    :func:`fontforge.askString()`) an existing filename (similar to
+    :func:`fontforge.openFilename()`) or a save filename (similar to
+    :func:`fontforge.saveFilename()`.
+
+    The method throws an exception if there is no user interface or the
+    specification is not valid. Otherwise it either returns a dictionary of answers
+    or ``None`` if the user chose "Cancel" or closed the dialog without choosing "OK".
+    """
     ...
 
 # Point class
