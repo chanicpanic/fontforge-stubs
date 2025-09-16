@@ -21,6 +21,7 @@ from typing import (
     TypeVar,
     Hashable,
     TypeAlias,
+    NoReturn,
 )
 
 from typing_extensions import (
@@ -1366,16 +1367,16 @@ class contour(Sequence[point]):
 
         all:
 
-           Add all missing extrema
+          Add all missing extrema
 
         only_good:
 
-           Only add extrema on longer splines (with respect to the em-size)
+          Only add extrema on longer splines (with respect to the em-size)
 
         only_good_rm:
 
-           As above but also merge away on-curve points which are very close to, but
-           not on, an added extremum
+          As above but also merge away on-curve points which are very close to, but
+          not on, an added extremum
         """
         ...
 
@@ -1442,39 +1443,39 @@ class contour(Sequence[point]):
 
         ignoreslopes:
 
-           Allow slopes to change
+          Allow slopes to change
 
         ignoreextrema:
 
-           Allow removal of extrema
+          Allow removal of extrema
 
         smoothcurves:
 
-           Allow curve smoothing
+          Allow curve smoothing
 
         choosehv:
 
-           Snap to horizontal or vertical
+          Snap to horizontal or vertical
 
         forcelines:
 
-           flatten bumps on lines
+          flatten bumps on lines
 
         nearlyhvlines:
 
-           Make nearly horizontal/vertical lines be so
+          Make nearly horizontal/vertical lines be so
 
         mergelines:
 
-           Merge adjacent lines into one
+          Merge adjacent lines into one
 
         setstarttoextremum:
 
-           Rotate the point list so that the start point is on an extremum
+          Rotate the point list so that the start point is on an extremum
 
         removesingletonpoints:
 
-           If the contour contains just one point then remove it
+          If the contour contains just one point then remove it
 
         See also :meth:`contour.merge()`.
         """
@@ -1508,136 +1509,487 @@ class contour(Sequence[point]):
         """
         ...
 
+class StrokeOptions(TypedDict, total=False):
+    "Additional options for stroke operations."
+
+    removeinternal: bool
+    """
+    When a contour is closed and clockwise, only the smaller "inside" contour
+    is retained. When a contour is closed and counter-clockwise only the
+    larger "outside" contour is retained. Default: False
+    """
+
+    removeexternal: bool
+    """
+    When a contour is closed and clockwise, only the larger "outside" contour
+    is retained. When a contour is closed and counter-clockwise only the
+    smaller "inside" contour is retained. Default: False
+    """
+
+    extrema: bool
+    """When true, any missing extrema on the stroked paths are added. Default: True"""
+
+    simplify: bool
+    """
+    When true, simplify is called on the path before it is returned. The
+    ``error-bound`` is set to the ``accuracy`` value. Default: True
+    """
+
+    removeoverlap: Literal["layer", "contour", "none"]
+    """
+    Specifies whether, and on what basis, remove-overlap should be run.
+    "layer" corresponds to running remove-overlap on the :class:`layer` as a
+    whole. "contour" corresponds to running remove-overlap on individual
+    contours. "none" corresponds to not running remove-overlap. Note that
+    because the stroke facility relies on remove-overlap to eliminate cusps
+    and other artifacts, "none" is an unusual choice and available primarily
+    for debugging purposes. Default: "layer"
+    """
+
+    accuracy: float
+    """
+    This is a target (but not a guarantee) for the allowed error, in em-units,
+    of the output relative to the input path and nib geometries. Higher values
+    allow more error will typically yield contours with fewer points.
+    Default: 0.25
+    """
+
+    jlrelative: bool
+    """See ``joinlimit`. Default: True"""
+
+    joinlimit: float
+    """
+    Specifies the maximum length of a "miter", "miterclip", or "arcs" join.
+    For "miter" joins that would be longer will fall back to "bevel". With
+    "miterclip" and "arcs" a longer join will be trimmed to the specified
+    length. Note, however, that no join is trimmed past the "bevel line" and
+    therefore lower values do not guarantee a given length.
+
+    When ``jlrelative`` is false the value is interpreted as a length in
+    em-units. Otherwise the value is interpreted as a multiple of
+    "stroke-widths": the average of the spans of the nib at the incoming
+    and outgoing join angles.
+
+    Default: 20
+    """
+
+    ecrelative: bool
+    """
+    See ``extendcap``. Default: True
+    """
+
+    extendcap: float
+    """
+    When the contour being stroked is open and the ``cap`` style is "butt" or
+    "round", this parameter adds area between the end of that contour and the
+    cap. The length of that area will never be less than the specified value
+    but may be more, depending on the geometry of the nib and the join.
+    (However, it will always be exact for circular nibs.)
+
+    When ``ecrelative`` is false the value is interpreted as a length in
+    em-units. Otherwise the value is interpreted as a multiple of
+    "stroke-widths": the span of the stroked path at the angle at the cap.
+
+    Default: 0
+    """
+
+    arcsclip: Literal["svg2", "ratio", "auto"]
+    """
+    When using the "arcs" join style this parameter influences the algorithm
+    used to clip joins that exceed the ``joinlimit``. The value "svg2"
+    specifies the standard SVG algorithm while the value "ratio" specifies an
+    alternative algorithm that works better for longer and thinner nibs at
+    shorter limits. The default value "auto" chooses the "ratio" algorithm
+    for oblong elliptical and calligraphic nibs and
+    ``jlrelative joinlimit`` < 4 and the "svg2" algorithm otherwise.
+    Default: "auto"
+    """
+
 # Layer class
 class layer(Sequence[contour]):
-    """A layer is a collection of contours. All the contours must be of the same order (all quadratic or all cubic)."""
-    def is_quadratic(self) -> bool:
-        """Whether the contours should be interpreted as a set of quadratic or cubic splines."""
+    """
+    A layer is a collection of contours. All the contours must be the same order
+    (all quadratic or all cubic). Currently layers do not contain references.
+
+    Layers may be compared to see if their contours are similar.
+    """
+
+    def __init__(self) -> None:
+        """Creates a new layer"""
         ...
-    def __init__(self) -> None: ...
+
+    def is_quadratic(self) -> bool:
+        """
+        Whether the contours should be interpreted as a set of quadratic cubic
+        splines. Setting this value has the side effect of converting the contour
+        list to the appropriate format.
+        """
+        ...
+
+    @override
     def __iter__(self) -> Iterator[contour]:
         """Returns an iterator for the layer which will return the contours in order."""
         ...
-    def __reduce__(self) -> Any:
-        """This function allows the pickler to work on this type."""
-        ...
+
     def dup(self) -> "layer":
-        """Returns a deep copy of the layer."""
+        """
+        Returns a deep copy of the layer. That is, it will copy all the contours and
+        all the points as well as copying the layer object itself.
+        """
         ...
+
     def isEmpty(self) -> bool:
         """Returns whether the layer is empty (contains no contour)"""
         ...
+
     def addExtrema(
-        self, flags: Optional[str] = ..., emsize: Optional[int] = ...
+        self,
+        flags: Literal["all", "only_good", "only_good_rm"] = "only_good",
+        emsize: int = 1000,
     ) -> None:
-        """If a curve lacks a point at an extrema this command will add one."""
+        """
+        Extrema should be marked by on-curve points. If a curve lacks a point at an
+        extrema this command will add one. Flags may be one of the following strings:
+
+        all:
+
+          Add all missing extrema
+
+        only_good:
+
+          Only add extrema on longer splines (with respect to the em-size)
+
+        only_good_rm:
+
+          As above but also merge away on-curve points which are very close to, but
+          not on, an added extremum
+        """
         ...
+
     def cluster(
-        self, within: Optional[float] = ..., max: Optional[float] = ...
+        self,
+        within: float = 0.1,
+        max: float = 0.5,
     ) -> None:
-        """Moves clustered coordinates to a standard central value."""
+        """
+        Moves clustered coordinates to a standard central value.
+
+        See also :meth:`layer.round()`.
+        """
         ...
+
     def correctDirection(self) -> None:
-        """Orients all contours so that external ones are clockwise and internal counter-clockwise."""
+        """
+        Moves clustered coordinates to a standard central value.
+
+        See also :meth:`layer.round()`.
+        """
         ...
-    def export(self, filename: str, **kwargs) -> None:
-        """Exports the current layer (in outline format) to a file."""
+
+    def export(
+        self,
+        filename: str,
+        *,
+        usetransform: bool = False,
+        usesystem: bool = False,
+        asksystem: bool = False,
+    ) -> None:
+        """
+        Exports the current layer (in outline format) to a file. The type of file is
+        determined by the extension.
+
+        The following optional keywords modify the export process for various formats:
+
+        usetransform:
+
+          Flip the Y-axis of exported SVGs with a transform element rather than
+          modifying the individual Y values.
+
+        usesystem:
+
+          Ignore the above keyword settings and use the values set by the user
+          in the Import options dialog.
+
+        asksystem:
+
+          If the UI is present show the Import options dialog to the user
+          and use the chosen values (does nothing otherwise).
+        """
         ...
-    def exclude(self, excluded_layer: "layer") -> None:
-        """Removes the excluded area from the current contours."""
+
+    def exclude(self, excluded_layer: layer) -> None:
+        """
+        Removes the excluded area from the current contours. See also
+        :meth:`layer.removeOverlap()` and :meth:`layer.intersect()`.
+        """
         ...
+
     def intersect(self) -> None:
-        """Leaves only areas in the intersection of contours."""
+        """
+        Leaves only areas in the intersection of contours. See also
+        :meth:`layer.removeOverlap()` and :meth:`layer.exclude()`.
+        """
         ...
+
     def removeOverlap(self) -> None:
-        """Removes overlapping areas."""
+        """
+        Removes overlapping areas. See also :meth:`layer.intersect()` and
+        :meth:`layer.exclude()`.
+        """
         ...
-    def interpolateNewLayer(self, other_layer: "layer", amount: float) -> "layer":
-        """Creates (and returns) a new layer which contains splines interpolated from the current layer and the first argument."""
+
+    def interpolateNewLayer(self, other_layer: layer, amount: float) -> layer:
+        """
+        Creates (and returns) a new layer which contains splines interpolated from
+        the current layer and the first argument. If amount is 0 the result will
+        look like the current layer, if 1 then like the first argument.
+        """
         ...
-    def round(self, factor: Optional[float] = ...) -> None:
-        """Rounds the x and y coordinates."""
+
+    def round(self, factor: float = 1) -> None:
+        """
+        Rounds the x and y coordinates. If factor is specified then ::
+
+           new_coord = round(factor*old_coord)/factor
+
+        See also :meth:`layer.cluster()`.
+        """
         ...
+
     def selfIntersects(self) -> bool:
-        """Returns whether any of the contours on this layer intersects any other contour (including itself)."""
+        """
+        Returns whether any of the contours on this layer intersects any other
+        contour (including itself).
+        """
         ...
-    def similar(self, other_layer: "layer", error: Optional[float] = ...) -> bool:
-        """Checks whether this layer is similar to the other one."""
+
+    def similar(self, other_layer: layer, error: float = 0.5) -> bool:
+        """
+        Checks whether this layer is similar to the other one where error is the
+        maximum distance (in em-units) allowed for any two corresponding contours
+        in the layers to diverge.
+
+        This is like the comparison operator, but that doesn't allow you to specify
+        an error bound.
+        """
         ...
+
     def simplify(
         self,
-        error_bound: Optional[float] = ...,
-        flags: Optional[Tuple[str, ...]] = ...,
-        tan_bounds: Optional[Any] = ...,
-        linefixup: Optional[Any] = ...,
-        linelenmax: Optional[Any] = ...,
+        error_bound: float = 1,
+        flags: tuple[
+            Literal[
+                "ignoreslopes",
+                "ignoreextrema",
+                "smoothcurves",
+                "choosehv",
+                "forcelines",
+                "nearlyhvlines",
+                "mergelines",
+                "setstarttoextremum",
+                "removesingletonpoints",
+            ],
+            ...,
+        ] = (),
+        tan_bounds: float = 0.2,
+        linefixup: float = 2,
+        linelenmax: float = 10,
     ) -> None:
-        """Tries to remove excess points on the layer."""
+        """
+        Tries to remove excess points on the contour if doing so will not perturb the
+        curve by more than error-bound. Flags is a tuple of the following strings:
+
+        ignoreslopes:
+
+          Allow slopes to change
+
+        ignoreextrema:
+
+          Allow removal of extrema
+
+        smoothcurves:
+
+          Allow curve smoothing
+
+        choosehv:
+
+          Snap to horizontal or vertical
+
+        forcelines:
+
+          flatten bumps on lines
+
+        nearlyhvlines:
+
+          Make nearly horizontal/vertical lines be so
+
+        mergelines:
+
+          Merge adjacent lines into one
+
+        setstarttoextremum:
+
+          Rotate the point list so that the start point is on an extremum
+
+        removesingletonpoints:
+
+          If the contour contains just one point then remove it
+        """
         ...
+
     def stemControl(
         self,
         stem_width_scale: float,
-        hscale: Optional[float] = ...,
-        stem_height_scale: Optional[float] = ...,
-        vscale: Optional[float] = ...,
-        xheight: Optional[float] = ...,
+        hscale: float = 1,
+        stem_height_scale: float | None = None,
+        vscale: float | None = None,
+        xheight: float | None = None,
     ) -> None:
-        """Allows you to scale counters and stems independently of each other."""
+        """
+        Allows you to scale counters and stems independently of each other.
+        ``stem_width_scale`` specifies by how much the widths of stems should be
+        scaled (this should be a number around 1).
+
+        If omitted, ``hscale`` defaults to 1, otherwise it will indicate the
+        horizontal scaling factor for the glyph as a whole.
+
+        If omitted, ``stem_height_scale`` defaults to ``stem_width_scale``,
+        otherwise it specifies the scaling for stem heights.
+
+        If omitted, ``vscale`` defaults to ``hscale``, otherwise it specifies the
+        vertical scale factor for the glyph as a whole. ``xheight`` is optional; if
+        specified it will fix the points at that height so that they will be at the
+        same level across glyphs.
+        """
         ...
-    def stroke(self, type: str, *args, **kwargs) -> "layer":
-        """Strokes the lines of each contour in the layer according to the supplied parameters."""
+
+    @overload
+    def stroke(
+        self,
+        type: Literal["circular"],
+        width: float,
+        /,
+        cap: Literal["nib", "butt", "round", "bevel"] = "nib",
+        join: Literal["nib", "bevel", "miter", "miterclip", "round", "arcs"] = "nib",
+        angle: float = 0,
+        **kwargs: StrokeOptions,
+    ) -> None: ...
+    @overload
+    def stroke(
+        self,
+        type: Literal["elliptical"],
+        width: float,
+        minor_width: float,
+        /,
+        angle: float = 0,
+        cap: Literal["nib", "butt", "round", "bevel"] = "nib",
+        join: Literal["nib", "bevel", "miter", "miterclip", "round", "arcs"] = "nib",
+        **kwargs: StrokeOptions,
+    ) -> None: ...
+    @overload
+    def stroke(
+        self,
+        type: Literal["calligraphic"],
+        width: float,
+        height: float,
+        /,
+        angle: float = 0,
+        cap: Literal["nib", "butt", "round", "bevel"] = "nib",
+        join: Literal["nib", "bevel", "miter", "miterclip", "round", "arcs"] = "nib",
+        **kwargs: StrokeOptions,
+    ) -> None: ...
+    @overload
+    def stroke(
+        self,
+        type: Literal["convex"],
+        nib: contour | layer,
+        /,
+        angle: float = 0,
+        cap: Literal["nib", "butt", "round", "bevel"] = "nib",
+        join: Literal["nib", "bevel", "miter", "miterclip", "round", "arcs"] = "nib",
+        **kwargs: StrokeOptions,
+    ) -> None:
+        """
+        Strokes the lines of each contour in the layer according to the supplied
+        parameters. See the corresponding :meth:`glyph.stroke()` for a description
+        of the parameters.
+        """
         ...
+
     def transform(
-        self, matrix: Tuple[float, float, float, float, float, float]
+        self, matrix: tuple[float, float, float, float, float, float]
     ) -> None:
         """Transforms the layer by the matrix"""
         ...
+
     def nltransform(self, xexpr: str, yexpr: str) -> None:
-        """Applies non-linear transformations to all points in the layer."""
+        """
+        xexpr and yexpr are strings specifying non-linear transformations that will
+        be applied to all points in the layer (with xexpr being applied to x values,
+        and yexpr to y values, of course).
+        """
         ...
+
     def boundingBox(self) -> Tuple[float, float, float, float]:
-        """Returns a tuple representing a rectangle ``(xmin,ymin, xmax,ymax)`` into which the layer fits."""
+        """
+        Returns a tuple representing a rectangle ``(xmin,ymin, xmax,ymax)`` into
+        which the layer fits. It is not guaranteed to be the smallest such
+        rectangle, but it will often be.
+        """
         ...
+
     def xBoundsAtY(
-        self, ybottom: float, ytop: Optional[float] = ...
-    ) -> Optional[Tuple[float, float]]:
-        """Finds the minimum and maximum x positions attained by the layer within a y-range."""
+        self,
+        ybottom: float,
+        ytop: float | None = None,
+    ) -> tuple[float, float] | None:
+        """
+        Finds the minimum and maximum x positions attained by the contour when y is
+        between ybottom and ytop (if ytop is not specified it is assumed the same as
+        ybottom). If the layer does not have any y values in the specified range
+        then FontForge will return ``None``.
+        """
         ...
+
     def yBoundsAtX(
-        self, xleft: float, xright: Optional[float] = ...
-    ) -> Optional[Tuple[float, float]]:
-        """Finds the minimum and maximum y positions attained by the layer within an x-range."""
+        self,
+        xleft: float,
+        xright: float | None = None,
+    ) -> tuple[float, float] | None:
+        """
+        Finds the minimum and maximum y positions attained by the contour when x is
+        between xleft and xright (if xright is not specified it is assumed the same
+        as xleft). If the layer does not have any x values in the specified range
+        then FontForge will return ``None``.
+        """
         ...
-    def draw(self, pen: "glyphPen") -> None:
+
+    def draw(self, pen: glyphPen) -> None:
         """Draw the layer to the pen argument."""
         ...
+
     def addInflections(self) -> None:
-        """Please see contour.addInflections()."""
+        """Please see :meth:`contour.addInflections()`."""
         ...
+
     def balance(self) -> None:
-        """Please see contour.balance()."""
+        """Please see :meth:`contour.balance()`."""
         ...
+
     def harmonize(self) -> None:
-        """Please see contour.harmonize()."""
+        """Please see :meth:`contour.harmonize()`."""
         ...
-    def __len__(self) -> int:
-        """The number of contours in the layer"""
-        ...
+
+    @override
+    def __len__(self) -> int: ...
     @overload
-    def __getitem__(self, i: int) -> contour: ...
+    def __getitem__(self, key: int) -> contour: ...
     @overload
-    def __getitem__(self, s: slice) -> "layer": ...
-    @overload
-    def __setitem__(self, i: int, c: contour) -> None: ...
-    @overload
-    def __setitem__(self, s: slice, l: "layer") -> None: ...
-    def __delitem__(self, i: Union[int, slice]) -> None: ...
-    def __add__(self, other: Union["layer", contour]) -> "layer":
-        """A layer concatenating l and m."""
-        ...
-    def __iadd__(self, other: Union["layer", contour]) -> "layer":
-        """Appends m to l."""
-        ...
+    def __getitem__(self, key: slice) -> NoReturn: ...
+    def __setitem__(self, key: int, value: contour) -> None: ...
+    def __delitem__(self, key: int) -> None: ...
+    def __add__(self, other: layer | contour) -> layer: ...
+    def __iadd__(self, other: layer | contour) -> layer: ...
 
 # GlyphPen class
 class glyphPen:
