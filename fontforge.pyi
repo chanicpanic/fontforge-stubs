@@ -11,6 +11,7 @@ from typing import (
     Optional,
     Iterator,
     overload,
+    override,
     Sequence,
     TypedDict,
     Callable,
@@ -1040,7 +1041,7 @@ class point:
     ) -> None:
         """
         Creates a new point. Optionally specifying its x,y location, on-curve status
-        and selected status. x and y must be supplied together,
+        and selected status. x and y must be supplied together.
         """
         ...
 
@@ -1105,150 +1106,406 @@ class point:
         """Transforms the point by the transformation matrix"""
         ...
 
+PointInitializer: TypeAlias = (
+    tuple[()]
+    | tuple[float, float]
+    | tuple[float, float, bool]
+    | tuple[float, float, bool, Literal[0, 1, 2, 3]]
+    | tuple[float, float, bool, Literal[0, 1, 2, 3], bool]
+)
+"""Represents a tuple of parameters that could be passed to the ``point`` initializer."""
+
 # Contour class
 class contour(Sequence[point]):
-    """Creates a new contour. A contour is a collection of points."""
+    """
+    A contour is a collection of points. A contour may be either based on cubic or
+    quadratic splines.
+
+    If based on cubic splines there should be either 0 or 2 off-curve points
+    between every two on-curve points. If there are no off-curve points then
+    we have a line between those two points. If there are 2 off-curve points
+    we have a cubic bezier curve between the two end points.
+
+    If based on quadratic splines things are more complex. Again, two
+    adjacent on-curve points yield a line between those points. Two on-curve
+    points with an off-curve point between them yields a quadratic bezier
+    curve. However if there are two adjacent off-curve points then an
+    on-curve point will be interpolated between them. (This should be
+    familiar to anyone who has read the truetype 'glyf' table docs).
+
+    A contour may be open in which case it is just a long wiggly line, or
+    closed when it is more like a circle with an inside and an outside.
+    Unless you are making stroked fonts all your contours should eventually
+    be closed.
+
+    Contours may also be expressed in terms of Raph Levien's spiro points.
+    This is an alternate representation for the contour, and is not always
+    available (Only if :func:`fontforge.hasSpiro()` is ``True``. If
+    available the spiro member will return a tuple of spiro control points,
+    while assigning to this member will change the shape of the contour to
+    match the new spiros.
+
+    Two contours may be compared to see if they describe similar paths.
+    """
+
+    def __init__(self, is_quadratic: bool = ...) -> None:
+        """Creates a new contour."""
+        ...
 
     is_quadratic: bool
-    closed: bool
-    name: str
-    spiros: Tuple[Tuple[float, float, int, int], ...]
+    """
+    Whether the contour should be interpreted as a set of quadratic or cubic
+    splines. Setting this value has the side effect of converting the point list
+    to the appropriate format.
+    """
 
-    def __init__(self, is_quadratic: bool = ...) -> None: ...
-    def dup(self) -> "contour":
-        """Returns a deep copy of the contour."""
+    closed: bool
+    """Whether the contour is open or closed."""
+
+    name: str
+    """The contour name (generally there is no name)."""
+
+    spiros: tuple[tuple[float, float, int, int], ...]
+    """
+    This is an alternate representation of a curve. This member is only
+    available if :meth:`fontforge.hasSpiro()` is ``True``. Returns a tuple
+    of spiro control points. Each of these is itself a tuple of four
+    elements; an x,y location, a type field, and a set of flags. The type
+    field takes on values (which are predefined constants in the
+    :mod:`fontforge` module):
+    
+    * :data:`fontforge.spiroG4`
+    * :data:`fontforge.spiroG2`
+    * :data:`fontforge.spiroCorner`
+    * :data:`fontforge.spiroLeft`
+    * :data:`fontforge.spiroRight`
+    * :data:`fontforge.spiroOpen`
+    
+    For more information on what these point types mean see
+    Raph Levien's work https://www.levien.com/spiro.
+    
+    The flags argument is treated as a bitmap of which currently one bit (0x1)
+    is defined. This indicates that this point is selected in the UI.
+    
+    When you assign a tuple of spiro control points to this member, the point
+    list for the Bezier interpretation of the contour will change. And when you
+    change the Bezier interpretation the set of spiro points will change.
+    """
+
+    def dup(self) -> contour:
+        """
+        Returns a deep copy of the contour. That is, it copies the points that make
+        up the contour.
+        """
         ...
+
     def isEmpty(self) -> bool:
         """Returns whether the contour is empty (contains no points)"""
         ...
-    def boundingBox(self) -> Tuple[float, float, float, float]:
-        """Returns a tuple representing a rectangle ``(xmin,ymin, xmax,ymax)`` into which the contour fits."""
+
+    def boundingBox(self) -> tuple[float, float, float, float]:
+        """
+        Returns a tuple representing a rectangle ``(xmin,ymin, xmax,ymax)`` into
+        which the contour fits. It is not guaranteed to be the smallest such
+        rectangle, but it will often be.
+        """
         ...
+
     def getSplineAfterPoint(
         self, pos: int
-    ) -> Tuple[Tuple[float, ...], Tuple[float, ...]]:
-        """Returns a tuple of two four-element tuples. These tuples are x and y splines for the curve after the specified point."""
+    ) -> tuple[tuple[float, float, float, float], tuple[float, float, float, float]]:
+        """
+        Returns a tuple of two four-element tuples. These tuples are x and y splines
+        for the curve after the specified point.
+        """
         ...
-    def draw(self, pen: "glyphPen") -> None:
+
+    def draw(self, pen: glyphPen) -> None:
         """Draw the contour to the pen argument."""
         ...
-    def __reduce__(self) -> Any:
-        """This function allows the pickler to work on this type."""
-        ...
-    def __iter__(self) -> Iterator[point]:
-        """Returns an iterator for the contour which will return the points in order."""
-        ...
+
+    @override
+    def __iter__(self) -> Iterator[point]: ...
+    @override
+    def __len__(self) -> int: ...
     @overload
-    def __getitem__(self, i: int) -> point: ...
+    def __getitem__(self, key: int) -> point: ...
     @overload
-    def __getitem__(self, s: slice) -> "contour": ...
+    def __getitem__(self, key: slice) -> contour: ...
     @overload
-    def __setitem__(self, i: int, p: Union[point, Tuple]) -> None: ...
+    def __setitem__(self, key: int, value: point | PointInitializer) -> None: ...
     @overload
-    def __setitem__(self, s: slice, c: Union["contour", Sequence[Tuple]]) -> None: ...
-    def __delitem__(self, i: Union[int, slice]) -> None: ...
-    def __len__(self) -> int:
-        """The number of points in the contour"""
-        ...
-    def __add__(self, other: Union["contour", point, Tuple]) -> "contour":
-        """A contour concatenating c and d."""
-        ...
-    def __iadd__(self, other: Union["contour", point, Tuple]) -> "contour":
-        """Appends d to c."""
-        ...
-    def __contains__(self, p: Union[point, Tuple[float, float]]) -> bool:
-        """When p is a point, returns whether some point ``(p.x, p.y)`` is in the contour c."""
-        ...
+    def __setitem__(
+        self, key: slice, value: contour | Sequence[point | PointInitializer]
+    ) -> None: ...
+    def __delitem__(self, key: int) -> None: ...
+    def __add__(
+        self,
+        other: contour | Sequence[point | PointInitializer] | point | PointInitializer,
+    ) -> contour: ...
+    def __iadd__(
+        self,
+        other: contour | Sequence[point | PointInitializer] | point | PointInitializer,
+    ) -> contour: ...
+    @overload
+    def __contains__(self, p: point | tuple[float, float]) -> bool: ...
+    @overload
+    def __contains__(self, p: object) -> bool: ...
     def moveTo(self, x: float, y: float) -> None:
         """Adds an initial, on-curve point at ``(x,y)`` to the contour"""
         ...
-    def lineTo(self, x: float, y: float, pos: Optional[int] = ...) -> None:
-        """Adds an line to the contour."""
+
+    def lineTo(self, x: float, y: float, pos: int | None = None) -> None:
+        """
+        Adds a line to the contour. If the optional third argument is given, the
+        line will be added after the pos'th point, otherwise it will be at the end
+        of the contour.
+        """
         ...
+
     def cubicTo(
         self,
-        cp1: Tuple[float, float],
-        cp2: Tuple[float, float],
-        end: Tuple[float, float],
-        pos: Optional[int] = ...,
+        cp1: tuple[float, float],
+        cp2: tuple[float, float],
+        end: tuple[float, float],
+        pos: int | None = None,
     ) -> None:
-        """Adds a cubic curve to the contour."""
+        """
+        Adds a cubic curve to the contour. If the optional fourth argument is given,
+        the curve will be added after the pos'th point, otherwise it will be at the
+        end of the contour.
+        """
         ...
+
     def quadraticTo(
         self,
-        cp: Tuple[float, float],
-        end: Tuple[float, float],
-        pos: Optional[int] = ...,
+        cp: tuple[float, float],
+        end: tuple[float, float],
+        pos: int | None = None,
     ) -> None:
-        """Adds a quadratic curve to the contour."""
+        """
+        Adds a quadratic curve to the contour. If the optional third argument is
+        given, the curve will be added after the pos'th point, otherwise it will be at
+        the end of the contour.
+        """
         ...
-    def insertPoint(self, p: Union[point, Tuple], pos: Optional[int] = ...) -> None:
-        """Adds point to the contour."""
+
+    def insertPoint(
+        self, point: point | PointInitializer, pos: int | None = None
+    ) -> None:
+        """
+        Adds a point to the contour. If the optional second argument is given, the point
+        will be added after the pos'th point, otherwise it will be at the end of the
+        contour.
+        """
         ...
+
     def makeFirst(self, pos: int) -> None:
         """Rotate the point list so that the pos'th point becomes the first point"""
         ...
+
     def isClockwise(self) -> int:
-        """Returns whether the contour is drawn in a clockwise direction."""
+        """
+        Returns whether the contour is drawn in a clockwise direction. A return
+        value of -1 indicates that no consistent direction could be found (the
+        contour self-intersects).
+        """
         ...
+
     def reverseDirection(self) -> None:
-        """Reverse the order in which the contour is drawn."""
+        """
+        Reverse the order in which the contour is drawn (turns a clockwise contour
+        into a counter-clockwise one). See also :meth:`layer.correctDirection`.
+        """
         ...
-    def similar(self, other_contour: "contour", error: Optional[float] = ...) -> bool:
-        """Checks whether this contour is similar to the other one."""
+
+    def similar(self, other_contour: contour, error: float = 0.5) -> bool:
+        """
+        Checks whether this contour is similar to the other one where error is the
+        maximum distance (in em-units) allowed for the two contours to diverge.
+
+        This is like the comparison operator, but that doesn't allow you to specify
+        an error bound.
+        """
         ...
+
     def xBoundsAtY(
-        self, ybottom: float, ytop: Optional[float] = ...
-    ) -> Optional[Tuple[float, float]]:
-        """Finds the minimum and maximum x positions attained by the contour within a y-range."""
+        self,
+        ybottom: float,
+        ytop: float | None = None,
+    ) -> tuple[float, float] | None:
+        """
+        Finds the minimum and maximum x positions attained by the contour when y is
+        between ybottom and ytop (if ytop is not specified it is assumed the same as
+        ybottom). If the contour does not have any y values in the specified range
+        then ff will return ``None``.
+        """
         ...
+
     def yBoundsAtX(
-        self, xleft: float, xright: Optional[float] = ...
-    ) -> Optional[Tuple[float, float]]:
-        """Finds the minimum and maximum y positions attained by the contour within an x-range."""
+        self,
+        xleft: float,
+        xright: float | None = None,
+    ) -> tuple[float, float] | None:
+        """
+        Finds the minimum and maximum y positions attained by the contour when x is
+        between xleft and xright (if xright is not specified it is assumed the same
+        as xleft). If the contour does not have any x values in the specified range
+        then ff will return ``None``.
+        """
         ...
+
     def addExtrema(
-        self, flags: Optional[str] = ..., emsize: Optional[int] = ...
+        self,
+        flags: Literal["all", "only_good", "only_good_rm"] = "only_good",
+        emsize: int = 1000,
     ) -> None:
-        """If a curve lacks a point at an extrema this command will add one."""
+        """
+        Extrema should be marked by on-curve points. If a curve lacks a point at an
+        extrema this command will add one. Flags may be one of the following strings:
+
+        all:
+
+           Add all missing extrema
+
+        only_good:
+
+           Only add extrema on longer splines (with respect to the em-size)
+
+        only_good_rm:
+
+           As above but also merge away on-curve points which are very close to, but
+           not on, an added extremum
+        """
         ...
+
     def cluster(
-        self, within: Optional[float] = ..., max: Optional[float] = ...
+        self,
+        within: float = 0.1,
+        max: float = 0.5,
     ) -> None:
-        """Moves clustered coordinates to a standard central value."""
+        """
+        Moves clustered coordinates to a standard central value.
+
+        See also :meth:`contour.round()`.
+        """
         ...
-    def merge(self, pos: Union[int, Tuple[int, ...]]) -> None:
-        """Removes the on-curve point a the given position."""
+
+    def merge(self, pos: int | tuple[int, ...]) -> None:
+        """
+        Removes the on-curve point at the given position and rearranges the other
+        points to make the curve as similar to the original as possible. (pos may
+        also be a tuple of positions, all of which will be removed)
+
+        See also :meth:`contour.simplify()`.
+        """
         ...
-    def round(self, factor: Optional[float] = ...) -> None:
-        """Rounds the x and y coordinates."""
+
+    def round(self, factor: float = 1) -> None:
+        """
+        Rounds the x and y coordinates. If factor is specified then ::
+
+           new_coord = round(factor*old_coord)/factor
+
+        See also :meth:`contour.cluster()`.
+        """
         ...
+
     def selfIntersects(self) -> bool:
         """Returns whether this contour intersects itself."""
         ...
+
     def simplify(
         self,
-        error_bound: Optional[float] = ...,
-        flags: Optional[Tuple[str, ...]] = ...,
-        tan_bounds: Optional[Any] = ...,
-        linefixup: Optional[Any] = ...,
-        linelenmax: Optional[Any] = ...,
+        error_bound: float = 1,
+        flags: tuple[
+            Literal[
+                "ignoreslopes",
+                "ignoreextrema",
+                "smoothcurves",
+                "choosehv",
+                "forcelines",
+                "nearlyhvlines",
+                "mergelines",
+                "setstarttoextremum",
+                "removesingletonpoints",
+            ],
+            ...,
+        ] = (),
+        tan_bounds: float = 0.2,
+        linefixup: float = 2,
+        linelenmax: float = 10,
     ) -> None:
-        """Tries to remove excess points on the contour."""
+        """
+        Tries to remove excess points on the contour if doing so will not perturb
+        the curve by more than error-bound. Flags is a tuple of the following strings:
+
+        ignoreslopes:
+
+           Allow slopes to change
+
+        ignoreextrema:
+
+           Allow removal of extrema
+
+        smoothcurves:
+
+           Allow curve smoothing
+
+        choosehv:
+
+           Snap to horizontal or vertical
+
+        forcelines:
+
+           flatten bumps on lines
+
+        nearlyhvlines:
+
+           Make nearly horizontal/vertical lines be so
+
+        mergelines:
+
+           Merge adjacent lines into one
+
+        setstarttoextremum:
+
+           Rotate the point list so that the start point is on an extremum
+
+        removesingletonpoints:
+
+           If the contour contains just one point then remove it
+
+        See also :meth:`contour.merge()`.
+        """
         ...
+
     def transform(
-        self, matrix: Tuple[float, float, float, float, float, float]
+        self, matrix: tuple[float, float, float, float, float, float]
     ) -> None:
         """Transforms the contour by the matrix"""
         ...
+
     def addInflections(self) -> None:
-        """Break the spline so that there will be a point at all points of inflection."""
+        """
+        If the curvature of a spline in the contour changes sign then break the
+        spline so that there will be a point at all points of inflection.
+        """
         ...
+
     def balance(self) -> None:
-        """For all cubic bezier splines of the contour make the line between the control points parallel to the chord."""
+        """
+        For all cubic bezier splines of the contour make the line between the control
+        points parallel to the chord such that the area is preserved. This is an
+        improved version of the algorithm known as "tunnify".
+        """
         ...
+
     def harmonize(self) -> None:
-        """For all bezier splines of the contour move the smooth on-curve points between its adjacent control points."""
+        """
+        For all bezier splines of the contour move the smooth on-curve points between
+        its adjacent control points such that the adjacent curvatures become equal.
+        """
         ...
 
 # Layer class
