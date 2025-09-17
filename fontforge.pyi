@@ -1993,41 +1993,111 @@ class layer(Sequence[contour]):
 
 # GlyphPen class
 class glyphPen:
-    """This implements the Pen Protocol to draw a FontForge glyph."""
-    def moveTo(self, pt: Tuple[float, float]) -> None:
-        """Begins every contour and creates an on curve point at (x,y) as the start point of that contour."""
+    """
+    This implements the Pen Protocol http://robofab.org/objects/pens.html to
+    draw a FontForge :class:`glyph`. You create a :class:`glyphPen` with
+    :meth:`glyph.glyphPen()`. You then draw into it with the instance methods.
+
+    This type may not be pickled.
+
+    Example:
+
+    ::
+
+       import fontforge
+       font = fontforge.open("Ambrosia.sfd") # Open a font
+       pen = font["B"].glyphPen()            # Create a pen to draw into glyph "B"
+       pen.moveTo((100,100))                 # draw a square
+       pen.lineTo((100,200))
+       pen.lineTo((200,200))
+       pen.lineTo((200,100))
+       pen.closePath()                       # end the contour
+
+       font["A"].draw(pen)                   # or you can copy from one glyph to another
+                                             # by having a glyph draw itself into the pen
+       pen = None                            # Finalize the pen. This tells FontForge
+                                             # that the drawing is done and causes
+                                             # it to refresh the display (if a UI is active).
+    """
+
+    def moveTo(self, point: tuple[float, float]) -> None:
+        """
+        With one exception this call begins every contour and creates an on curve
+        point at ``(x,y)`` as the start point of that contour. This should be the
+        first call after a pen has been created and the call that follows a
+        :meth:`glyphPen.closePath()`, :meth:`glyphPen.endPath()`.
+        """
         ...
-    def lineTo(self, pt: Tuple[float, float]) -> None:
-        """Draws a line from the last point to (x,y) and adds that to the contour."""
+
+    def lineTo(self, point: tuple[float, float]) -> None:
+        """Draws a line from the last point to ``(x,y)`` and adds that to the contour."""
         ...
+
     @overload
     def curveTo(
         self,
-        cp1: Tuple[float, float],
-        cp2: Tuple[float, float],
-        end: Tuple[float, float],
+        cp1: tuple[float, float],
+        cp2: tuple[float, float],
+        end: tuple[float, float],
     ) -> None: ...
     @overload
-    def curveTo(self, cp: Tuple[float, float], end: Tuple[float, float]) -> None: ...
-    def curveTo(self, *args) -> None:
-        """Draws a cubic or quadratic curve."""
+    def curveTo(self, cp: tuple[float, float], end: tuple[float, float]) -> None:
+        """
+        This routine has slightly different arguments depending on the type of the
+        font. When drawing into a cubic font (PostScript) use the first set of
+        arguments (with two control points -- off curve points -- between each on
+        curve point). When drawing into a quadratic font (TrueType) use the second
+        format with one control point between adjacent on-curve points.
+
+        The standard appears to support super-bezier curves with more than two
+        control points between on-curve points. FontForge does not. Nor does
+        FontForge allow you to draw a quadratic spline into a cubic font, nor vice versa.
+        """
         ...
-    def qCurveTo(self, *points: Union[Tuple[float, float], None]) -> None:
-        """This routine may only be used in quadratic (TrueType) fonts and expresses the idiom where on-curve points may be omitted."""
+
+    def qCurveTo(
+        self, *points: tuple[float, float], end: tuple[float, float] | None
+    ) -> None:
+        """
+        This routine may only be used in quadratic (TrueType) fonts and has two
+        different formats. It is used to express the TrueType idiom where an on-curve
+        point mid-way between its control points may be omitted, leading to a run of
+        off-curve points (with implied but unspecified on-curve points between them).
+
+        The first format allows an arbitrary number of off-curve points followed by
+        one on-curve point.
+
+        It is possible to have a contour which consists solely of off-curve points.
+        When this happens the contour is NOT started with a :meth:`glyphPen.moveTo()`,
+        instead the entire contour, all the off curve points, are listed in one call,
+        and the argument list is terminated by a ``None`` to indicate there are no
+        on-curve points.
+        """
         ...
+
     def closePath(self) -> None:
         """Closes the contour (connects the last point to the first point to make a loop) and ends it."""
         ...
+
     def endPath(self) -> None:
-        """Ends the contour without closing it."""
+        """
+        Ends the contour without closing it. This is only relevant if you are
+        stroking contours.
+        """
         ...
+
     def addComponent(
         self,
         glyph_name: str,
-        transform: Tuple[float, float, float, float, float, float] = ...,
-        selected: bool = ...,
+        transform: tuple[float, float, float, float, float, float] = (1, 0, 0, 1, 0, 0),
+        selected: bool = False,
     ) -> None:
-        """Adds a reference (a component) to the glyph."""
+        """
+        Adds a reference (a component) to the glyph. The PostScript transformation
+        matrix is a 6 element tuple (with a default of the identity transformation).
+        When ``selected`` is true the reference will be marked as selected in the
+        UI and related API calls.
+        """
         ...
 
 # Glyph class
