@@ -2100,106 +2100,527 @@ class glyphPen:
         """
         ...
 
+GlyphReference: TypeAlias = (
+    tuple[str]
+    | tuple[str, tuple[float, float, float, float, float, float]]
+    | tuple[str, tuple[float, float, float, float, float, float], bool]
+)
+"""
+A tuple of a glyph-name, a transformation matrix, and whether the reference is
+currently selected.
+"""
+
+class GlyphMathKerning:
+    """
+    Represents math kerning data for a glyph.
+
+    All values are a tuple of two element tuples, each of which contains a kerning
+    offset and an associated height (in the last entry the height term is
+    meaningless, but present).
+    """
+
+    bottomLeft: tuple[tuple[int, int], tuple[int, int]]
+    """The glyph's math kerning data associated with the bottom left vertex."""
+
+    bottomRight: tuple[tuple[int, int], tuple[int, int]]
+    """The glyph's math kerning data associated with the bottom right vertex."""
+
+    topLeft: tuple[tuple[int, int], tuple[int, int]]
+    """The glyph's math kerning data associated with the top left vertex."""
+
+    topRight: tuple[tuple[int, int], tuple[int, int]]
+    """The glyph's math kerning data associated with the top right vertex."""
+
 # Glyph class
 class glyph:
-    """The glyph type refers to a glyph object. It has no independent life of its own, it always lives within a font."""
+    """
+    The glyph type refers to a :class:`glyph` object. It has no independent life
+    of its own, it always lives within a font. It has all the things you expect to
+    be associated with a glyph: a glyph name, a unicode encoding, a drawing layer,
+    GPOS/GSUB features...
+
+    This type may not be pickled.
+
+    This type may not be created directly -- all glyphs are bound to a font and
+    must be created through the font. See :meth:`font.createChar()`.
+    """
 
     activeLayer: int
-    """Returns currently active layer in the glyph (as an integer). May be set to an integer or a layer name to change the active layer."""
-    altuni: Optional[Tuple[Tuple[int, int, int], ...]]
-    """Returns additional unicode code points for this glyph. For a primary code point, see glyph.unicode ."""
-    anchorPoints: Tuple[Tuple[str, str, float, float, Optional[int]], ...]
-    """Returns the list of anchor points in the glyph."""
-    anchorPointsWithSel: Tuple[Tuple[str, str, float, float, bool, Optional[int]], ...]
-    """Same as the above, except also includes whether the anchor point is selected in the UI."""
+    """
+    Returns currently active layer in the glyph (as an integer). May be set to
+    an integer or a layer name to change the active layer.
+    """
+
+    altuni: tuple[tuple[int, int, int] | int, ...] | None
+    """
+    Returns additional unicode code points for this glyph. For a primary code
+    point, see :attr:`glyph.unicode`.
+
+    Returns either None or a tuple of alternate encodings. Each alternate
+    encoding is a tuple of ::
+
+    (unicode-value, variation-selector, reserved-field)
+
+    The first is a unicode value of this alternate code point. The second is an
+    integer for variation selector and can be set to -1 if not used. The third
+    is an empty field reserved for future use and currently must be set to zero.
+
+    :attr:`glyph.altuni` can be set to None to clear all alternates, or to a
+    tuple. The elements of the tuple may be either integers (an alternate
+    unicode value with no variation selector) or a tuple with up to 3 values in
+    it as explained above.
+    """
+
+    anchorPoints: tuple[
+        tuple[str, Literal["mark", "base", "basemark", "entry", "exit"], float, float]
+        | tuple[str, Literal["ligature"], float, float, int]
+    ]
+    """
+    Returns the list of anchor points in the glyph. Each anchor point is a
+    tuple of ::
+
+       (anchor-class-name, type, x,y [,ligature-index])
+
+    The first two are strings, the next two doubles, and the last (which is only
+    present if ``type=="ligature"``) is an integer. Type may be
+
+    * ``mark``
+    * ``base``
+    * ``ligature``
+    * ``basemark``
+    * ``entry``
+    * ``exit``
+    """
+
+    anchorPointsWithSel: tuple[
+        tuple[
+            str,
+            Literal["mark", "base", "basemark", "entry", "exit"],
+            float,
+            float,
+            bool,
+        ]
+        | tuple[str, Literal["ligature"], float, float, bool, int]
+    ]
+    """
+    Same as :attr:``glyph.anchorPoints``, except also includes whether the anchor point is selected
+    in the UI. Returns a tuple of all anchor points in the glyph. Each anchor
+    point is a tuple of ::
+
+    (anchor-class-name, type, x,y, selected [,ligature-index])
+
+    The first two are strings, the next two doubles, then a boolean, and the
+    last (which is only present if ``type=="ligature"``) is an integer.
+    Type may be
+
+    * ``mark``
+    * ``base``
+    * ``ligature``
+    * ``basemark``
+    * ``entry``
+    * ``exit``
+    """
+
     background: layer
-    """The glyph's background layer. This is a *copy* of the glyph's data."""
+    """
+    The glyph's background layer. This is a *copy* of the glyph's data. See
+    also :attr:`glyph.foreground` and :attr:`glyph.layers`.
+    """
+
     changed: bool
-    """Whether this glyph has been modified. This is (should be) maintained automatically, but you may set it if you wish."""
+    """
+    Whether this glyph has been modified. This is (should be) maintained
+    automatically, but you may set it if you wish.
+    """
+
     color: int
-    """The color of the glyph in the fontview. A 6 hex-digit RGB number or -1 for default."""
+    """
+    The color of the glyph in the fontview. A 6 hex-digit RGB number or -1 for
+    default. 0xffffff is white, 0x0000ff is blue, etc.
+    """
+
     comment: str
     """Any comment you wish to associate with the glyph. UTF-8"""
-    dhints: Tuple[
-        Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]], ...
+
+    dhints: tuple[
+        tuple[tuple[float, float], tuple[float, float], tuple[float, float]], ...
     ]
-    """A tuple with one entry for each diagonal stem hint."""
+    """
+    A tuple with one entry for each diagonal stem hint. Each stem hint is itself
+    represented by a tuple of three coordinate pairs (themselves tuples of two
+    numbers), these three are: a point on one side of the stem, a point on the
+    other side, and a unit vector pointing in the stem's direction.
+    """
+
     encoding: int
-    """Returns the glyph's encoding in the font's encoding. (readonly)"""
-    font: "font"
+    """
+    Returns the glyph's encoding in the font's encoding. (readonly)
+
+    If the glyph has multiple encodings, one will be picked at random.
+
+    If the glyph is not in the font's encoding then a number will be returned
+    beyond the encoding size (or in some cases -1 will be returned).
+    """
+
+    font: font
     """The font containing this glyph. (readonly)"""
+
     foreground: layer
-    """The glyph's foreground layer. This is a *copy* of the glyph's data."""
-    glyphclass: str
+    """
+    The glyph's foreground layer. This is a copy of the glyph's data. See also
+    :attr:`glyph.background`, :attr:`glyph.layers` and :attr:`glyph.references`.
+    """
+
+    glyphclass: Literal[
+        "automatic", "noclass", "baseglyph", "baseligature", "mark", "component"
+    ]
     """An opentype glyphclass, one of automatic, noclass, baseglyph, baseligature, mark, component"""
+
     glyphname: str
     """The name of the glyph"""
-    hhints: Tuple[Tuple[float, float], ...]
-    """A tuple of all horizontal postscript hints. Each hint is itself a tuple of starting locations and widths."""
-    horizontalComponents: Tuple[Tuple[str, bool, int, int, int], ...]
-    """A tuple of tuples. Allows constructing very large versions of the glyph by stacking the components together."""
-    horizontalComponentItalicCorrection: float
+
+    hhints: tuple[tuple[float, float], ...]
+    """
+    A tuple of all horizontal postscript hints. Each hint is itself a tuple of
+    starting locations and widths.
+    """
+
+    horizontalComponents: tuple[
+        tuple[str]
+        | tuple[str, bool]
+        | tuple[str, bool, int]
+        | tuple[str, bool, int, int]
+        | tuple[str, bool, int, int, int],
+        ...,
+    ]
+    """
+    A tuple of tuples.
+
+    This allows constructing very large versions of the glyph by stacking the
+    components together. Some components may be repeated so there is no bound on the size.
+
+    This is different from ``horizontalVariants`` which expects prebuilt glyphs of
+    various fixed sizes.
+
+    The components are stacked in the order they appear in the (top-level) tuple.
+    Each sub-tuple represents information on one component. The subtuple should
+    contain: (String glyph-name, Boolean is-extender, Int startConnectorLength,
+    Int endConnectorLength, Int fullAdvance). Any of these may be omitted (except
+    the glyph name) and will be assumed to be 0 if so.
+    """
+
+    horizontalComponentItalicCorrection: int
     """The italic correction for any composite glyph made with the horizontalComponents."""
-    horizontalVariants: str
-    """A string containing a list of glyph names. These are alternate forms of the current glyph for use in typesetting math."""
+
+    horizontalVariants: str | tuple[glyph, ...]
+    """
+    A string containing a list of glyph names. These are
+    alternate forms of the current glyph for use in
+    typesetting math. Presumably the variants are of different sizes.
+
+    Although ff will always return a string of glyph names, you may assign to it
+    with a tuple of glyphs and ff will convert that to corresponding names.
+    """
+
     isExtendedShape: bool
     """A boolean containing the MATH "is extended shape" field."""
-    italicCorrection: float
-    """The glyph's italic correction field. Used by both TeX and MATH."""
+
+    italicCorrection: int
+    """
+    The glyph's italic correction field. Used by both TeX and MATH. The special
+    value :data:`fontforge.unspecifiedMathValue` means the value is unspecified
+    (An unspecified value will not go into the output tables, a value of 0 will)
+    """
+
     layer_cnt: int
     """The number of layers in this glyph. (Cannot be set)"""
-    layers: Dict[Union[str, int], layer]
-    """A dictionary like object containing the layers of the glyph."""
-    layerrefs: Dict[Union[str, int], Tuple[Tuple[str, Tuple[float, ...], bool], ...]]
-    """A dictionary like object containing the references in the layers of the glyph."""
-    lcarets: Tuple[int, ...]
-    """A tuple containing the glyph's ligature caret locations."""
-    left_side_bearing: float
-    """The left side bearing of the glyph. Setting this value will adjust all layers."""
-    manualHints: bool
-    """The glyph's hints have been set by hand, and the glyph should not be autohinted without a specific request from the user."""
-    mathKern: Any  # This is a complex object with bottomLeft, bottomRight, etc.
+
+    layers: dict[str | int, layer]
+    """
+    A dictionary like object containing the layers of the glyph. It may be
+    indexed by either a layer name or an integer between 0 and
+    ``glyph.layer_cnt-1`` to produce a :class:`layer` object. Layer 0 is the
+    background layer. Layer 1 is the foreground layer.
+    """
+
+    layerrefs: dict[str | int, GlyphReference]
+    """
+    A dictionary like object containing the references in the layers of the
+    glyph. It may be indexed by either a layer name, or an integer between 0 and
+    ``glyph.layer_cnt-1`` to produce a reference tuple object. Layer 0 is the
+    background layer. Layer 1 is the foreground layer.
+    """
+
+    lcarets: tuple[int, ...]
+    """
+    A tuple containing the glyph's ligature caret locations. Setting this will
+    also either enable or disable the "Default Ligature Caret Count" flag
+    depending from the number of elements in the tuple.
+    """
+
+    left_side_bearing: int
+    """
+    The left side bearing of the glyph. Setting this value will adjust all
+    layers so that guides in the background etc will be adjusted with the rest
+    of the glyph
+    """
+
+    manualHints: int
+    """
+    The glyph's hints have been set by hand, and the glyph should not be
+    autohinted without a specific request from the user. The "Don't AutoHint" flag.
+    """
+
+    mathKern: GlyphMathKerning
     """The glyph's math kerning data associated with its vertices."""
+
     originalgid: int
     """The GID of this glyph in the font it was read from. (readonly)"""
-    persistent: Any
-    """Whatever you want (these data will be saved as a pickled object in the sfd file)."""
-    references: Tuple[Tuple[str, Tuple[float, ...], bool], ...]
-    """A tuple of tuples containing, for each reference in the foreground, a glyph-name, a transformation matrix, and whether the reference is currently selected."""
-    right_side_bearing: float
+
+    persistent: object
+    """
+    Whatever you want (these data will be saved as a pickled object in the
+    sfd file. It is your job to ensure that whatever you put here can be pickled).
+    See also the :attr:`glyph.temporary` field.
+    """
+
+    references: tuple[GlyphReference, ...]
+    """
+    A tuple of tuples containing, for each reference in the foreground, a
+    glyph-name, a transformation matrix, and whether the reference is currently
+    selected. When assigning to the object the matrix and ``selected`` values
+    are optional. See also :attr:`glyph.foreground` and :attr:`glyph.layerrefs`.
+    """
+
+    right_side_bearing: int
     """The right side bearing of the glyph"""
+
     script: str
-    """A string containing the OpenType 4 letter tag for the script associated with this glyph (readonly)"""
-    temporary: Any
-    """Whatever you want (these data will be lost once the font is closed)"""
-    texheight: float
-    """The Tex height."""
-    texdepth: float
-    """The Tex depth."""
-    topaccent: float
-    """The glyph's top accent position field. Used by MATH."""
+    """
+    A string containing the OpenType 4 letter tag for the script associated with
+    this glyph (readonly)
+    """
+
+    temporary: object
+    """
+    Whatever you want (these data will be lost once the font is closed)
+
+    See also :attr:`glyph.persistent`.
+    """
+
+    texheight: int
+    """
+    The Tex height. The special value :data:`fontforge.unspecifiedMathValue`
+    means the field is unspecified (An unspecified value will not go into the
+    output tables, a value of 0 will)
+    """
+
+    texdepth: int
+    """
+    The Tex depth. The special value :data:`fontforge.unspecifiedMathValue`
+    means the field is unspecified (An unspecified value will not go into the
+    output tables, a value of 0 will)
+    """
+
+    topaccent: int
+    """
+    The glyph's top accent position field. Used by MATH. The special value
+    :data:`fontforge.unspecifiedMathValue` means the field is unspecified (An
+    unspecified value will not go into the output tables, a value of 0 will)
+    """
+
     ttinstrs: bytes
     """Any truetype instructions, returned as a binary string"""
+
     unicode: int
-    """The glyph's unicode code point, or -1. In addition to this primary mapping, a glyph can have multiple secondary mappings."""
-    unlinkRmOvrlpSave: bool
-    """A flag that indicates the glyph's references should be unlinked and remove overlap run on it before the font is saved."""
-    user_decomp: Any
-    """Your preferred decomposition for this glyph; used by glyph.build()."""
-    vhints: Tuple[Tuple[float, float], ...]
-    """A tuple of all vertical postscript hints. Each hint is itself a tuple of starting locations and widths."""
+    """
+    The glyph's unicode code point, or -1. In addition to this primary mapping,
+    a glyph can have multiple secondary mappings - see :attr:`glyph.altuni`.
+    """
+
+    unlinkRmOvrlpSave: int
+    """
+    A flag that indicates the glyph's references should be unlinked and remove
+    overlap run on it before the font is saved (and then the original references
+    replaced after the save finishes)
+    """
+
+    user_decomp: str
+    """Your preferred decomposition for this glyph; used by :meth:`glyph.build()`."""
+
+    vhints: tuple[tuple[float, float], ...]
+    """
+    A tuple of all vertical postscript hints. Each hint is itself a tuple of
+    starting locations and widths.
+    """
+
     validation_state: int
-    """A bit mask indicating some problems this glyph might have. (readonly)"""
-    verticalComponents: Tuple[Tuple[str, bool, int, int, int], ...]
-    """A tuple of tuples. Allows constructing very large versions of the glyph by stacking the components together."""
-    verticalComponentItalicCorrection: float
+    """
+    A bit mask indicating some problems this glyph might have. (readonly)
+
+    0x1:
+
+      If set then this glyph has been validated.
+
+      If unset then other bits are meaningless.
+
+    0x2:
+
+      Glyph has an open contour.
+
+    0x4:
+
+      Glyph intersects itself somewhere.
+
+    0x8:
+
+      At least one contour is drawn in the wrong direction
+
+    0x10:
+
+      At least one reference in the glyph has been flipped
+
+      (and so is drawn in the wrong direction)
+
+    0x20:
+
+      Missing extrema
+
+    0x40:
+
+      A glyph name referred to from this glyph, in an opentype table, is not
+      present in the font.
+
+    0x40000:
+
+      Points (or control points) are too far apart. (Coordinates must be
+      within 32767)
+
+    **Postscript only**
+
+    0x80:
+
+      PostScript has a limit of 1500 points in a glyph.
+
+    0x100:
+
+      PostScript has a limit of 96 hints in a glyph.
+
+    0x200:
+
+      Invalid glyph name.
+
+    **TrueType only, errors in original file**
+
+    0x400:
+
+      More points in a glyph than allowed in 'maxp'
+
+    0x800:
+
+      More paths in a glyph than allowed in 'maxp'
+
+    0x1000:
+
+      More points in a composite glyph than allowed in 'maxp'
+
+    0x2000:
+
+      More paths in a composite glyph than allowed in 'maxp'
+
+    0x4000:
+
+      Instructions longer than allowed in 'maxp'
+
+    0x8000:
+
+      More references in a glyph than allowed in 'maxp'
+
+    0x10000:
+
+      References nested more deeply than allowed in 'maxp'
+
+    0x40000:
+
+      Points too far apart. TrueType and Type2 fonts are limited to 16 bit
+      numbers, and so adjacent points must be within 32767 em-units of each other.
+
+    0x80000:
+
+      Points non-integral. TrueType points and control points must be integer
+      aligned. (FontForge will round them if they aren't)
+
+    0x100000:
+
+      Missing anchor. According to the opentype spec, if a glyph contains an
+      anchor point for one anchor class in a subtable, it must contain anchor
+      points for all anchor classes in the subtable. Even it, logically, they
+      do not apply and are unnecessary.
+
+    0x200000:
+
+      Duplicate glyph name. Two (or more) glyphs in this font have the same
+      name. When outputting a PostScript font only one of them will ever be seen.
+
+      It's a little hard to detect this in normal use, but if you change the
+      encoding to "Glyph Order", and then use Edit->Select->Wildcard and enter
+      the glyph name, both of them should be selected.
+
+    0x400000:
+
+      Duplicate unicode code point. Two (or more) glyphs in this font have the
+      code point. When outputting an sfnt (TrueType/OpenType) font only one of
+      them will ever be seen.
+
+      It's a little hard to detect this in normal use, but if you change the
+      encoding to "Glyph Order", and then use Edit->Select->Wildcard and enter
+      the code point, both of them should be selected.
+
+    0x800000:
+
+      Overlapped hints. Either the glyph has no hint masks and there are
+      overlapped hints, or a hint mask specifies two overlapping hints.
+    """
+
+    verticalComponents: tuple[
+        tuple[str]
+        | tuple[str, bool]
+        | tuple[str, bool, int]
+        | tuple[str, bool, int, int]
+        | tuple[str, bool, int, int, int],
+        ...,
+    ]
+    """
+    A tuple of tuples.
+
+    This allows constructing very large versions of the glyph by stacking the
+    components together. Some components may be repeated so there is no bound on the size.
+
+    This is different from ``verticalVariants`` which expects prebuilt glyphs of
+    various fixed sizes.
+
+    The components are stacked in the order they appear in the (top-level) tuple.
+    Each sub-tuple represents information on one component. The subtuple should
+    contain: (String glyph-name, Boolean is-extender, Int startConnectorLength,
+    Int endConnectorLength, Int fullAdvance). Any of these may be omitted (except
+    the glyph name) and will be assumed to be 0 if so.
+    """
+
+    verticalComponentItalicCorrection: int
     """The italic correction for any composite glyph made with the verticalComponents."""
+
     verticalVariants: str
-    """A string containing a list of glyph names. These are alternate forms of the current glyph for use in typesetting math."""
-    width: float
-    """The advance width of the glyph."""
-    vwidth: float
-    """The vertical advance width of the glyph."""
+    """
+    A string containing a list of glyph names. These are alternate forms
+    of the current glyph for use in typesetting math. Presumably the variants
+    are of different sizes.
+    """
+
+    width: int
+    """The advance width of the glyph. See also :attr:`glyph.vwidth`."""
+
+    vwidth: int
+    """The vertical advance width of the glyph. See also :attr:`glyph.width`."""
 
     def addAnchorPoint(
         self,
