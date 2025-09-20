@@ -26,6 +26,7 @@ from typing import (
 
 from typing_extensions import (
     NotRequired,
+    Unpack,
 )
 
 T = TypeVar("T")
@@ -593,8 +594,7 @@ def registerMenuItem(
     | tuple[str, str, str]
     | list[str | tuple[str, str] | tuple[str, str, str]]
     | None = None,
-) -> None: ...
-def registerMenuItem(*args, **kwargs) -> None:
+) -> None:
     """
     If FontForge has a user interface this will add this menu item to the
     FontForge menu(s) specified by the ``context`` parameter. This second
@@ -860,27 +860,27 @@ def askChoices(
     default: int | tuple[bool, ...] | None = None,
     multiple: Literal[True] = True,
 ) -> int:
-    ...
     """
     Allows you to ask the user a multiple choice question. It pops up a dialog
     posing the question with a scrollable list of choices -- one for each answer.
-    
+
     The first argument is the dialog's title, the second is the question to be
     asked, the third is a tuple of strings -- each string will become a button,
     the fourth and fifth arguments are optional, the fourth is the index in the
     answer array that will be the default answer (the one invoked if the user
     presses the [Return] key). If omitted the default answer will be the first.
-    
+
     The fifth argument means that multiple options can be selected. If true,
     the fourth argument should be a tuple of Boolean values or a single integer
     index into the answer tuple. So, if there are three options, it should look
     like ``(True, False, True)``, which would select the first and last option.
-    
+
     The function returns the index in the answer array of the answer chosen by
     the user. If the user cancels the dialog, a -1 is returned.
-    
+
     Throws an exception if there is no user interface.
     """
+    ...
 
 def askString(
     title: str,
@@ -2131,6 +2131,172 @@ class GlyphMathKerning:
     topRight: tuple[tuple[int, int], tuple[int, int]]
     """The glyph's math kerning data associated with the top right vertex."""
 
+class GlyphChangeOptions(TypedDict, total=False):
+    """Options for ``glyph.genericGlyphChange`` and ``font.genericGlyphChange``"""
+
+    stemType: Literal["uniform", "horizontalVertical", "thickThin"]
+    """
+    If "uniform" or omitted, all stems (horizontal and vertical, and thick and thin)
+    will be scaled by the same rules. If "horizontalVertical", horizontal and
+    vectical stems may be scaled by different rules. If "thickThin", thick
+    and thin stems may be scaled by different rules.
+    """
+
+    thickThreshold: float
+    """
+    The size in em-units at which a stem is classified as "thick".
+    Required if ``stemType`` is "thickThin".
+    """
+
+    stemScale: float
+    """
+    A scaling factor by which all stems (horizontal and vertical, thick and thin)
+    will be scaled. A value of 1.0 means no change.
+    Required if ``stemType`` is "uniform" or omitted.
+    """
+
+    stemAdd: float
+    """
+    The number of em-units to add to the width of each stem.
+    Only use when ``stemType`` is "uniform" or omitted.
+    """
+
+    stemHeightScale: float
+    """
+    The scaling for the height of horizontal stems.
+    Required if ``stemType`` is "horizontalVertical".
+    """
+
+    stemHeightAdd: float
+    """
+    The number of em-units to add to the height of horizontal stems.
+    Only use when ``stemType`` is "horizontalVertical".
+    """
+
+    stemWidthScale: float
+    """
+    The scaling for the width of vertical stems.
+    Required if ``stemType`` is "horizontalVertical".
+    """
+
+    stemWidthAdd: float
+    """
+    The number of em-units to add to the width of vertical stems.
+    Only use when ``stemType`` is "horizontalVertical".
+    """
+
+    thinStemScale: float
+    """
+    The scaling for the width/height of thin stems.
+    Required if ``stemType`` is "thickThin".
+    """
+
+    thinStemAdd: float
+    """
+    The number of em-units to add to the width/height of thin stems.
+    Only use when ``stemType`` is "thickThin".
+    """
+
+    thickStemScale: float
+    """
+    The scaling for the width/height of thick stems.
+    Required if ``stemType`` is "thickThin".
+    """
+
+    thickStemAdd: float
+    """
+    The number of em-units to add to the width/height of thick stems.
+    Only use when ``stemType`` is "thickThin".
+    """
+
+    processDiagonalStems: bool
+    """Whether to process diagonal stems."""
+
+    hCounterType: Literal["uniform", "nonUniform", "center", "retainScale"]
+    """
+    If "uniform" or omitted, horizontal counters and left and right side bearings will
+    all be scaled using the same rules. If "nonUniform", horizontal counters
+    and left and right side bearings may be scaled by different rules. If "center",
+    then left and right side-bearings will be set so the new glyph is centered
+    within the original glyph's width. (Probably more useful for CJK fonts than LGC fonts).
+    If "retainScale", then the left and right side bearings will be set so the
+    new glyph is within within the original glyph's width, and the side-bearings
+    remain in the same proportion to each other as before.
+    """
+
+    hCounterScale: float
+    """
+    The scaling factor for horizontal counters. Also, the scaling factor for
+    left and right side bearings when ``hCounterType`` is "uniform" or omitted.
+    Required if ``hCounterType`` is "uniform", "nonUniform", or omitted.
+    """
+
+    hCounterAdd: float
+    """
+    The number of em-units to add to horizontal counters. Also, the number of em-units
+    to add to left and right side bearings whin ``hCounterType`` is "uniform" or omitted.
+    Only use when ``hCounterType`` is "uniform", "nonUniform", or omitted.
+    """
+
+    lsbScale: float
+    """
+    The scaling factor for left side bearings.
+    Required if ``hCounterType`` is "nonUniform".
+    """
+
+    lsbAdd: float
+    """
+    The number of em-units to add to left side bearings.
+    Only use when``hCounterType`` is "nonUniform".
+    """
+
+    rsbScale: float
+    """
+    The scaling factor for right side bearings.
+    Required if ``hCounterType`` is "nonUniform".
+    """
+
+    rsbAdd: float
+    """
+    The number of em-units to add to right side bearings.
+    Only use when``hCounterType`` is "nonUniform".
+    """
+
+    vCounterType: Literal["mapped", "scaled"]
+    """
+    If omitted, or is the string "mapped", then certain
+    zones on the glyph may be placed at new (or the same) locations -- similar
+    to BlueValues. So you can specify a zone for the baseline, one for the
+    x-height and another for the top of capitals and ascenders (and perhaps a
+    fourth for descenders). Each such zone is specified by the ``vMap`` argument.
+    If "scaled", vertical counters and the top and bottom side bearings will
+    all be scaled using the same rules. This is probably most useful for CJK fonts.
+    """
+
+    vCounterScale: float
+    """
+    The scaling factor for vertical counters and top and bottom side bearings.
+    Required if ``vCounterType`` is "scaled".
+    """
+
+    vCounterAdd: float
+    """
+    The number of em-units to add to vertical counters and top and bottom side bearings.
+    Only use if ``vCounterType`` is "scaled".
+    """
+
+    vScale: float
+    """
+    Vertical scaling factor.
+    Only use if ``vCounterType`` is "mapped".
+    """
+
+    vMap: tuple[tuple[float, float, float], ...]
+    """
+    A tuple of zones with original location, and final location, and original width.
+    Required if ``vCounterType`` is "mapped" or omitted.
+    """
+
 # Glyph class
 class glyph:
     """
@@ -2625,172 +2791,826 @@ class glyph:
     def addAnchorPoint(
         self,
         anchor_class_name: str,
-        anchor_type: str,
+        anchor_type: Literal["mark", "base", "ligature", "basemark", "entry", "entry"],
         x: float,
         y: float,
-        ligature_index: Optional[int] = ...,
+        ligature_index: int | None = None,
     ) -> None:
-        """Adds an anchor point."""
+        """
+        Adds an anchor point. anchor-type may be one of the strings
+
+        * ``"mark"``
+        * ``"base"``
+        * ``"ligature"``
+        * ``"basemark"``
+        * ``"entry"``
+        * ``"exit"``
+
+        If there is an anchor point with the same ``anchor_class_name`` and:
+
+        * lookup type is ``"gpos_mark2base"`` or
+        * lookup type is ``"gpos_mark2ligature"`` and ``ligature_index`` is the same or
+        * ``anchor_type`` is the same
+
+        then the existing anchor will be overwritten.
+        """
         ...
+
     def addExtrema(
-        self, flags: Optional[str] = ..., emsize: Optional[int] = ...
+        self,
+        flags: Literal["all", "only_good", "only_good_rm"] = "only_good",
+        emsize: int = 1000,
     ) -> None:
-        """Extrema should be marked by on-curve points. If a curve lacks a point at an extrema this command will add one."""
+        """
+        Extrema should be marked by on-curve points. If a curve lacks a point at an
+        extrema this command will add one. Flags may be one of the following strings
+
+        all:
+
+          Add all missing extrema
+
+        only_good:
+
+          Only add extrema on longer splines (with respect to the em-size
+
+        only_good_rm:
+
+          As above but also merge away on-curve points which are very close to,
+          but not on, an added extremum
+        """
         ...
+
     def addReference(
-        self, glyph_name: str, transform: Tuple[float, ...] = ..., selected: bool = ...
+        self,
+        glyph_name: str,
+        transform: tuple[float, float, float, float, float, float] = (1, 0, 0, 1, 0, 0),
+        selected: bool = False,
     ) -> None:
-        """Adds a reference to the specified glyph into the current glyph."""
+        """
+        Adds a reference to the specified glyph into the current glyph. Optionally
+        specifying a transformation matrix and whether the reference is to be
+        marked selected in the UI and related API calls.
+        """
         ...
+
     def addHint(self, is_vertical: bool, start: float, width: float) -> None:
-        """Adds a postscript hint. Takes a boolean flag indicating whether the hint is horizontal or vertical, a start location and the hint's width."""
+        """
+        Adds a postscript hint. Takes a boolean flag indicating whether the hint is
+        horizontal or vertical, a start location and the hint's width.
+        """
         ...
-    def addPosSub(self, subtable_name: str, *args) -> None:
-        """Adds position/substitution data to the glyph."""
+
+    @overload
+    def addPosSub(self, subtable_name: str, variant: str) -> None: ...
+    @overload
+    def addPosSub(self, subtable_name: str, variants: tuple[str, ...]) -> None: ...
+    @overload
+    def addPosSub(
+        self, subtable_name: str, ligature_components: tuple[str, ...]
+    ) -> None: ...
+    @overload
+    def addPosSub(
+        self, subtable_name: str, xoff: int, yoff: int, xadv: int, yadv: int
+    ) -> None: ...
+    @overload
+    def addPosSub(
+        self, subtable_name: str, other_glyph_name: str, kerning: int
+    ) -> None: ...
+    @overload
+    def addPosSub(
+        self,
+        subtable_name: str,
+        other_glyph_name: str,
+        xoff1: int,
+        yoff1: int,
+        xadv1: int,
+        yadv1: int,
+        xoff2: int,
+        yoff2: int,
+        xadv2: int,
+        yadv2: int,
+    ) -> None:
+        """
+        Adds position/substitution data to the glyph. The number and type of the
+        arguments vary according to the type of the lookup containing the subtable.
+
+        The first argument should always be a lookup subtable name.
+
+        If the lookup is for single substitutions then the second argument should be
+        a string containing a single glyph name.
+
+        For multiple and alternated substitutions a tuple of glyph names. For
+        ligatures, a tuple of the ligature components (glyph names).
+
+        For single positionings the second through fifth arguments should be small
+        integers representing the adjustment along the appropriate axis.
+
+        For pairwise positionings (kerning) the second argument should be the name
+        of the other glyph being kerned with, and the third through tenth should be
+        small integers -- or, if there are exactly three arguments then the third
+        specifies traditional, one-axis, kerning.
+
+        If there is a previously existing entry, this will replace it (except for
+        ligatures).
+        """
         ...
+
     @overload
     def appendAccent(self, name: str) -> None: ...
     @overload
-    def appendAccent(self, unicode: int) -> None: ...
-    def appendAccent(self, **kwargs) -> None:
-        """Makes a reference to the specified glyph, adds that reference to the current layer of this glyph, and positions it to make a reasonable accent."""
+    def appendAccent(self, unicode: int) -> None:
+        """
+        Makes a reference to the specified glyph, adds that reference to the current
+        layer of this glyph, and positions it to make a reasonable accent.
+        """
         ...
+
     def autoHint(self) -> None:
         """Generates PostScript hints for this glyph."""
         ...
+
     def autoInstr(self) -> None:
         """Generates TrueType instructions for this glyph."""
         ...
+
     def autoTrace(self) -> None:
         """Auto traces any background images"""
         ...
-    def boundingBox(self) -> Tuple[float, float, float, float]:
-        """Returns a tuple representing a rectangle (xmin,ymin, xmax,ymax) which is the minimum bounding box of the glyph."""
+
+    def boundingBox(self) -> tuple[float, float, float, float]:
+        """
+        Returns a tuple representing a rectangle (xmin,ymin, xmax,ymax) which is
+        the minimum bounding box of the glyph.
+        """
         ...
+
     def build(self) -> None:
-        """If the character is a composite character, then clears it and inserts references to its components."""
+        """
+        If the character is a composite character, then clears it and inserts
+        references to its components.
+        """
         ...
+
     def canonicalContours(self) -> None:
-        """Orders the contours in the current glyph by the x coordinate of their leftmost point."""
+        """
+        Orders the contours in the current glyph by the x coordinate of their
+        leftmost point. (This can reduce the size of the charstring needed to
+        describe the glyph(s).
+        """
         ...
+
     def canonicalStart(self) -> None:
-        """Sets the start point of all the contours of the current glyph to be the leftmost point on the contour."""
+        """
+        Sets the start point of all the contours of the current glyph to be the
+        leftmost point on the contour. (If there are several points with that value
+        then use the one which is closest to the baseline). This can reduce the size
+        of the charstring needed to describe the glyph(s). By regularizing things it
+        can also make more things available to be put in subroutines.
+        """
         ...
-    def changeWeight(self, stroke_width: float, **kwargs) -> None:
-        """Changes the weight (thickness) of the glyph."""
+
+    def changeWeight(
+        self,
+        stroke_width: float,
+        type: Literal["LCG", "CJK", "auto", "custom"] = "auto",
+        serif_height: float = -1,
+        serif_fuzz: float = 0.9,
+        counter_type: Literal["squish", "retain", "auto"] = "auto",
+        removeoverlap: Literal[0, 1] = 0,
+        custom_zones: int | tuple[int, int, int, int] | None = None,
+    ) -> None:
+        """
+        ``stroke_width`` is the amount by which all stems are expanded.
+
+        ``type`` is one of ``"LCG"``, ``"CJK"``, ``"auto"``, ``"custom"``.
+
+        ``serif_height`` tells ff not to expand serifs which are that much off the
+        baseline, while serif_fuzz specifies the amount of fuzziness allowed in the
+        match. If you don't want special serif behavior set this to 0.
+
+        ``counter_type`` is one of ``"squish"``, ``"retain"``, ``"auto"``.
+
+        ``removeoverlap`` (Cleanup Self Intersect) is a boolean int
+        (0=false, 1=true). When activated, and FontForge detects that an expanded
+        stroke will self-intersect, then setting this option will cause it to try to
+        make things nice by removing the intersections.
+
+        ``custom_zones`` is only meaningful if the type argument were ``"custom"``.
+        It may be either a number, which specifies the "top hint" value (bottom hint
+        is assumed to be 0, others are between), or a tuple of 4 numbers (top hint,
+        top zone, bottom zone, bottom hint).
+        """
         ...
+
     def condenseExtend(
         self,
         c_factor: float,
         c_add: float,
-        sb_factor: Optional[float] = ...,
-        sb_add: Optional[float] = ...,
-        correct: bool = ...,
+        sb_factor: float | None = None,
+        sb_add: float | None = None,
+        correct: bool = True,
     ) -> None:
-        """Condenses or extends the size of the counters and side-bearings of the glyph."""
+        """
+        Condenses or extends the size of the counters and side-bearings of the glyph.
+        The first two arguments provide information on shrinking/growing the
+        counters, the second two the sidebearings. If the last two are omitted they
+        default to the same values as the first two.
+
+        A counter's width will become: ::
+
+          new_width = c_factor * old_width + c_add
+
+        If present the ``correct`` argument allows you to specify whether you want
+        to correct for the italic angle before condensing the glyph.
+        (it defaults to``True``)
+        """
         ...
-    def clear(self, layer: Optional[Union[int, str]] = ...) -> None:
-        """Clears the contents of the glyph."""
+
+    def clear(self, layer: int | str | None = None) -> None:
+        """
+        With no arguments, clears the contents of the glyph (and marks it as not
+         :meth:`glyph.isWorthOutputting()`).
+        It is not possible to clear the guide layer with this function.
+        ``layer`` may be either an integer index or a string.
+        """
         ...
+
     def cluster(
-        self, within: Optional[float] = ..., max: Optional[float] = ...
+        self,
+        within: float = 0.1,
+        max: float = 0.5,
     ) -> None:
-        """Moves clustered coordinates to a standard central value."""
+        """
+        Moves clustered coordinates to a standard central value.
+        See also :meth:`glyph.round()`.
+        """
         ...
+
     def correctDirection(self) -> None:
-        """Orients all contours so that external ones are clockwise and internal counter-clockwise."""
+        """
+        Orients all contours so that external ones are clockwise and internal
+        counter-clockwise.
+        """
         ...
+
     def doUndoLayer(
-        self, layer: Optional[Union[int, str]] = ..., redo: bool = ...
+        self,
+        layer: int | str | None = None,
+        redo: bool = False,
     ) -> None:
-        """Equivalent to the 'Undo' or 'Redo' UI menu item for a layer."""
+        """
+        When ``redo`` is False this method is equivalent to the "Undo" UI menu item.
+        It restores the last preserved layer state discarding the current state.
+        When ``redo`` is True it is equivalent to "Redo".  You may omit the
+        ``layer`` parameter, in which case the currently active layer will be used.
+        Otherwise it must either be a layer name or an integer between 0 and
+        ``glyph.layer_cnt-1``.
+
+        ``doUndoLayer`` is normally used in conjunction with
+        :meth:`glyph.preserveLayerAsUndo()`
+        """
         ...
+
     def exclude(self, excluded_layer: layer) -> None:
-        """Removes the excluded area from the current glyph. Takes an argument which is a layer."""
+        """
+        Removes the excluded area from the current glyph. Takes an argument which is
+        a layer. See also :meth:`glyph.removeOverlap()` and :meth:`glyph.intersect()`.
+        """
         ...
-    def export(self, filename: str, **kwargs) -> None:
-        """Creates a file with the specified name containing a representation of the glyph."""
+
+    @overload
+    def export(
+        self,
+        filename: str,
+        *,
+        layer: layer = ...,
+        pixelsize: int = 100,
+        bitdepth: int = 8,
+        usetransform: bool = False,
+        usesystem: bool = False,
+        asksystem: bool = False,
+    ) -> None: ...
+    @overload
+    def export(self, filename: str, layer: layer, /) -> None: ...
+    @overload
+    def export(self, filename: str, pixelsize: int = 100, bitdepth: int = 8, /) -> None:
+        """
+        Creates a file with the specified name containing a representation of
+        the glyph. Uses the file's extension to determine output file type.
+
+        The following optional keywords modify the export process for various formats:
+
+        layer (default=glyph.activeLayer):
+
+          For vector formats, the layer to export.
+
+        pixelsize:
+
+          For raster formats, the size of the image to output.
+
+        bitdepth:
+
+          For raster formats, the depth of the image to output. Must be 1 or 8.
+
+        usetransform:
+
+          Flip the Y-axis of exported SVGs with a transform element rather than
+          modifying the individual Y values.
+
+        usesystem:
+
+          Ignore the above keyword settings and use the values set by the user
+          in the Import options dialog.
+
+        asksystem:
+
+          If the UI is present show the Import options dialog to the user
+          and use the chosen values (does nothing otherwise).
+        """
         ...
-    def genericGlyphChange(self, **kwargs) -> None:
+
+    def genericGlyphChange(self, **kwargs: GlyphChangeOptions) -> None:
         """Similar to font.genericGlyphChange, but acting on this glyph only."""
         ...
-    def getPosSub(self, lookup_subtable_name: str) -> Tuple[Tuple[str, str, Any], ...]:
-        """Returns any positioning/substitution data attached to the glyph controlled by the lookup-subtable."""
+
+    def getPosSub(
+        self, lookup_subtable_name: str
+    ) -> (
+        tuple[str, Literal["Position"], int, int, int, int, int]
+        | tuple[str, Literal["Pair"], str, int, int, int, int, int, int, int, int]
+        | tuple[str, Literal["Substitution"], str]
+        | tuple[
+            str, Literal["AltSubs", "MultSubs", "Ligature"], Unpack[tuple[str, ...]]
+        ]
+    ):
+        """
+        Returns any positioning/substitution data attached to the glyph controlled
+        by the lookup-subtable. If the name is ``"*"`` then returns data from all
+        subtables.
+
+        The data are returned as a tuple of tuples. The first element of the
+        subtuples is the name of the lookup-subtable. The second element will be one
+        of the strings: ``"Position"``, ``"Pair"``, ``"Substitution"``,
+        ``"AltSubs"``, ``"MultSubs"``, ``"Ligature"``.
+
+        Positioning data will be followed by four small integers representing
+        adjustments to the: x position of the glyph, the y position, the horizontal
+        advance, and the vertical advance.
+
+        Pair data will be followed by the name of the other glyph in the pair and
+        then eight small integers representing adjustments to the: x position of the
+        first glyph, the y position, the horizontal advance, and the vertical
+        advance, and then a similar foursome for the second glyph.
+
+        Substitution data will be followed by a string containing the name of the
+        glyph to replace the current one.
+
+        Multiple and Alternate data will be followed by several strings each
+        containing the name of a replacement glyph.
+
+        Ligature data will be followed by several strings each containing the name
+        of a ligature component glyph.
+        """
         ...
-    def importOutlines(self, filename: str, **kwargs) -> None:
-        """Imports outline descriptions (eps, svg, glif files) or image descriptions (bmp, png, xbm, etc.)."""
-        ...
-    def intersect(self) -> None:
-        """Leaves only areas in the intersection of contours."""
-        ...
-    def isWorthOutputting(self) -> bool:
-        """Returns whether the glyph is worth outputting into a font file."""
-        ...
-    def preserveLayerAsUndo(
-        self, layer: Optional[Union[int, str]] = ..., dohints: bool = ...
+
+    @overload
+    def importOutlines(
+        self,
+        filename: str,
+        *,
+        scale: bool = True,
+        simplify: bool = True,
+        accuracy: float = 0.25,
+        default_joinlimit: float = -1,
+        handle_eraser: bool = False,
+        correctdir: bool = False,
+        usesystem: bool = False,
+        asksystem: bool = False,
+    ) -> None: ...
+    @overload
+    def importOutlines(
+        self,
+        filename: str,
+        flags: tuple[Literal["handle_eraser", "correctdir"], ...],
+        /,
     ) -> None:
-        """Preserves the current state of a layer so that whatever you do after can be undone by the user."""
+        """
+        Uses the file's extension to determine behavior. Imports outline descriptions
+        (eps, svg, glif files) into the foreground layer. Imports image descriptions
+        (bmp, png, xbm, etc.) into the background layer. The following optional
+        keywords modify the import process for various formats:
+
+        scale:
+
+          Scale imported images and SVGs to ascender height
+
+        simplify:
+
+          Run simplify on the output of stroked paths
+
+        accuracy:
+
+          The minimum accuracy (in em-units) of stroked paths.
+
+        default_joinlimit:
+
+          Override the format's default miterlimit for stroked paths, which is
+          10.0 for PostScript and 4.0 for SVG. (Value -1 means "inherit" those
+          defaults.)
+
+        handle_eraser:
+
+          Certain programs use pens with white ink as erasers. When this flag is
+          set FontForge will attempt to simulate that.
+
+        correctdir:
+
+          Run "Correct direction" on (some) PostScript paths
+
+        usesystem:
+
+          Ignore the above keyword settings and use the values set by the user
+          in the Import options dialog.
+
+        asksystem:
+
+          If the UI is present show the Import options dialog to the user
+          and use the chosen values (does nothing otherwise).
+        """
         ...
+
+    def intersect(self) -> None:
+        """
+        Leaves only areas in the intersection of contours. See also
+        :meth:`glyph.removeOverlap()` and :meth:`glyph.exclude()`.
+        """
+        ...
+
+    def isWorthOutputting(self) -> bool:
+        """
+        Returns whether the glyph is worth outputting into a font file. Basically a
+        glyph is worth outputting if it contains any contours, or references or has
+        had its width set.
+        """
+        ...
+
+    def preserveLayerAsUndo(
+        self,
+        layer: int | str | None = None,
+        dohints: bool = False,
+    ) -> None:
+        """
+        Normally undo handling is turned off during python scripting. This method
+        preserves the current state of a layer so that whatever you do after can be
+        undone by the user. You may omit the ``layer`` parameter, in which case the
+        currently active layer will be used. Otherwise it must either be a layer name
+        or an integer between 0 and ``glyph.layer_cnt-1``. When ``dohints`` is True
+        then hints will also be preserved (they are not by default).
+        """
+        ...
+
     def removeOverlap(self) -> None:
-        """Removes overlapping areas."""
+        """
+        Removes overlapping areas.
+        See also :meth:`glyph.intersect()` and :meth:`glyph.exclude()`.
+        """
         ...
+
     def removePosSub(self, lookup_subtable_name: str) -> None:
-        """Removes all data from the glyph corresponding to the given lookup-subtable."""
+        """
+        Removes all data from the glyph corresponding to the given lookup-subtable.
+        If the name is "*" then all data will be removed.
+        """
         ...
-    def round(self, factor: Optional[float] = ...) -> None:
-        """Rounds the x and y coordinates of each point in the glyph."""
+
+    def round(self, factor: float = 1) -> None:
+        """
+        Rounds the x and y coordinates of each point in the glyph. If factor is
+        specified then ::
+
+           new-coord = round(factor*old-coord)/factor
+
+        See also :meth:`glyph.cluster()`.
+        """
         ...
+
     def selfIntersects(self) -> bool:
-        """Returns whether any of the contours in this glyph intersects any other contour in the glyph (including itself)."""
+        """
+        Returns whether any of the contours in this glyph intersects any other
+        contour in the glyph (including itself).
+        """
         ...
+
     def setLayer(
         self,
-        layer_obj: layer,
-        layer_index: Union[int, str],
-        flags: Optional[Tuple[str, ...]] = ...,
+        layer: layer,
+        layer_index: int,
+        flags: tuple[
+            Literal[
+                "select_none",
+                "select_all",
+                "select_smooth",
+                "select_incompat",
+                "by_geom",
+                "downgrade",
+                "check",
+                "force",
+                "hcurve",
+            ],
+            ...,
+        ] = ("select_all", "by_geom"),
     ) -> None:
-        """An alternative to assigning to glyph.layers, glyph.background, or glyph.foreground."""
+        """
+        An alternative to assigning to :attr:`glyph.layers`, :attr:`glyph.background`,
+        or :attr:`glyph.foreground`, and equivalent to those when not using the
+        optional ``flags`` argument. When present, ``flags`` can be used to influence
+        the types FontForge will assign to on-curve points. It should be a tuple of
+        up to three of the following strings.
+
+        (In the following descriptions *selected* refers to points picked out by the
+        chosen ``select_`` flag, which is unrelated to :attr:`point.selected`. At
+        most one ``"select_"`` flag and one mode flag should be included.)
+
+        select_none:
+
+          Each (on-curve) point will be assigned a type corresponding to its
+          :attr:`point.type` value.
+
+        select_all:
+
+          (default) Each point will have a type assigned according to the chosen mode.
+
+        select_smooth:
+
+          Each point with the type :data:`splineCorner` will retain that type,
+          others will be assigned a type according to the chosen mode. This makes
+          :attr:`point.type` function like the ``smooth`` tag in the UFO glif
+          format and some other spline storage formats.
+
+        select_incompat:
+
+          Each point with a type compatible with its current geometry will retain
+          that type, others will be assigned a type according to the chosen mode.
+
+        by_geom:
+
+          (default) In this mode, each *selected* point will be assigned a type
+          based on only its geometry. (However, see ``"hvcurve"``` below.)
+
+        downgrade:
+
+          In this mode, each *selected* point will be assigned the most specific
+          type compatible with its geometry and its :attr:`point.type`. A point
+          marked :data:`splineHVCurve` can keep that type or be downgraded to
+          :data:`splineCurve` or :data:`splineCorner`, while a :data:`splineCurve`
+          or :data:`splineTangent` can keep that (respective) type or be downgraded
+          to :data:`splineCorner`. (:data:`splineCorner` is compatible with any
+          geometry.)
+
+        check:
+
+          In this mode, the type of each *selected* point is verified to be
+          compatible with its geometry. If it is not compatible the function raises
+          an exception. (At present this exception is not very informative. However,
+          to identify the specific problem one can duplicate the layer, use
+          :meth:`glyph.setLayer()` with ``downgrade``, and then retrieve the layer
+          and compare it with the original.)
+
+        force:
+
+          In this mode, the geometry of each *selected* point is altered to match
+          its :attr:`point.type`, similar to changing a point's type using the UI.
+          Note that FontForge's point conversion algorithm is not sophisticated
+          and may not have the desired result.
+
+        hvcurve:
+
+          This extra flag can be used to include :data:`splineHVCurve` among the
+          types that can be assigned "by geometry". Normally FontForge assigns
+          :data:`splineCurve` to on-curve points with strictly horizontal or
+          vertical off-curve points.
+        """
         ...
-    def simplify(self, error_bound: Optional[float] = ..., **kwargs) -> None:
-        """Tries to remove excess points in the glyph if doing so will not perturb the curve by more than error-bound."""
+
+    def simplify(
+        self,
+        error_bound: float | None = None,
+        flags: tuple[
+            Literal[
+                "ignoreslopes",
+                "ignoreextrema",
+                "smoothcurves",
+                "choosehv",
+                "forcelines",
+                "nearlyhvlines",
+                "mergelines",
+                "setstarttoextremum",
+                "removesingletonpoints",
+            ],
+            ...,
+        ] = (),
+        tan_bounds: float | None = None,
+        linefixup: float | None = None,
+        linelenmax: float | None = None,
+    ) -> None:
+        """
+        Tries to remove excess points in the glyph if doing so will not perturb the
+        curve by more than ``error-bound``. Flags is a tuple of the following strings
+
+        ignoreslopes:
+
+          Allow slopes to change
+
+        ignoreextrema:
+
+          Allow removal of extrema
+
+        smoothcurves:
+
+          Allow curve smoothing
+
+        choosehv:
+
+          Snap to horizontal or vertical
+
+        forcelines:
+
+          flatten bumps on lines
+
+        nearlyhvlines:
+
+          Make nearly horizontal/vertical lines be so
+
+        mergelines:
+
+          Merge adjacent lines into one
+
+        setstarttoextremum:
+
+          Rotate the point list so that the start point is on an extremum
+
+        removesingletonpoints:
+
+          If the contour contains just one point then remove it
+        """
         ...
-    def stroke(self, type: str, *args, **kwargs) -> None:
-        """Strokes the contours of the glyph according to the supplied parameters."""
+
+    @overload
+    def stroke(
+        self,
+        type: Literal["circular"],
+        width: float,
+        /,
+        cap: Literal["nib", "butt", "round", "bevel"] = "nib",
+        join: Literal["nib", "bevel", "miter", "miterclip", "round", "arcs"] = "nib",
+        angle: float = 0,
+        **kwargs: StrokeOptions,
+    ) -> None: ...
+    @overload
+    def stroke(
+        self,
+        type: Literal["elliptical"],
+        width: float,
+        minor_width: float,
+        /,
+        angle: float = 0,
+        cap: Literal["nib", "butt", "round", "bevel"] = "nib",
+        join: Literal["nib", "bevel", "miter", "miterclip", "round", "arcs"] = "nib",
+        **kwargs: StrokeOptions,
+    ) -> None: ...
+    @overload
+    def stroke(
+        self,
+        type: Literal["calligraphic"],
+        width: float,
+        height: float,
+        /,
+        angle: float = 0,
+        cap: Literal["nib", "butt", "round", "bevel"] = "nib",
+        join: Literal["nib", "bevel", "miter", "miterclip", "round", "arcs"] = "nib",
+        **kwargs: StrokeOptions,
+    ) -> None: ...
+    @overload
+    def stroke(
+        self,
+        type: Literal["convex"],
+        nib: contour | layer,
+        /,
+        angle: float = 0,
+        cap: Literal["nib", "butt", "round", "bevel"] = "nib",
+        join: Literal["nib", "bevel", "miter", "miterclip", "round", "arcs"] = "nib",
+        **kwargs: StrokeOptions,
+    ) -> None:
+        """
+        Strokes the contours of the glyph according to the supplied parameters.
+
+        A ``"circular"`` nib just has a ``width`` (the diameter), while an
+        ``"elliptical"`` nib has a ``width`` (major axis) and a ``minor_width``
+        (minor axis). A ``"calligraphic"`` or ``"rectangular"`` nib is similar in
+        that it has a ``width`` and a ``height``. Finally a ``"convex"`` nib is one
+        supplied by the user as a :class:`fontforge.contour` or :class:`fontforge.layer`.
+        It must be *convex* as defined in the main stroke facility documentation.
+
+        ``ANGLE`` is optional. It can be specified either positionally or with
+        ``angle=float``. It must be a floating point number in units of radians and
+        defaults to zero. The nib is rotated by this angle before stroking the path.
+
+        ``CAP`` is optional. It can be specified either positionally or with
+        ``cap=string``. It must be one of the strings "nib" (the default), "butt",
+        "round", and "bevel".
+
+        ``JOIN`` is optional. It can be specified either positionally or with
+        ``join=string``. It must be one of the strings "nib" (the default), "bevel",
+        "miter", and "miterclip", "round", and "arcs".
+        """
         ...
+
     def transform(
-        self, matrix: Tuple[float, ...], flags: Optional[Tuple[str, ...]] = ...
+        self,
+        matrix: tuple[float, float, float, float, float, float],
+        flags: tuple[Literal["partialRefs", "round"], ...] = (),
     ) -> None:
-        """Transforms the glyph by the matrix."""
+        """
+        Transforms the glyph by the matrix. The optional flags argument should be a
+        tuple containing any of the following strings:
+
+        partialRefs:
+
+          Don't transform any references in the glyph, but do transform their offsets.
+          This is useful if the referred glyph will be (or has been) transformed.
+
+        round:
+
+          Round to int after the transformation is done.
+        """
         ...
+
     def nltransform(self, xexpr: str, yexpr: str) -> None:
-        """Applies non-linear transformations to all points in the current layer."""
+        """
+        xexpr and yexpr are strings specifying non-linear transformations that will
+        be applied to all points in the current layer (with xexpr being applied to x
+        values, and yexpr to y values, of course).
+        """
         ...
-    def unlinkRef(self, ref_name: Optional[str] = ...) -> None:
-        """Unlinks the reference to the glyph named ref-name."""
+
+    def unlinkRef(self, ref_name: str | None = None) -> None:
+        """
+        Unlinks the reference to the glyph named ``ref-name``. If ``ref-name`` is
+        omitted, unlinks all references.
+        """
         ...
+
     def unlinkThisGlyph(self) -> None:
-        """Unlinks all the references to the current glyph within any other glyph in the font."""
+        """
+        Unlinks all the references to the current glyph within any other glyph in
+        the font.
+        """
         ...
-    def useRefsMetrics(self, ref_name: str, flag: bool = ...) -> None:
-        """Finds a reference with the given name and sets the 'use_my_metrics' flag on it."""
+
+    def useRefsMetrics(self, ref_name: str, flag: bool = True) -> None:
+        """
+        Finds a reference with the given name and sets the "use_my_metrics" flag on
+        it (so this glyph will have the same advance width as the glyph the
+        reference points to).
+
+        If the optional flag argument is False, then the glyph will no longer have
+        its metrics bound to the reference.
+        """
         ...
-    def validate(self, force: bool = ...) -> int:
-        """Validates the glyph and returns the validation_state of the glyph."""
+
+    def validate(self, force: bool = False) -> int:
+        """
+        Validates the glyph and returns the :attr:`validation_state` of the glyph
+        (except bit 0x1 will always be clear). If the glyph passed the validation
+        then the return value will be 0 (not 0x1). Otherwise the return value will
+        be the set of errors found. If force is specified true this will always be
+        validated, if force is unspecified (or specified as false) then it will
+        return the cached value if it is known, otherwise will validate it.
+        """
         ...
-    def draw(self, pen: "glyphPen") -> None:
-        """Draw the glyph's outline to the pen argument."""
+
+    def draw(self, pen: glyphPen) -> None:
+        """Draw the glyph's outline to the pen argument. http://robofab.org/objects/pens.html"""
         ...
-    def glyphPen(self, replace: bool = ...) -> "glyphPen":
-        """Creates a new glyphPen which will draw into the current glyph."""
+
+    def glyphPen(self, replace: bool = True) -> glyphPen:
+        """
+        Creates a new glyphPen which will draw into the current glyph. By default
+        the pen will replace any existing contours and references, but setting the
+        optional keyword argument, ``replace`` to false will retain the old contents.
+        """
         ...
+
     def addInflections(self) -> None:
-        """Please see contour.addInflections()."""
+        """Please see :meth:`contour.addInflections()`."""
         ...
+
     def balance(self) -> None:
-        """Please see contour.balance()."""
+        """Please see :meth:`contour.balance()`."""
         ...
+
     def harmonize(self) -> None:
-        """Please see contour.harmonize()."""
+        """Please see :meth:`contour.harmonize()`."""
         ...
 
 class selection:
