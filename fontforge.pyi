@@ -3628,16 +3628,15 @@ class selection:
     This type may not be pickled.
     """
 
-    @property
-    def byGlyphs(self) -> selection:
-        """
-        Returns another selection, just the same as this one except that its
-        iterator function will return glyphs (rather than encoding slots) and
-        will only return those entries for which glyphs exist.
+    byGlyphs: selection
+    """
+    Returns another selection, just the same as this one except that its
+    iterator function will return glyphs (rather than encoding slots) and
+    will only return those entries for which glyphs exist.
 
-        This is read-only.
-        """
-        ...
+    This is read-only.
+    """
+    ...
 
     def __iter__(self) -> Iterator[Any]:
         """
@@ -3647,60 +3646,84 @@ class selection:
         ...
 
     def all(self) -> None:
-        """
-        Select everything.
-        """
+        """Select everything."""
         ...
 
     def none(self) -> None:
-        """
-        Deselect everything.
-        """
+        """Deselect everything."""
         ...
 
     def changed(self) -> None:
-        """
-        Select all glyphs which have changed.
-        """
+        """Select all glyphs which have changed."""
         ...
 
     def invert(self) -> None:
+        """Invert the selection."""
+        ...
+
+    def select(
+        self,
+        *args: str
+        | int
+        | glyph
+        | tuple[
+            Literal["unicode", "encoding", "more", "less", "singletons", "ranges"], ...
+        ],
+    ) -> None:
         """
-        Invert the selection.
+        There may be an arbitrary number of arguments. Each argument may be either:
+
+        * A glyph name
+
+          Note: There need not be a glyph with this name in the font yet, but if you
+          use a standard name (like "A") fontforge will still know where that glyph
+          should be.
+        * An integer (this will be interpreted as either an encoding index or
+          (default) a unicode code point depending on the flags).
+        * A fontforge glyph.
+        * A tuple of flags.
+
+          (If you wish to specify a single flag it must still be in a tuple, and you
+          must append a trailing comma to the flag (so ``("more",)`` rather than
+          just ``("more")`` ). FF needs the flags to be in a tuple otherwise it
+          can't distinguish them from glyph names)
+
+          unicode:
+
+            Interpret integer arguments as unicode code points
+
+          encoding:
+
+            Interpret integer arguments as encoding indeces.
+
+          more:
+
+            Specified items should be selected
+
+          less:
+
+            Specified items should be deselected.
+
+          singletons:
+
+            Specified items should be interpreted individually and mean the obvious.
+
+          ranges:
+
+            Specified items should be interpreted in pairs and represent all
+            encoding slots between the start and end points specified by the pair.
+            So ``.select(("ranges",None),"A","Z")`` would select all the upper case
+            (latin) letters.
+
+        If the first argument is not a flag argument (or if it doesn't specify
+        either "more" or "less") then the selection will be cleared. So
+        ``.select("A")`` would produce a selection with only "A" selected,
+        ``.select(("more",None),"A")`` would add "A" to the current selection, while
+        ``.select(("less",None),"A")`` would remove "A" from the current selection.
         """
         ...
 
-    def select(self, *args: SelectionArg) -> None:
-        """
-        Select items based on the provided arguments.
-
-        Args:
-            *args: An arbitrary number of arguments. Each argument may be:
-                - A glyph name (str)
-                - An integer (interpreted as an encoding index or unicode
-                  code point depending on flags)
-                - A fontforge.glyph object
-                - A tuple of flags (e.g., ("more",), ("unicode", "ranges"))
-
-        The first argument can be a tuple of flags to modify the selection behavior.
-        If the first argument is not a flag tuple, or doesn't specify "more"
-        or "less", the selection is cleared before adding the new items.
-        """
-        ...
-
-    def __getitem__(self, key: Union[int, str, Glyph]) -> bool:
-        """
-        Gets the selection status of a glyph by its encoding value, name,
-        unicode string, or glyph object.
-
-        Args:
-            key: The value to check for selection. Can be an integer, string
-                 (glyph name or "uXXXXX"), or a fontforge.glyph object.
-
-        Returns:
-            bool: True if the glyph is selected, False otherwise.
-        """
-        ...
+    def __getitem__(self, key: int | str | glyph) -> bool: ...
 
 # Private class
 class private(dict[str, Any]):
