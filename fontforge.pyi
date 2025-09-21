@@ -2,6 +2,7 @@
 The primary module for interacting with FontForge
 """
 
+from collections.abc import Mapping
 from typing import (
     Any,
     Tuple,
@@ -3726,22 +3727,33 @@ class selection:
     def __getitem__(self, key: int | str | glyph) -> bool: ...
 
 # Private class
-class private(dict[str, Any]):
+class private(Mapping[str, str | float | int | tuple[float, ...]]):
     """
     This represents a font's postscript private dictionary. You may index it with
     one of the standard names of things that live in the private dictionary.
 
     This type may not be pickled.
     """
-    def __iter__(self) -> Iterator[str]: ...
-    """
-    Returns an iterator for the dictionary which will return all entries.
-    """
-    def guess(self, name: str) -> None: ...
-    """
-    Guess a value for this entry in the private dictionary. If FontForge
-    can't make a guess it will simply ignore the request.
-    """
+
+    @override
+    def __iter__(self) -> Iterator[str]:
+        """Returns an iterator for the dictionary which will return all entries."""
+        ...
+
+    def guess(self, name: str) -> None:
+        """
+        Guess a value for this entry in the private dictionary. If FontForge
+        can't make a guess it will simply ignore the request.
+        """
+        ...
+
+    @override
+    def __len__(self) -> int: ...
+    @override
+    def __getitem__(self, key: str) -> str | float | int | tuple[float, ...]: ...
+    def __setitem__(
+        self, key: str, value: str | float | int | tuple[float, ...]
+    ) -> None: ...
 
 DeviceTable = dict[int, int]
 """
