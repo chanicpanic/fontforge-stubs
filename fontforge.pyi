@@ -3799,13 +3799,25 @@ class Math:
     MathLeading: int
     """White space to be left between math formulae to ensure proper line spacing."""
 
+    MathLeadingDeviceTable: DeviceTable | None
+    """White space to be left between math formulae to ensure proper line spacing."""
+
     AxisHeight: int
+    """Axis height of the font."""
+
+    AxisHeightDeviceTable: DeviceTable | None
     """Axis height of the font."""
 
     AccentBaseHeight: int
     """Maximum (ink) height of accent base that does not require raising the accents."""
 
+    AccentBaseHeightDeviceTable: DeviceTable | None
+    """Maximum (ink) height of accent base that does not require raising the accents."""
+
     FlattenedAccentBaseHeight: int
+    """Maximum (ink) height of accent base that does not require flattening the accents."""
+
+    FlattenedAccentBaseHeightDeviceTable: DeviceTable | None
     """Maximum (ink) height of accent base that does not require flattening the accents."""
 
     SubscriptShiftDown: int
@@ -3814,7 +3826,19 @@ class Math:
     moving downward.
     """
 
+    SubscriptShiftDownDeviceTable: DeviceTable | None
+    """
+    The standard shift down applied to subscript elements. Positive for
+    moving downward.
+    """
+
     SubscriptTopMax: int
+    """
+    Maximum height of the (ink) top of subscripts that does not require moving
+    subscripts further down.
+    """
+
+    SubscriptTopMaxDeviceTable: DeviceTable | None
     """
     Maximum height of the (ink) top of subscripts that does not require moving
     subscripts further down.
@@ -3827,13 +3851,32 @@ class Math:
     Positive for subscript baseline dropped below base bottom.
     """
 
+    SubscriptBaselineDropMinDeviceTable: DeviceTable | None
+    """
+    Maximum allowed drop of the baseline of subscripts relative to the bottom of
+    the base. Used for bases that are treated as a box or extended shape.
+    Positive for subscript baseline dropped below base bottom.
+    """
+
     SuperscriptShiftUp: int
+    """Standard shift up applied to superscript elements."""
+
+    SuperscriptShiftUpDeviceTable: DeviceTable | None
     """Standard shift up applied to superscript elements."""
 
     SuperscriptShiftUpCramped: int
     """Standard shift of superscript relative to base in cramped mode."""
 
+    SuperscriptShiftUpCrampedDeviceTable: DeviceTable | None
+    """Standard shift of superscript relative to base in cramped mode."""
+
     SuperscriptBottomMin: int
+    """
+    Minimum allowed height of the bottom of superscripts that does not require
+    moving them further up.
+    """
+
+    SuperscriptBottomMinDeviceTable: DeviceTable | None
     """
     Minimum allowed height of the bottom of superscripts that does not require
     moving them further up.
@@ -3846,7 +3889,17 @@ class Math:
     Positive for superscript baseline below base top.
     """
 
+    SuperscriptBaselineDropMaxDeviceTable: DeviceTable | None
+    """
+    Maximum allowed drop of the baseline of superscripts relative to the top of
+    the base. Used for bases that are treated as a box or extended shape.
+    Positive for superscript baseline below base top.
+    """
+
     SubSuperscriptGapMin: int
+    """Minimum gap between the superscript and subscript ink."""
+
+    SubSuperscriptGapMinDeviceTable: DeviceTable | None
     """Minimum gap between the superscript and subscript ink."""
 
     SuperscriptBottomMaxWithSubscript: int
@@ -3856,10 +3909,26 @@ class Math:
     being moved down.
     """
 
+    SuperscriptBottomMaxWithSubscriptDeviceTable: DeviceTable | None
+    """
+    The maximum level to which the (ink) bottom of superscript can be pushed to
+    increase the gap between superscript and subscript, before subscript starts
+    being moved down.
+    """
+
     SpaceAfterScript: int
     """Extra white space to be added after each sub/superscript."""
 
+    SpaceAfterScriptDeviceTable: DeviceTable | None
+    """Extra white space to be added after each sub/superscript."""
+
     UpperLimitGapMin: int
+    """
+    Minimum gap between the bottom of the upper limit, and the top of the base
+    operator.
+    """
+
+    UpperLimitGapMinDeviceTable: DeviceTable | None
     """
     Minimum gap between the bottom of the upper limit, and the top of the base
     operator.
@@ -3871,7 +3940,19 @@ class Math:
     the base operator.
     """
 
+    UpperLimitBaselineRiseMinDeviceTable: DeviceTable | None
+    """
+    Minimum distance between the baseline of an upper limit and the bottom of
+    the base operator.
+    """
+
     LowerLimitGapMin: int
+    """
+    Minimum gap between (ink) top of the lower limit, and (ink) bottom of the
+    base operator.
+    """
+
+    LowerLimitGapMinDeviceTable: DeviceTable | None
     """
     Minimum gap between (ink) top of the lower limit, and (ink) bottom of the
     base operator.
@@ -3883,7 +3964,16 @@ class Math:
     base operator.
     """
 
+    LowerLimitBaselineDropMinDeviceTable: DeviceTable | None
+    """
+    Minimum distance between the baseline of the lower limit and bottom of the
+    base operator.
+    """
+
     StackTopShiftUp: int
+    """Standard shift up applied to the top element of a stack."""
+
+    StackTopShiftUpDeviceTable: DeviceTable | None
     """Standard shift up applied to the top element of a stack."""
 
     StackTopDisplayStyleShiftUp: int
@@ -3891,7 +3981,18 @@ class Math:
     Standard shift up applied to the top element of a stack in display style.
     """
 
+    StackTopDisplayStyleShiftUpDeviceTable: DeviceTable | None
+    """
+    Standard shift up applied to the top element of a stack in display style.
+    """
+
     StackBottomShiftDown: int
+    """
+    Standard shift down applied to the bottom element of a stack. Positive
+    values indicate downward motion.
+    """
+
+    StackBottomShiftDownDeviceTable: DeviceTable | None
     """
     Standard shift down applied to the bottom element of a stack. Positive
     values indicate downward motion.
@@ -3903,7 +4004,19 @@ class Math:
     style. Positive values indicate downward motion.
     """
 
+    StackBottomDisplayStyleShiftDownDeviceTable: DeviceTable | None
+    """
+    Standard shift down applied to the bottom element of a stack in display
+    style. Positive values indicate downward motion.
+    """
+
     StackGapMin: int
+    """
+    Minimum gap between bottom of the top element of a stack, and the top of
+    the bottom element.
+    """
+
+    StackGapMinDeviceTable: DeviceTable | None
     """
     Minimum gap between bottom of the top element of a stack, and the top of
     the bottom element.
@@ -3915,10 +4028,25 @@ class Math:
     bottom element in display style.
     """
 
+    StackDisplayStyleGapMinDeviceTable: DeviceTable | None
+    """
+    Minimum gap between bottom of the top element of a stack and the top of the
+    bottom element in display style.
+    """
+
     StretchStackTopShiftUp: int
     """Standard shift up applied to the top element of the stretch stack."""
 
+    StretchStackTopShiftUpDeviceTable: DeviceTable | None
+    """Standard shift up applied to the top element of the stretch stack."""
+
     StretchStackBottomShiftDown: int
+    """
+    Standard shift down applied to the bottom element of the stretch stack.
+    Positive values indicate downward motion.
+    """
+
+    StretchStackBottomShiftDownDeviceTable: DeviceTable | None
     """
     Standard shift down applied to the bottom element of the stretch stack.
     Positive values indicate downward motion.
@@ -3930,7 +4058,19 @@ class Math:
     the element above.
     """
 
+    StretchStackGapAboveMinDeviceTable: DeviceTable | None
+    """
+    Minimum gap between the ink of the stretched element and the ink bottom of
+    the element above.
+    """
+
     StretchStackGapBelowMin: int
+    """
+    Minimum gap between the ink of the stretched element and the ink top of
+    the element below.
+    """
+
+    StretchStackGapBelowMinDeviceTable: DeviceTable | None
     """
     Minimum gap between the ink of the stretched element and the ink top of
     the element below.
@@ -3939,10 +4079,22 @@ class Math:
     FractionNumeratorShiftUp: int
     """Standard shift up applied to the numerator."""
 
+    FractionNumeratorShiftUpDeviceTable: DeviceTable | None
+    """Standard shift up applied to the numerator."""
+
     FractionNumeratorDisplayStyleShiftUp: int
     """Standard shift up applied to the numerator in display style."""
 
+    FractionNumeratorDisplayStyleShiftUpDeviceTable: DeviceTable | None
+    """Standard shift up applied to the numerator in display style."""
+
     FractionDenominatorShiftDown: int
+    """
+    Standard shift down applied to the denominator. Positive values indicate
+    downward motion.
+    """
+
+    FractionDenominatorShiftDownDeviceTable: DeviceTable | None
     """
     Standard shift down applied to the denominator. Positive values indicate
     downward motion.
@@ -3954,7 +4106,19 @@ class Math:
     values indicate downward motion.
     """
 
+    FractionDenominatorDisplayStyleShiftDownDeviceTable: DeviceTable | None
+    """
+    Standard shift down applied to the denominator in display style. Positive
+    values indicate downward motion.
+    """
+
     FractionNumeratorGapMin: int
+    """
+    Minimum tolerated gap between the ink bottom of the numerator and the ink of
+    the fraction bar.
+    """
+
+    FractionNumeratorGapMinDeviceTable: DeviceTable | None
     """
     Minimum tolerated gap between the ink bottom of the numerator and the ink of
     the fraction bar.
@@ -3966,10 +4130,25 @@ class Math:
     the fraction bar in display style.
     """
 
+    FractionNumeratorDisplayStyleGapMinDeviceTable: DeviceTable | None
+    """
+    Minimum tolerated gap between the ink bottom of the numerator and the ink of
+    the fraction bar in display style.
+    """
+
     FractionRuleThickness: int
     """Thickness of the fraction bar."""
 
+    FractionRuleThicknessDeviceTable: DeviceTable | None
+    """Thickness of the fraction bar."""
+
     FractionDenominatorGapMin: int
+    """
+    Minimum tolerated gap between the ink top of the denominator and the ink of
+    the fraction bar.
+    """
+
+    FractionDenominatorGapMinDeviceTable: DeviceTable | None
     """
     Minimum tolerated gap between the ink top of the denominator and the ink of
     the fraction bar.
@@ -3981,7 +4160,18 @@ class Math:
     the fraction bar in display style.
     """
 
+    FractionDenominatorDisplayStyleGapMinDeviceTable: DeviceTable | None
+    """
+    Minimum tolerated gap between the ink top of the denominator and the ink of
+    the fraction bar in display style.
+    """
+
     SkewedFractionHorizontalGap: int
+    """
+    Horizontal distance between the top and bottom elements of a skewed fraction.
+    """
+
+    SkewedFractionHorizontalGapDeviceTable: DeviceTable | None
     """
     Horizontal distance between the top and bottom elements of a skewed fraction.
     """
@@ -3992,28 +4182,61 @@ class Math:
     fraction.
     """
 
+    SkewedFractionVerticalGapDeviceTable: DeviceTable | None
+    """
+    Vertical distance between the ink of the top and bottom elements of a skewed
+    fraction.
+    """
+
     OverbarVerticalGap: int
+    """Distance between the overbar and the ink top of the base."""
+
+    OverbarVerticalGapDeviceTable: DeviceTable | None
     """Distance between the overbar and the ink top of the base."""
 
     OverbarRuleThickness: int
     """Thickness of the overbar."""
 
+    OverbarRuleThicknessDeviceTable: DeviceTable | None
+    """Thickness of the overbar."""
+
     OverbarExtraAscender: int
+    """Extra white space reserved above the overbar."""
+
+    OverbarExtraAscenderDeviceTable: DeviceTable | None
     """Extra white space reserved above the overbar."""
 
     UnderbarVerticalGap: int
     """Distance between underbar and the (ink) bottom of the base."""
 
+    UnderbarVerticalGapDeviceTable: DeviceTable | None
+    """Distance between underbar and the (ink) bottom of the base."""
+
     UnderbarRuleThickness: int
+    """Thickness of the underbar."""
+
+    UnderbarRuleThicknessDeviceTable: DeviceTable | None
     """Thickness of the underbar."""
 
     UnderbarExtraDescender: int
     """Extra white space reserved below the underbar."""
 
+    UnderbarExtraDescenderDeviceTable: DeviceTable | None
+    """Extra white space reserved below the underbar."""
+
     RadicalVerticalGap: int
     """Space between the ink to of the expression and the bar over it."""
 
+    RadicalVerticalGapDeviceTable: DeviceTable | None
+    """Space between the ink to of the expression and the bar over it."""
+
     RadicalDisplayStyleVerticalGap: int
+    """
+    Space between the ink top of the expression and the bar over it in display
+    style.
+    """
+
+    RadicalDisplayStyleVerticalGapDeviceTable: DeviceTable | None
     """
     Space between the ink top of the expression and the bar over it in display
     style.
@@ -4024,7 +4247,15 @@ class Math:
     Thickness of the radical rule in designed or constructed radical signs.
     """
 
+    RadicalRuleThicknessDeviceTable: DeviceTable | None
+    """
+    Thickness of the radical rule in designed or constructed radical signs.
+    """
+
     RadicalExtraAscender: int
+    """Extra white space reserved above the radical."""
+
+    RadicalExtraAscenderDeviceTable: DeviceTable | None
     """Extra white space reserved above the radical."""
 
     RadicalKernBeforeDegree: int
@@ -4032,7 +4263,17 @@ class Math:
     Extra horizontal kern before the degree of a radical if such be present.
     """
 
+    RadicalKernBeforeDegreeDeviceTable: DeviceTable | None
+    """
+    Extra horizontal kern before the degree of a radical if such be present.
+    """
+
     RadicalKernAfterDegree: int
+    """
+    Negative horizontal kern after the degree of a radical if such be present.
+    """
+
+    RadicalKernAfterDegreeDeviceTable: DeviceTable | None
     """
     Negative horizontal kern after the degree of a radical if such be present.
     """
@@ -4045,253 +4286,6 @@ class Math:
 
     MinConnectorOverlap: int
     """Minimum overlap of connecting glyphs during glyph construction."""
-
-    MathLeadingDeviceTable: DeviceTable | None
-    """
-    White space to be left between math formulae to ensure proper line spacing.
-    """
-
-    AxisHeightDeviceTable: DeviceTable | None
-    """Axis height of the font."""
-
-    AccentBaseHeightDeviceTable: DeviceTable | None
-    """
-    Maximum (ink) height of accent base that does not require raising the accents.
-    """
-
-    FlattenedAccentBaseHeightDeviceTable: DeviceTable | None
-    """
-    Maximum (ink) height of accent base that does not require flattening the accents.
-    """
-
-    SubscriptShiftDownDeviceTable: DeviceTable | None
-    """
-    The standard shift down applied to subscript elements. Positive for
-    moving downward.
-    """
-
-    SubscriptTopMaxDeviceTable: DeviceTable | None
-    """
-    Maximum height of the (ink) top of subscripts that does not require moving
-    subscripts further down.
-    """
-
-    SubscriptBaselineDropMinDeviceTable: DeviceTable | None
-    """
-    Maximum allowed drop of the baseline of subscripts relative to the bottom of
-    the base. Used for bases that are treated as a box or extended shape.
-    Positive for subscript baseline dropped below base bottom.
-    """
-
-    SuperscriptShiftUpDeviceTable: DeviceTable | None
-    """Standard shift up applied to superscript elements."""
-
-    SuperscriptShiftUpCrampedDeviceTable: DeviceTable | None
-    """Standard shift of superscript relative to base in cramped mode."""
-
-    SuperscriptBottomMinDeviceTable: DeviceTable | None
-    """
-    Minimum allowed height of the bottom of superscripts that does not require
-    moving them further up.
-    """
-
-    SuperscriptBaselineDropMaxDeviceTable: DeviceTable | None
-    """
-    Maximum allowed drop of the baseline of superscripts relative to the top of
-    the base. Used for bases that are treated as a box or extended shape.
-    Positive for superscript baseline below base top.
-    """
-
-    SubSuperscriptGapMinDeviceTable: DeviceTable | None
-    """Minimum gap between the superscript and subscript ink."""
-
-    SuperscriptBottomMaxWithSubscriptDeviceTable: DeviceTable | None
-    """
-    The maximum level to which the (ink) bottom of superscript can be pushed to
-    increase the gap between superscript and subscript, before subscript starts
-    being moved down.
-    """
-
-    SpaceAfterScriptDeviceTable: DeviceTable | None
-    """Extra white space to be added after each sub/superscript."""
-
-    UpperLimitGapMinDeviceTable: DeviceTable | None
-    """
-    Minimum gap between the bottom of the upper limit, and the top of the base
-    operator.
-    """
-
-    UpperLimitBaselineRiseMinDeviceTable: DeviceTable | None
-    """
-    Minimum distance between the baseline of an upper limit and the bottom of
-    the base operator.
-    """
-
-    LowerLimitGapMinDeviceTable: DeviceTable | None
-    """
-    Minimum gap between (ink) top of the lower limit, and (ink) bottom of the
-    base operator.
-    """
-
-    LowerLimitBaselineDropMinDeviceTable: DeviceTable | None
-    """
-    Minimum distance between the baseline of the lower limit and bottom of the
-    base operator.
-    """
-
-    StackTopShiftUpDeviceTable: DeviceTable | None
-    """Standard shift up applied to the top element of a stack."""
-
-    StackTopDisplayStyleShiftUpDeviceTable: DeviceTable | None
-    """
-    Standard shift up applied to the top element of a stack in display style.
-    """
-
-    StackBottomShiftDownDeviceTable: DeviceTable | None
-    """
-    Standard shift down applied to the bottom element of a stack. Positive
-    values indicate downward motion.
-    """
-
-    StackBottomDisplayStyleShiftDownDeviceTable: DeviceTable | None
-    """
-    Standard shift down applied to the bottom element of a stack in display
-    style. Positive values indicate downward motion.
-    """
-
-    StackGapMinDeviceTable: DeviceTable | None
-    """
-    Minimum gap between bottom of the top element of a stack, and the top of
-    the bottom element.
-    """
-
-    StackDisplayStyleGapMinDeviceTable: DeviceTable | None
-    """
-    Minimum gap between bottom of the top element of a stack and the top of the
-    bottom element in display style.
-    """
-
-    StretchStackTopShiftUpDeviceTable: DeviceTable | None
-    """Standard shift up applied to the top element of the stretch stack."""
-
-    StretchStackBottomShiftDownDeviceTable: DeviceTable | None
-    """
-    Standard shift down applied to the bottom element of the stretch stack.
-    Positive values indicate downward motion.
-    """
-
-    StretchStackGapAboveMinDeviceTable: DeviceTable | None
-    """
-    Minimum gap between the ink of the stretched element and the ink bottom of
-    the element above.
-    """
-
-    StretchStackGapBelowMinDeviceTable: DeviceTable | None
-    """
-    Minimum gap between the ink of the stretched element and the ink top of
-    the element below.
-    """
-
-    FractionNumeratorShiftUpDeviceTable: DeviceTable | None
-    """Standard shift up applied to the numerator."""
-
-    FractionNumeratorDisplayStyleShiftUpDeviceTable: DeviceTable | None
-    """Standard shift up applied to the numerator in display style."""
-
-    FractionDenominatorShiftDownDeviceTable: DeviceTable | None
-    """
-    Standard shift down applied to the denominator. Positive values indicate
-    downward motion.
-    """
-
-    FractionDenominatorDisplayStyleShiftDownDeviceTable: DeviceTable | None
-    """
-    Standard shift down applied to the denominator in display style. Positive
-    values indicate downward motion.
-    """
-
-    FractionNumeratorGapMinDeviceTable: DeviceTable | None
-    """
-    Minimum tolerated gap between the ink bottom of the numerator and the ink of
-    the fraction bar.
-    """
-
-    FractionNumeratorDisplayStyleGapMinDeviceTable: DeviceTable | None
-    """
-    Minimum tolerated gap between the ink bottom of the numerator and the ink of
-    the fraction bar in display style.
-    """
-
-    FractionRuleThicknessDeviceTable: DeviceTable | None
-    """Thickness of the fraction bar."""
-
-    FractionDenominatorGapMinDeviceTable: DeviceTable | None
-    """
-    Minimum tolerated gap between the ink top of the denominator and the ink of
-    the fraction bar.
-    """
-
-    FractionDenominatorDisplayStyleGapMinDeviceTable: DeviceTable | None
-    """
-    Minimum tolerated gap between the ink top of the denominator and the ink of
-    the fraction bar in display style.
-    """
-
-    SkewedFractionHorizontalGapDeviceTable: DeviceTable | None
-    """
-    Horizontal distance between the top and bottom elements of a skewed fraction.
-    """
-
-    SkewedFractionVerticalGapDeviceTable: DeviceTable | None
-    """
-    Vertical distance between the ink of the top and bottom elements of a skewed
-    fraction.
-    """
-
-    OverbarVerticalGapDeviceTable: DeviceTable | None
-    """Distance between the overbar and the ink top of the base."""
-
-    OverbarRuleThicknessDeviceTable: DeviceTable | None
-    """Thickness of the overbar."""
-
-    OverbarExtraAscenderDeviceTable: DeviceTable | None
-    """Extra white space reserved above the overbar."""
-
-    UnderbarVerticalGapDeviceTable: DeviceTable | None
-    """Distance between underbar and the (ink) bottom of the base."""
-
-    UnderbarRuleThicknessDeviceTable: DeviceTable | None
-    """Thickness of the underbar."""
-
-    UnderbarExtraDescenderDeviceTable: DeviceTable | None
-    """Extra white space reserved below the underbar."""
-
-    RadicalVerticalGapDeviceTable: DeviceTable | None
-    """Space between the ink to of the expression and the bar over it."""
-
-    RadicalDisplayStyleVerticalGapDeviceTable: DeviceTable | None
-    """
-    Space between the ink top of the expression and the bar over it in display
-    style.
-    """
-
-    RadicalRuleThicknessDeviceTable: DeviceTable | None
-    """
-    Thickness of the radical rule in designed or constructed radical signs.
-    """
-
-    RadicalExtraAscenderDeviceTable: DeviceTable | None
-    """Extra white space reserved above the radical."""
-
-    RadicalKernBeforeDegreeDeviceTable: DeviceTable | None
-    """
-    Extra horizontal kern before the degree of a radical if such be present.
-    """
-
-    RadicalKernAfterDegreeDeviceTable: DeviceTable | None
-    """
-    Negative horizontal kern after the degree of a radical if such be present.
-    """
 
     def exists(self) -> bool:
         """
