@@ -7,7 +7,6 @@ from typing import (
     Any,
     Tuple,
     List,
-    Dict,
     Union,
     Optional,
     Iterator,
@@ -1066,10 +1065,10 @@ class point:
     type: Literal[0, 1, 2, 3]
     """
     For an on-curve point, its FontForge point type.
-    
+
     There are four types: :data:`fontforge.splineCorner`, :data:`fontforge.splineCurve`,
     :data:`fontforge.splineHVCurve` and :data:`fontforge.splineTangent`.
-    
+
     A new point will have type :data:`splineCorner`. When assigning a layer to
     :attr:`glyph.layers`, :attr:`glyph.background` or :attr:`glyph.foreground`
     the type value is ignored. To influence the type FontForge will associate
@@ -1082,12 +1081,12 @@ class point:
     All interpolated points should be mid-way between their off-curve points,
     but some such points are not treated as interpolated. This flag is ignored
     when setting a layer.
-    
+
     Older versions of FontForge omitted interpolated points. This was equivalent
     to executing the following on a contour: ::
-    
+
        c[:] = [ p for p in c if not p.interpolated ]
-    
+
     This member will be false for a point marked "Never interpolate" in FontForge
     but there is currently no way of setting or preserving that mark when a layer
     is replaced using the Python interfaces. A "round trip" through a Python
@@ -1175,20 +1174,20 @@ class contour(Sequence[point]):
     elements; an x,y location, a type field, and a set of flags. The type
     field takes on values (which are predefined constants in the
     :mod:`fontforge` module):
-    
+
     * :data:`fontforge.spiroG4`
     * :data:`fontforge.spiroG2`
     * :data:`fontforge.spiroCorner`
     * :data:`fontforge.spiroLeft`
     * :data:`fontforge.spiroRight`
     * :data:`fontforge.spiroOpen`
-    
+
     For more information on what these point types mean see
     Raph Levien's work https://www.levien.com/spiro.
-    
+
     The flags argument is treated as a bitmap of which currently one bit (0x1)
     is defined. This indicates that this point is selected in the UI.
-    
+
     When you assign a tuple of spiro control points to this member, the point
     list for the Bezier interpretation of the contour will change. And when you
     change the Bezier interpretation the set of spiro points will change.
@@ -3761,7 +3760,7 @@ A dictionary with keys representing a font size in pixels and values representin
 the corresponding adjustment, e.g. ``{9: -1, 10: -1, 12: -1}``.
 """
 
-class Math:
+class math:
     """
     This represents a font's math constant table. Not all fonts have math tables,
     and checking this field will not create the underlying object, but examining or
@@ -4299,11 +4298,24 @@ class Math:
         """Removes any underlying math table from the font."""
         ...
 
+class FontLayerInfo:
+    """Information about a layer of a font."""
+
+    name: str
+    """The name of the layer."""
+
+    is_quadratic: bool
+    """Whether the layer is quadratic."""
+
+    is_background: bool
+    """Whether the layer is a background layer."""
+
 class font:
     """
     The font type refers to a fontforge :class:`font` object. It generally contains
     a list of :class:`glyphs <fontforge.glyph>`, an encoding to order those glyphs,
     a fontname, a list of GPOS/GSUB lookups and many other things.
+
     This type may not be pickled.
     """
 
@@ -4311,81 +4323,106 @@ class font:
         """Creates a new font."""
         ...
 
-    # ------------------
-    # -- ATTRIBUTES --
-    # ------------------
-
-    activeLayer: Union[int, str]
+    activeLayer: int | str
     """
-    Returns currently active layer in the font (as an integer). 
-    May be set to an integer or a layer name to change the active layer. 
+    Returns currently active layer in the font (as an integer).
+    May be set to an integer or a layer name to change the active layer.
     """
 
     ascent: int
-    """The font's ascent. """
+    """The font's ascent."""
 
-    bitmapSizes: Tuple[int, ...]
+    bitmapSizes: tuple[int, ...]
     """
-    A tuple with an entry for each bitmap strike attached to the font. 
+    A tuple with an entry for each bitmap strike attached to the font.
     Each strike is identified by pixelsize. If the strike is a grey scale font it
-    will be indicated by ``(bitmap-depth<<16)|pixelsize``. 
+    will be indicated by ``(bitmap-depth<<16)|pixelsize``.
 
-    When setting this value pass in a tuple of the same format.
+    When setting this value pass in a tuple of the same format. Any existing
+    strike not specified in the tuple will be removed. Any new sizes will be
+    created (but not rasterized -- use :meth:`font.regenBitmaps()` for that).
     """
 
-    changed: bool
-    """Bit indicating whether the font has been modified. This is (should be)
-    maintained automatically, but you may set it if you wish."""
-
-    cidcopyright: str
-    """Copyright message of the cid-keyed font as a whole. """
-
-    cidfamilyname: str
-    """Family name of the cid-keyed font as a whole. """
-
-    cidfontname: str
-    """Font name of the cid-keyed font as a whole. """
-
-    cidfullname: str
-    """Full name of the cid-keyed font as a whole. """
-
-    cidordering: Any
-    """(No documentation provided in source)"""
-
-    cidregistry: Any
-    """(No documentation provided in source)"""
-
-    cidsubfont: Union[int, str]
+    capHeight: float
     """
-    Returns the number index of the current subfont in the cid-keyed font. 
+    (readonly) Computes the Cap Height (the height of capital letters such as
+    "E"). A negative number indicates the value could not be computed (the font
+    might have no capital letters because it was lower case only, or didn't
+    include glyphs for a script with capital letters).
+    """
+
+    changed: int
+    """
+    Bit indicating whether the font has been modified. This is (should be)
+    maintained automatically, but you may set it if you wish.
+    """
+
+    cidcopyright: str | None
+    """Copyright message of the cid-keyed font as a whole (ie. not the current subfont)."""
+
+    cidfamilyname: str | None
+    """Family name of the cid-keyed font as a whole (ie. not the current subfont)."""
+
+    cidfontname: str | None
+    """Font name of the cid-keyed font as a whole (ie. not the current subfont)."""
+
+    cidfullname: str | None
+    """Full name of the cid-keyed font as a whole (ie. not the current subfont)."""
+
+    cidordering: str | None
+    """CID Ordering"""
+
+    cidregistry: str | None
+    """CID Registry"""
+
+    cidsubfont: int | str
+    """
+    Returns the number index of the current subfont in the cid-keyed font (or -1
+    if this is not a cid-keyed font).
+
     May be set to an index (an integer) or a subfont fontname (a string) to
-    change the current subfont. 
+    change the current subfont. (To find the name of the current subfont,
+    simply use .fontname).
     """
 
-    cidsupplement: Any
-    """(No documentation provided in source)"""
+    cidsubfontcnt: int
+    """
+    Returns the number of subfonts in this cid-keyed font (or 0 if it is not a
+    cid-keyed font)
+    """
 
-    cidversion: Any
-    """(No documentation provided in source)"""
+    cidsubfontnames: tuple[str, ...]
+    """
+    Returns a tuple of the subfont names in this cid-keyed font (or None if it
+    is not a cid-keyed font)
+    """
 
-    cidweight: str
+    cidsupplement: int
+    """CID Supplement"""
+
+    cidversion: float
+    """CID Version"""
+
+    cidweight: str | None
     """Weight of the cid-keyed font as a whole."""
 
-    comment: str
-    """A comment associated with the font. Can be anything. """
+    comment: str | None
+    """A comment associated with the font. Can be anything."""
 
-    copyright: str
+    copyright: str | None
     """PostScript copyright notice."""
 
     cvt: Sequence[int]
     """
-    Returns a sequence object containing the font's cvt table. 
-    Changes made to this object will be made to the font (this is a reference not a copy). 
+    Returns a sequence object containing the font's cvt table. Changes made
+    to this object will be made to the font (this is a reference not a copy).
+
     The object has one additional method ``cvt.find(value[,low,high])`` which
-    finds the index of value in the cvt table (or -1 if not found). 
+    finds the index of value in the cvt table (or -1 if not found). If low and
+    high are specified then the index will be between ``[low,high)``.
     """
 
-    default_base_filename: str
+    default_base_filename: str | None
     """The default base for the filename when generating a font. """
 
     descent: int
@@ -4396,171 +4433,752 @@ class font:
 
     em: int
     """
-    The em size of the font. 
-    Setting this will scale the entire font to the new size. 
+    The em size of the font.Setting this will scale the entire font to the
+    new size.
     """
 
     encoding: str
     """
-    The name of the current encoding. 
-    Setting it will change the encoding used for indexing. 
-    To compact the encoding, set it to your desired encoding (e.g. ``UnicodeBMP``),
-    then set it to ``compacted``. 
+    The name of the current encoding. Setting it will change the encoding used
+    for indexing. To compact the encoding, first set it to your desired encoding
+    (e.g. ``UnicodeBMP``), then set it to ``compacted``.
     """
 
     familyname: str
     """PostScript font family name."""
 
-    fondname: str
+    fondname: str | None
     """Mac fond name."""
 
-    fontlog: str
-    """A comment associated with the font. Can be anything. """
+    fontlog: str | None
+    """A comment associated with the font. Can be anything."""
 
     fontname: str
     """
-    PostScript font name. 
-    Note that in a CID keyed font this will be the name of the current subfont. 
-    Use cidfontname for the name of the font as a whole. 
+    PostScript font name.
+
+    Note that in a CID keyed font this will be the name of the current subfont.
+    Use cidfontname for the name of the font as a whole.
     """
 
     fullname: str
     """PostScript font name."""
 
-    gasp: Tuple[Tuple[int, Tuple[str, ...]], ...]
+    gasp: tuple[
+        tuple[
+            int,
+            tuple[
+                Literal[
+                    "gridfit", "antialias", "symmetric-smoothing", "gridfit+smoothing"
+                ],
+                ...,
+            ],
+        ]
+    ]
     """
-    Returns a tuple of all gasp table entries. Each item is a tuple composed
-    of a ppem (integer) and a tuple of flags ('gridfit', 'antialias', etc.). 
+    Returns a tuple of all gasp table entries. Each item in the tuple is itself
+    a tuple composed of a ppem (an integer) and a tuple of flags. The flags are
+    chosen from:
+
+    * ``gridfit``
+    * ``antialias``
+    * ``symmetric-smoothing``
+    * ``gridfit+smoothing``
     """
 
     gasp_version: int
     """The version of the 'gasp' table. Currently this may be 0 or 1. """
 
+    gpos_lookups: tuple[str, ...]
+    """
+    Returns a tuple of all positioning lookup names in the font.
+    This member cannot be set.
+    """
+
+    gsub_lookups: tuple[str, ...]
+    """
+    Returns a tuple of all substitution lookup names in the font.
+    This member cannot be set.
+    """
+
     guide: layer
     """A copy of the font's guide layer."""
 
-    hasvmetrics: Any
-    """(No documentation provided in source)"""
+    hasvmetrics: int
+    """Flag indicating whether the font contains vertical metrics"""
 
-    head_optimized_for_cleartype: Any
-    """(No documentation provided in source)"""
+    head_optimized_for_cleartype: int
+    """Whether the font is optimized for cleartype"""
 
-    hhea_ascent: Any
-    """(No documentation provided in source)"""
+    hhea_ascent: int
+    """hhea ascent"""
 
-    hhea_ascent_add: Any
-    """(No documentation provided in source)"""
-
-    hhea_descent: Any
-    """(No documentation provided in source)"""
-
-    hhea_descent_add: Any
-    """(No documentation provided in source)"""
-
-    hhea_linegap: Any
-    """(No documentation provided in source)"""
-
-    horizontalBaseline: Optional[Tuple[Tuple[str, ...], Tuple[Any, ...]]]
+    hhea_ascent_add: int
     """
-    A tuple of tuples containing horizontal baseline information ('BASE' table). 
-    Returns None if there is no information. 
+    Whether the hhea_ascent field is used as is, or as an offset applied to
+    the value FontForge thinks appropriate
     """
 
-    is_quadratic: bool
+    hhea_descent: int
+    """hhea descent"""
+
+    hhea_descent_add: int
     """
-    Deprecated. Whether contours are quadratic or cubic. 
-    Setting this value converts the entire font. Now each layer has its own setting. 
+    Whether the hhea_descent field is used as is, or as an offset applied to
+    the value FontForge thinks appropriate
     """
 
-    isnew: bool
+    hhea_linegap: int
+    """hhea linegap"""
+
+    horizontalBaseline: (
+        tuple[
+            tuple[str, ...],
+            tuple[
+                tuple[
+                    str,
+                    str | None,
+                    tuple[int, ...] | None,
+                    tuple[
+                        tuple[
+                            str,
+                            int,
+                            int,
+                            tuple[
+                                tuple[
+                                    str,
+                                    int,
+                                    int,
+                                ],
+                                ...,
+                            ],
+                        ],
+                        ...,
+                    ],
+                ],
+                ...,
+            ],
+        ]
+        | None
+    )
+    """
+    Returns a tuple of tuples containing the horizontal baseline information in
+    the font (the 'BASE' table). If there is no information ``None`` will be
+    returned, otherwise the format of the tuple is: ::
+
+       ((tuple of baseline tags used), (tuple of script information))
+
+    The ``(tuple of baseline tags used)`` is simply a tuple of 4 letter strings
+    as ``("hang", "ideo", "romn")`` these are standard baseline tag names as
+    defined in the opentype spec. The number of entries here, and their order is
+    important as there will be subsequent tuples (in the script tuple) which use
+    the same ordering.
+
+    The ``(tuple of script information)`` is again a tuple of
+    ``script information`` tuples.
+
+    A ``script information`` tuple looks like ::
+
+       (script-tag,default-baseline-tag, (tuple of baseline positions), (tuple of language extents))
+
+    If there are no baseline tags defined (an empty tuple), then the
+    ``default-baseline-tag`` and the ``(tuple of baseline positions)`` will be
+    ``None``. Otherwise both tags will be 4 character strings, and the ``(tuple
+    of baseline positions)`` will be a tuple of numbers (in the same order as the
+    ``(tuple of baseline tags used)`` above) specifying the relative positions
+    of each baseline for this script.
+
+    A ``(tuple of language extents)`` is a tuple of ``language extent`` tuples.
+
+    A ``language extent`` tuple is ::
+
+       (language-tag,min-extent,max-extent, (tuple of feature extents))
+
+    ``language-tag`` is a 4 letter string specifying an opentype language,
+    ``min``/``max-extent`` are numbers specifying how far above and below the
+    baseline characters go in this script/language.
+
+    A ``(tuple of feature extents>`` is a tuple of ``feature extent`` tuples.
+
+    A ``feature extent`` tuple is ::
+
+       (feature-tag,min-extent,max-extent)
+
+    ``feature-tag`` is a 4 letter string specifying an opentype (GPOS or GSUB)
+    feature tag, ``min``/``max-extent`` are numbers specifying how far above and
+    below the baseline characters go in this script/language with the
+    feature applied.
+
+    **Example:**
+
+    ::
+
+       (("hang","ideo","romn"),
+         (("cyrl","romn",(1405,-288,0),()),
+          ("grek","romn",(1405,-288,0),()),
+          ("latn","romn",(1405,-288,0),
+            (("dflt",-576,1913,
+              (("NoAc",-576,1482),
+               ("ENG ",-576,1482))
+            ),
+          )
+         )
+        )
+       )
+
+    (Note: The comma after the ``dflt`` tuple puts it into a one-element tuple.)
+    """
+
+    is_cid: int
+    """Indicates whether the font is a cid-keyed font or not. (Read-only)"""
+
+    is_quadratic: int
+    """
+    Deprecated. Whether the contours should be interpreted as a set of quadratic
+    or cubic splines. Setting this value has the side effect of converting the
+    entire font into the other format
+
+    Now each layer may have its own setting for this value, which should be set
+    on the font's :attr:`font.layers`.
+    """
+
+    isnew: int
     """A flag indicating that this is a new font."""
 
     italicangle: float
-    """(No documentation provided in source)"""
-
-    layers: Dict[str, layer]
-    """
-    Returns a dictionary-like object with information on the layers of the font. 
-    You may add, remove, and modify layers through this object. 
-    Note: These layers are different from layers in a glyph. 
-    """
+    """The Italic angle (skewedness) of the font"""
 
     macstyle: int
     """
-    A bitmask for Mac style settings.
-    Bit 0: Bold, Bit 1: Italic, Bit 2: Underline, Bit 3: Outline, Bit 4: Shadow,
-    Bit 5: Condensed , Bit 6: Extended. 
+    Bit 0:
+
+      Bold (if set to 1)
+
+    Bit 1:
+
+      Italic (if set to 1)
+
+    Bit 2:
+
+      Underline (if set to 1)
+
+    Bit 3:
+
+      Outline (if set to 1)
+
+    Bit 4:
+
+      Shadow (if set to 1)
+
+    Bit 5:
+
+      Condensed (if set to 1)
+
+    Bit 6:
+
+      Extended (if set to 1)
+
+    Bits 7-15:
+
+      Reserved (set to 0).
+
+    (source https://docs.microsoft.com/en-us/typography/opentype/spec/head)
+    """
+
+    layer_cnt: int
+    """
+    The number of layers in the font. (Read only. Can change using ``add``
+    and ``del`` operations on the :attr:`font.layers` array)
+    """
+
+    layers: dict[str, FontLayerInfo]
+    """
+    Returns a dictionary like object with information on the layers of the
+    font -- a name and a boolean indicating whether the layer is quadratic or not.
+
+    You may remove a layer with ::
+
+      del font.layers["unneeded layer"]
+
+    You may add a new layer with ::
+
+      font.layers.add("layer-name",is_quadratic[, is_background])
+
+    You may change a layer's name with ::
+
+      font.layers["layer"].name = "new-name"
+
+    You may change the type of splines in a layer with ::
+
+      font.layers["layer"].is_quadratic = True
+
+    You may change whether it is a background layer by ::
+
+      font.layers["layer"].is_background = True
+    """
+
+    loadState: int
+    """
+    A bitmask indicating non-fatal errors found when loading the font. (readonly)
+
+    0x01:
+
+      Bad PostScript entry in 'name' table
+
+    0x02:
+
+      Bad 'glyf' or 'loca' table
+
+    0x04:
+
+      Bad 'CFF ' table
+
+    0x08:
+
+      Bad 'hhea', 'hmtx', 'vhea' or 'vmtx' table
+
+    0x10:
+
+      Bad 'cmap' table
+
+    0x20:
+
+      Bad 'EBLC', 'bloc', 'EBDT' or 'bdat' (embedded bitmap) table
+
+    0x40:
+
+      Bad Apple GX advanced typography table
+
+    0x80:
+
+      Bad OpenType advanced typography table (GPOS, GSUB, GDEF, BASE)
+
+    0x100:
+
+      Bad OS/2 version number
+
+      Windows will reject all fonts with a OS/2 version number of 0 and will
+      reject OT-CFF fonts with a version number of 1
+    """
+
+    maxp_FDEFs: int
+    """The number of function definitions used by the tt program"""
+
+    maxp_IDEFs: int
+    """The number of instruction definitions used by the tt program"""
+
+    maxp_maxStackDepth: int
+    """The maximum stack depth used by the tt program"""
+
+    maxp_storageCnt: int
+    """The number of storage locations used by the tt program"""
+
+    maxp_twilightPtCnt: int
+    """The number of points in the twilight zone of the tt program"""
+
+    maxp_zones: int
+    """The number of zones used in the tt program"""
+
+    multilayer: int
+    """Flag indicating whether the font is multilayered (type3) or not (readonly)"""
+
+    onlybitmaps: int
+    """A flag indicating that this font only contains bitmaps. No outlines. """
+
+    os2_capheight: int
+    """OS/2 Capital Height"""
+
+    os2_codepages: tuple[int, int]
+    """A 2 element tuple containing the OS/2 Codepages field"""
+
+    os2_family_class: int
+    """OS/2 Family Class"""
+
+    os2_fstype: int
+    """OS/2 fstype"""
+
+    os2_panose: tuple[int, int, int, int, int, int, int, int, int, int]
+    """The 10 element OS/2 Panose tuple"""
+
+    os2_strikeypos: int
+    """OS/2 Strikethrough YPosition"""
+
+    os2_strikeysize: int
+    """OS/2 Strikethrough YSize"""
+
+    os2_stylemap: int
+    """Write access to fsSelection, keep in sync with :attr:`font.macstyle`"""
+
+    os2_subxoff: int
+    """OS/2 Subscript XOffset"""
+
+    os2_subxsize: int
+    """OS/2 Subscript XSize"""
+
+    os2_subyoff: int
+    """OS/2 Subscript YOffset"""
+
+    os2_subysize: int
+    """OS/2 Subscript YSize"""
+
+    os2_supxoff: int
+    """OS/2 Superscript XOffset"""
+
+    os2_supxsize: int
+    """OS/2 Superscript XSize"""
+
+    os2_supyoff: int
+    """OS/2 Superscript YOffset"""
+
+    os2_supysize: int
+    """OS/2 Superscript YSize"""
+
+    os2_typoascent: int
+    """OS/2 Typographic Ascent"""
+
+    os2_typoascent_add: int
+    """
+    Whether the os2_typoascent field is used as is, or as an offset applied
+    to the value FontForge thinks appropriate
+    """
+
+    os2_typodescent: int
+    """OS/2 Typographic Descent"""
+
+    os2_typodescent_add: int
+    """
+    Whether the os2_typodescent field is used as is, or as an offset applied
+    to the value FontForge thinks appropriate
+    """
+
+    os2_typolinegap: int
+    """OS/2 Typographic Linegap"""
+
+    os2_unicoderanges: tuple[int, int, int, int]
+    """A 4 element tuple containing the OS/2 Unicode Ranges field"""
+
+    os2_use_typo_metrics: int
+    """
+    OS/2 Flag MS thinks is necessary to encourage people to follow the
+    standard and use typographic metrics
+    """
+
+    os2_vendor: str
+    """The 4 character OS/2 vendor string"""
+
+    os2_version: int
+    """OS/2 table version number"""
+
+    os2_weight: int
+    """OS/2 weight"""
+
+    os2_weight_width_slope_only: int
+    """OS/2 Flag MS thinks is necessary"""
+
+    os2_width: int
+    """OS/2 width"""
+
+    os2_winascent: int
+    """OS/2 Windows Ascent"""
+
+    os2_windescent: int
+    """OS/2 Windows Descent"""
+
+    os2_xheight: int
+    """OS/2 x Height"""
+
+    path: str
+    """
+    (readonly) Returns a string containing the name of the file from which the
+    font was originally read (in this session), or if this is a new font, returns
+    a made up filename in the current directory named something like
+    "Untitled1.sfd". See also :attr:`font.sfd_path`.
+    """
+
+    persistent: object
+    """
+    Whatever you want -- though it's recommended to store a dict here (these data
+    will be saved as a pickled object in the sfd file. It is your job to ensure
+    that whatever you put here can be pickled)
+
+    If you do store a dict then the following entries will be treated specially:
+
+    initScriptString:
+
+      If present, and if this is a string, then each time the font is loaded
+      from an sfd file, this string will be passed to the python interpreter.
+
+      Note: This is a string, not a function.
+      Function code cannot be pickled. Since it is a string it will receive
+      no arguments, but the current font will be available in the activeFont
+      method of the fontforge module.
+
+      This string will be interpreted before the loadFontHook of the
+      :data:`fontforge.hooks` dictionary.
+
+      One possible behavior for this string is to define function hooks to
+      be stored in the temporary dict described below.
     """
 
     math: math
     """
     Returns a :class:`math` object which provides information on the font's
-    underlying math constant table.  There is only one of these per font. 
-    """
-
-    multilayer: Any
-    """(No documentation provided in source)"""
-
-    onlybitmaps: bool
-    """A flag indicating that this font only contains bitmaps. No outlines. """
-
-    persistent: Dict[str, Any]
-    """
-    A dictionary for user data that will be saved as a pickled object in the sfd file.
-    If the key 'initScriptString' is present, the associated string will be executed
-    by the python interpreter each time the font is loaded. 
+    underlying math constant table.  There is only one of these per font.
     """
 
     private: private
     """
     Returns a :class:`private` dictionary-like object representing the
-    PostScript private dictionary for the font. 
-    Changing entries in this object will change them in the font. 
+    PostScript private dictionary for the font. Changing entries in this object
+    will change them in the font. (It's a reference, not a copy).
+
+    There is an iterator associated with this entry.
     """
 
-    selection: selection
+    privateState: int
     """
-    Returns a reference to an array-like object representing the font's selection. 
-    You may set this with a tuple of integers or boolean values. 
+    Checks the (PostScript) Private dictionary and returns a bitmask of some
+    common errors.
+
+    0x000001:
+
+      Odd number of elements in either the BlueValues or OtherBlues array.
+
+    0x000002:
+
+      Elements in either the BlueValues or OtherBlues are disordered.
+
+    0x000004:
+
+      Too many elements in either the BlueValues or OtherBlues array.
+
+    0x000008:
+
+      Elements in either the BlueValues or OtherBlues array are too close
+      (must be at least ``2*BlueFuzz +1`` apart).
+
+    0x000010:
+
+      Elements in either the BlueValues or OtherBlues array are not integers.
+
+    0x000020:
+
+      Alignment zone height in either the BlueValues or OtherBlues array is too
+      big for the value of BlueScale.
+
+    0x000100:
+
+      Odd number of elements in either the FamilyBlues or FamilyOtherBlues array.
+
+    0x000200:
+
+      Elements in either the FamilyBlues or FamilyOtherBlues are disordered.
+
+    0x000400:
+
+      Too many elements in either the FamilyBlues or FamilyOtherBlues array.
+
+    0x000800:
+
+      Elements in either the FamilyBlues or FamilyOtherBlues array are too
+      close (must be at least ``2*BlueFuzz +1`` apart).
+
+    0x001000:
+
+      Elements in either the FamilyBlues or FamilyOtherBlues array are not
+      integers.
+
+    0x002000:
+
+      Alignment zone height in either the FamilyBlues or FamilyOtherBlues array
+      is too big for the value of BlueScale.
+
+    0x010000:
+
+      Missing BlueValues entry.
+
+    0x020000:
+
+      Bad BlueFuzz entry.
+
+    0x040000:
+
+      Bad BlueScale entry.
+
+    0x080000:
+
+      Bad StdHW entry.
+
+    0x100000:
+
+      Bad StdVW entry.
+
+    0x200000:
+
+      Bad StemSnapH entry.
+
+    0x400000:
+
+      Bad StemSnapV entry.
+
+    0x800000:
+
+      StemSnapH does not include StdHW.
+
+    0x1000000:
+
+      StemSnapV does not include StdVW.
+
+    0x2000000:
+
+      Bad BlueShift entry.
     """
 
-    sfntRevision: Optional[Union[float, int]]
+    selection: selection | tuple[int | bool, ...]
     """
-    The font revision field from the 'head' table. May be None if unset. 
-    Can be set to None, a double, or an integer. 
-    """
-
-    size_feature: Optional[
-        Union[
-            Tuple[float],
-            Tuple[float, float, float, int, Tuple[Tuple[Union[str, int], str], ...]],
-        ]
-    ]
-    """
-    The OpenType 'size' feature.
-    If only design size is specified, returns a single-element tuple. 
-    Otherwise, returns a five-element tuple with design size, range, style id,
-    and language/string pairs.  Returns None if no size info is present. 
+    Returns a reference to a ``selection`` representing the font's selection.
+    There is one entry for each encoding slot (there may
+    not be a glyph attached to every encoding slot). You may set this with a
+    tuple of integers (or boolean values). There should not be more entries in
+    the tuple than there are encoding slots in the current encoding. A ``True``
+    or non-0 value means the slot is selected.
     """
 
-    strokedfont: bool
-    """Is this a stroked font? """
+    sfd_path: str | None
+    """
+    (readonly) Returns a string (or None) containing the name of the sfd file
+    associated with this font. Sometimes this will be the same as :attr:`font.path`.
+    """
+
+    sfnt_names: tuple[tuple[str | int, str | int, str], ...]
+    """
+    The strings in the sfnt 'name' table. A tuple of all MS names. Each name is
+    itself a tuple of strings ``(language,strid,string)``. Language may be
+    either the (english) name of the language/locale, or the number representing
+    that language in Microsoft's specification. Strid may be one of the
+    (English) string names ``(Copyright, Family, SubFamily, etc.)`` or the
+    numeric value of that item. The string itself is in UTF-8.
+
+    Mac names will be automagically created from MS names
+    """
+
+    sfntRevision: float | int | None
+    """
+    The font revision field stored in the ``'head'`` table of an sfnt. This
+    is documented to be a fixed 16.16 number (that is a 32 bit number with the
+    binary point between bits 15 and 16).
+
+    The field may be unset (in which case when the font is generated, FontForge
+    will guess a default value from one of the version strings).
+
+    The value returned will be ``None`` if the field is unset or a double.
+
+    You may set it to ``None`` which "unsets" it, or to a double value, or to an
+    integer. The integer will be treated as a 32 bit integer and right shifted
+    by 16 to get a 16.16 value).
+    """
+
+    size_feature: (
+        tuple[float]
+        | tuple[float, float, float, int, tuple[tuple[str | int, str], ...]]
+        | None
+    )
+    """
+    The OpenType 'size' feature has two formats. It may either represent the
+    design size of the font (and nothing else) or the design size, and range
+    (top and bottom point sizes for which this design works), a style id (used
+    to represent this design size throughout the font family) and a set of
+    language/string pairs used to represent this design size in the menu.
+
+    If no size information is specified in the font FontForge will return None.
+
+    If only the design size is specified, FontForge will return a tuple
+    containing a single element: the point size for which the font was designed.
+    (This is returned as a real number -- the field can represent tenths of a point).
+
+    Otherwise FontForge returns a tuple containing five elements, the design
+    size, the bottom of the design range, the top, the style id and a tuple of
+    tuples. Each sub-tuple is a language/string pair. Language may be either
+    the (english) name of the language/locale, or the string itself in UTF-8.
+    """
+
+    strokedfont: int
+    """Is this a stroked font?"""
 
     strokewidth: float
-    """The stroke width of a stroked font. """
+    """The stroke width of a stroked font"""
 
-    temporary: Dict[str, Any]
+    style_set_names: tuple[tuple[str | int, str, str], ...]
     """
-    A dictionary for user data that will be lost once the font is closed.
-    Special keys 'generateFontPreHook' and 'generateFontPostHook' can be assigned
-    functions to be called before and after font generation. [cite: 115, 117]
+    A tuple, each entry of which is a 3-element tuple containing the language name
+    (e.g. ``"English (US)"``), the style set tag (e.g. ``"ss01"``) and the style set name.
     """
 
-    uniqueid: Any
-    """(No documentation provided in source)"""
+    temporary: object
+    """
+    Whatever you want -- though it's recommended you store a dict here (these data
+    will be lost once the font is closed)
+
+    If you do store a dict then the following entries will be treated specially:
+
+    generateFontPreHook:
+
+      If present, and if this is a function it will be called just before a
+      font is generated. It will be called with the font and the filename to
+      which the font will be written.
+
+    generateFontPostHook:
+
+      If present, and if this is a function it will be called just after a font
+      is generated. It will be called with the font and the filename to which
+      the font will be written.
+    """
+
+    texparameters: tuple[
+        Literal["text", "mathsym", "mathext", "unset"],
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+    ]
+    """
+    Returns a tuple of TeX font parameters. TeX font type
+    followed by 22 parameters. Font type is one of:
+
+      * ``text``
+      * ``mathsym``
+      * ``mathext``
+      * ``unset``
+
+    In case of ``unset`` default values for font parameters will be returned.
+    """
+
+    uniqueid: int
+    """PostScript Unique ID"""
 
     upos: float
     """Underline position."""
+
+    userdata: object
+    """Deprecated name for :attr:`font.temporary`"""
 
     uwidth: float
     """Underline width."""
@@ -4568,113 +5186,81 @@ class font:
     version: str
     """PostScript font version string."""
 
-    verticalBaseline: Optional[Tuple[Tuple[str, ...], Tuple[Any, ...]]]
+    verticalBaseline: (
+        tuple[
+            tuple[str, ...],
+            tuple[
+                tuple[
+                    str,
+                    str | None,
+                    tuple[int, ...] | None,
+                    tuple[
+                        tuple[
+                            str,
+                            int,
+                            int,
+                            tuple[
+                                tuple[
+                                    str,
+                                    int,
+                                    int,
+                                ],
+                                ...,
+                            ],
+                        ],
+                        ...,
+                    ],
+                ],
+                ...,
+            ],
+        ]
+        | None
+    )
     """Same format as :attr:`font.horizontalBaseline`. """
+
+    vhea_linegap: int
+    """vhea linegap"""
 
     weight: str
     """PostScript font weight string."""
 
-    woffMajor: Optional[int]
+    woffMajor: int | None
     """
-    The major version number of a woff file.
-    The value returned will be None if the field is unset or an integer. 
-    You may set it to None which "unsets" it, or to an integer. 
-    """
+    The major version number of a woff file, an integer.
 
-    woffMinor: Optional[int]
-    """
-    The minor version number of a woff file.
-    The value returned will be None if the field is unset or an integer. 
-    You may set it to None which "unsets" it, or to an integer. 
+    The field may be unset (in which case when the font is generated, FontForge
+    will guess a default value from one of the version strings).
+
+    The value returned will be ``None`` if the field is unset or an integer.
+
+    You may set it to ``None`` which "unsets" it, or to an integer.
     """
 
-    woffMetadata: str
-    """Any metadata associated with a woff file. This is a utf8 string containing unparsed xml. [cite: 130, 131]"""
+    woffMinor: int | None
+    """
+    The minor version number of a woff file, an integer.
 
-    # ---------------------------
-    # -- READ-ONLY ATTRIBUTES --
-    # ---------------------------
+    The field may be unset (in which case when the font is generated, FontForge
+    will guess a default value from one of the version strings).
 
-    @property
-    def capHeight(self) -> int:
-        """
-        (readonly) Computes the Cap Height (height of capital letters).
-        A negative number indicates the value could not be computed.
-        """
-        ...
+    The value returned will be ``None`` if the field is unset or an integer.
 
-    @property
-    def cidsubfontcnt(self) -> int:
-        """(readonly) Returns the number of subfonts in this cid-keyed font."""
-        ...
+    You may set it to ``None`` which "unsets" it, or to an integer.
+    """
 
-    @property
-    def cidsubfontnames(self) -> Optional[Tuple[str, ...]]:
-        """(readonly) Returns a tuple of the subfont names in this cid-keyed font."""
-        ...
+    woffMetadata: str | None
+    """
+    Any metadata associated with a woff file. This is a utf8 string containing
+    unparsed xml.
+    """
 
-    @property
-    def gpos_lookups(self) -> Tuple[str, ...]:
-        """(readonly) Returns a tuple of all positioning lookup names in the font."""
-        ...
-
-    @property
-    def gsub_lookups(self) -> Tuple[str, ...]:
-        """(readonly) Returns a tuple of all substitution lookup names in the font."""
-        ...
-
-    @property
-    def is_cid(self) -> bool:
-        """(readonly) Indicates whether the font is a cid-keyed font or not."""
-        ...
-
-    @property
-    def layer_cnt(self) -> int:
-        """(readonly) The number of layers in the font."""
-        ...
-
-    @property
-    def loadState(self) -> int:
-        """(readonly) A bitmask indicating non-fatal errors found when loading the font."""
-        ...
-
-    @property
-    def path(self) -> str:
-        """
-        (readonly) Returns the name of the file from which the font was read.
-        For a new font, returns a made up filename like "Untitled1.sfd".
-        """
-        ...
-
-    @property
-    def privateState(self) -> int:
-        """(readonly) Checks the (PostScript) Private dictionary and returns a bitmask of common errors."""
-        ...
-
-    @property
-    def sfd_path(self) -> Optional[str]:
-        """(readonly) Returns a string (or None) containing the name of the sfd file associated with this font."""
-        ...
-
-    @property
-    def sfnt_names(self) -> Tuple[Tuple[Union[str, int], Union[str, int], str], ...]:
-        """
-        (readonly) The strings in the sfnt 'name' table. A tuple of all MS names.
-        Each name is a tuple of ``(language, strid, string)``.
-        """
-        ...
-
-    @property
-    def xHeight(self) -> int:
-        """
-        (readonly) Computes the X Height (height of lower case letters).
-        A negative number indicates the value could not be computed.
-        """
-        ...
-
-    # ------------------
-    # -- DUNDER METHODS --
-    # ------------------
+    xHeight: float
+    """
+    (readonly) Computes the X Height (the height of lower case letters such as
+    "x"). A negative number indicates the value could not be computed (the font
+    might have no lower case letters because it was upper case only, or didn't
+    include glyphs for a script with lower case letters).
+    """
 
     def __iter__(self) -> Iterator[str]:
         """Returns an iterator for the font which will run through the font, in gid order, returning glyph names."""
