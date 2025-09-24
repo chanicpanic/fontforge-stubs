@@ -27,6 +27,7 @@ from typing import (
 from typing_extensions import (
     NotRequired,
     Unpack,
+    deprecated,
 )
 
 T = TypeVar("T")
@@ -1930,7 +1931,7 @@ class layer(Sequence[contour]):
         """
         ...
 
-    def boundingBox(self) -> Tuple[float, float, float, float]:
+    def boundingBox(self) -> tuple[float, float, float, float]:
         """
         Returns a tuple representing a rectangle ``(xmin,ymin, xmax,ymax)`` into
         which the layer fits. It is not guaranteed to be the smallest such
@@ -5263,7 +5264,10 @@ class font:
     """
 
     def __iter__(self) -> Iterator[str]:
-        """Returns an iterator for the font which will run through the font, in gid order, returning glyph names."""
+        """
+        Returns an iterator for the font which will run through the font, in gid
+        order, returning glyph names
+        """
         ...
 
     def __contains__(self, name: str) -> bool:
@@ -5276,14 +5280,10 @@ class font:
 
     def __getitem__(self, key: Union[int, str]) -> glyph:
         """
-        If ``key`` is an integer, returns the glyph at that encoding.
-        If a string, returns the glyph with that name. May not be assigned to. [cite: 135, 136]
+        If ``key`` is an integer, then returns the glyph at that encoding. If a
+        string then returns the glyph with that name. May not be assigned to.
         """
         ...
-
-    # ------------------
-    # -- METHODS --
-    # ------------------
 
     def addAnchorClass(
         self, lookup_subtable_name: str, new_anchor_class_name: str
@@ -5296,10 +5296,10 @@ class font:
         self,
         lookup_name: str,
         new_subtable_name: str,
-        first_classes: Tuple[Tuple[str, ...], ...],
-        second_classes: Tuple[Tuple[str, ...], ...],
-        offsets: Tuple[int, ...],
-        after: Optional[str] = None,
+        first_classes: tuple[tuple[str, ...], ...],
+        second_classes: tuple[tuple[str, ...], ...],
+        offsets: tuple[int, ...],
+        after: str | None = None,
     ) -> None: ...
     @overload
     def addKerningClass(
@@ -5307,11 +5307,11 @@ class font:
         lookup_name: str,
         new_subtable_name: str,
         separation: int,
-        first_classes: Tuple[Tuple[str, ...], ...],
-        second_classes: Tuple[Tuple[str, ...], ...],
-        onlyCloser: Optional[bool] = None,
-        autokern: Optional[bool] = None,
-        after: Optional[str] = None,
+        first_classes: tuple[tuple[str, ...], ...],
+        second_classes: tuple[tuple[str, ...], ...],
+        onlyCloser: bool = False,
+        autokern: bool = True,
+        after: str | None = None,
     ) -> None: ...
     @overload
     def addKerningClass(
@@ -5319,12 +5319,12 @@ class font:
         lookup_name: str,
         new_subtable_name: str,
         separation: int,
-        class_distance: int,
-        first_glyph_list: List[str],
-        second_glyph_list: List[str],
-        onlyCloser: Optional[bool] = None,
-        autokern: Optional[bool] = None,
-        after: Optional[str] = None,
+        class_distance: float,
+        first_glyph_list: tuple[tuple[str, ...], ...],
+        second_glyph_list: tuple[tuple[str, ...], ...],
+        onlyCloser: bool = False,
+        autokern: bool = True,
+        after: str | None = None,
     ) -> None: ...
     @overload
     def addKerningClass(
@@ -5332,33 +5332,100 @@ class font:
         lookup_name: str,
         new_subtable_name: str,
         separation: int,
-        class_distance: int,
-        onlyCloser: Optional[bool] = None,
-        autokern: Optional[bool] = None,
-        after: Optional[str] = None,
-    ) -> None: ...
-    def addKerningClass(self, *args, **kwargs) -> None:
+        class_distance: float,
+        onlyCloser: bool = False,
+        autokern: bool = True,
+        after: str | None = None,
+    ) -> None:
         """
-        Creates a new subtable and a new kerning class in the named lookup.
-        This method has multiple signatures for manual kerning, auto-kerning with
-        pre-defined classes, auto-kerning with glyph lists, and auto-kerning with
-        the font's selection. [cite: 138, 141, 145, 147]
+        Creates a new subtable and a new kerning class in the named lookup. The
+        classes arguments are tuples of tuples of glyph names (each sub-tuple of
+        glyph names is a kerning class). The offsets argument is a tuple of kerning
+        offsets. There must be as many entries as ::
+
+          len(first-class)*len(second-class)
+
+        The optional after argument is used to specify the order of the subtable
+        within the lookup.
+
+        The second format will cause FontForge to auto kern the subtable. The
+        separation argument specifies the desired optical distance between any two
+        glyphs (if this is specified as 0 then the kerning class will be designed so
+        glyphs just touch each other). Again the user specifies two sets of
+        predefined classes. If the (optional) ``onlyCloser`` flag is set true then
+        only negative kerning values will be inserted into the table.
+
+        In the third format the user merely specifies two lists of glyphs to be
+        used, fontforge will look for similarities among among the glyphs and guess
+        at classes. The class-distance argument to determine how precise the classes
+        should match (1 is very tight matching, 20 is rather loose).
+
+        In the last format the font's selection will be used to specify the list of
+        glyphs to be examined (and the same list will be used for both the left and
+        right glyphs -- but fontforge will probably find different classes).
         """
         ...
 
     def addLookup(
         self,
         new_lookup_name: str,
-        type: str,
-        flags: Optional[Tuple[str, ...]],
-        feature_script_lang_tuple: Tuple[
-            Tuple[str, Tuple[Tuple[str, Tuple[str, ...]], ...]], ...
+        type: Literal[
+            "gsub_single",
+            "gsub_multiple",
+            "gsub_alternate",
+            "gsub_ligature",
+            "gsub_context",
+            "gsub_contextchain",
+            "gsub_revesechain",
+            "morx_indic",
+            "morx_context",
+            "morx_insert",
+            "gpos_single",
+            "gpos_pair",
+            "gpos_cursive",
+            "gpos_mark2base",
+            "gpos_mark2ligature",
+            "gpos_mark2mark",
+            "gpos_context",
+            "gpos_contextchain",
+            "kern_statemachine",
         ],
-        after_lookup_name: Optional[str] = None,
+        flags: tuple[
+            str
+            | Literal[
+                "right_to_left", "ignore_bases", "ignore_ligatures", "ignore_marks"
+            ],
+            ...,
+        ]
+        | None,
+        feature_script_lang_tuple: tuple[
+            tuple[str, tuple[tuple[str, tuple[str, ...]], ...]], ...
+        ],
+        after_lookup_name: str | None = None,
     ) -> None:
         """
-        Creates a new lookup with the given name, type and flags.
-        It will tag it with any indicated features.
+        Creates a new lookup with the given name, type and flags. It will tag it
+        with any indicated features.
+
+        The flags argument is a tuple of strings, or ``None``. At most one of these
+        strings may be the name of a mark class. The others are:
+
+        * ``right_to_left``
+        * ``ignore_bases``
+        * ``ignore_ligatures``
+        * ``ignore_marks``
+
+        A feature-script-lang tuple is a tuple with one entry for each feature
+        (there may be no entries if there are no features). Each entry is itself a
+        two element tuple, the first entry is a string containing a 4 letter feature
+        tag, and the second entry is another tuple (potentially empty) with an entry
+        for each script for which the feature is active. Each entry here is itself a
+        two element tuple. The first element is a 4 letter script tag and the second
+        is a tuple of languages. Each entry in the language tuple is a four letter
+        language. Example: ``(("liga",(("latn",("dflt")),)),)``
+
+        The optional final argument allows you to specify the ordering of the lookup.
+        If not specified the lookup will become the first lookup in its table.
         """
         ...
 
@@ -5366,63 +5433,192 @@ class font:
         self,
         lookup_name: str,
         new_subtable_name: str,
-        after_subtable_name: Optional[str] = None,
+        after_subtable_name: str | None = None,
     ) -> None:
         """
-        Creates a new subtable within the specified lookup.
-        If you want to create a contextual subtable, use :meth:`font.addContextualSubtable`.
+        Creates a new subtable within the specified lookup. The lookup name should
+        be a string specifying an existing lookup. The subtable name should also be
+        a string and should not match any currently existing subtable in the lookup.
+        The optional final argument allows you to specify the ordering within the
+        lookup. If not specified this subtable will be first in the lookup.
+
+        If you want to create a subtable in a contextual lookup, then use
+        :meth:`font.addContextualSubtable`. If you want to create a kerning class
+        subtable, then use :meth:`font.addKerningClass`.
         """
         ...
 
+    @overload
     def addContextualSubtable(
         self,
         lookup_name: str,
         new_subtable_name: str,
-        type: str,
+        type: Literal["glyph", "coverage", "reversecoverage"],
         rule: str,
-        afterSubtable: Optional[str] = None,
-        bclasses: Optional[Tuple[Union[str, Tuple[str, ...]], ...]] = None,
-        mclasses: Optional[Tuple[Union[str, Tuple[str, ...]], ...]] = None,
-        fclasses: Optional[Tuple[Union[str, Tuple[str, ...]], ...]] = None,
-        bclassnames: Optional[Tuple[str, ...]] = None,
-        mclassnames: Optional[Tuple[str, ...]] = None,
-        fclassnames: Optional[Tuple[str, ...]] = None,
+        *,
+        afterSubtable: str | None = None,
+    ) -> None: ...
+    @overload
+    def addContextualSubtable(
+        self,
+        lookup_name: str,
+        new_subtable_name: str,
+        type: Literal["class"],
+        rule: str,
+        *,
+        afterSubtable: str | None = None,
+        bclasses: tuple[str | tuple[str, ...]] | None = None,
+        mclasses: tuple[str | tuple[str, ...]] | None = None,
+        fclasses: tuple[str | tuple[str, ...]] | None = None,
+        bclassnames: tuple[str, ...] | None = None,
+        mclassnames: tuple[str, ...] | None = None,
+        fclassnames: tuple[str, ...] | None = None,
     ) -> None:
         """
-        Creates a new subtable within the specified contextual lookup.
-        The ``type`` should be one of "glyph", "class", "coverage" or "reversecoverage".
-        The ``rule`` specifies a string to match and lookups to apply.
+        Creates a new subtable within the specified contextual lookup (contextual,
+        contextual chaining, or reverse contextual chaining). The lookup name should
+        be a string specifying an existing lookup. The subtable name should also be
+        a string and should not match any currently existing subtable in the lookup.
+
+        The ``type`` should be one of the strings "glyph", "class", "coverage" or
+        "reversecoverage". The ``rule`` should be a string specifying a string to
+        match and a set of lookups to apply once the match has been made. (See
+        below for more details).
+
+        The remaining arguments are optional, keyword arguments.
+
+        * ``afterSubtable=``, if present this should be followed by a string, the
+          name of a subtable after which this one is to be placed in the lookup. If
+          not specified this subtable will be first in the lookup.
+        * ``bclasses=, fclasses=, mclasses=`` these three arguments specify sets of
+          glyph classes for when ``type="class"``. They should be a tuple of
+          thingies where each thingy is either a string containing a list of space
+          separated glyph names, or another tuple containing a set of strings, each
+          a glyph name. Note that the first class is magic and should usually be
+          left as a null string.
+        * ``bclassnames=, fclassnames=, mclassnames=`` These provide names for the
+          glyph classes described above. These names are optional, but can be
+          convenient. These are tuples of strings. There should be the same number
+          of entries in ``bclassnames`` as there are in ``bclasses``.
+
+        When type="glyph":
+
+          The rule should look something like: ::
+
+            glyph-name1 glyph-name2 | glyph-name3 @<lookup-name> | glyph-name4
+
+          The ``|`` s divide between backtrack, match and lookahead sections. So
+          this example would match if the current glyph were named ``glyph-name3``
+          and it were preceded by ``glyph-name2`` and that by ``glyph-name1`` and
+          followed by ``glyph-name4``. If the match were successful then the lookup
+          named ``lookup-name`` would be applied. The ``@<>`` are literal
+          characters and should be present in the rule.
+
+          If the invoked lookup is a ligature lookup then it should be invoked
+          after the first glyph that forms the lookup (rather than the last) and
+          all glyphs that might make up the lookup should be in the match section.
+          So... ::
+
+            e | f @<ff-lig> f l | o
+
+          would only apply the ``ff-lig`` lookup if the ``ffl`` were preceded by
+          ``e`` and followed by ``o``.
+
+        When type="class":
+
+          The rule should look something like: :::
+
+            class-name1 class-name2 | class-name3 @<lookup-name> | class-name4
+
+          Very similar to the case of glyphs, except that instead of glyph names
+          we have class names here. It is possible to have different sets of class
+          names in the three different sections (backtrack, match and lookahead).
+          If you don't specify any class names then you must use numbers instead,
+          each number referring to the class at that position in the tuple (the first
+          class will be class 0, the second class 1, and so on).
+
+        When type="coverage":
+
+          The rule should look something like: ::
+
+            [g1 g2] [g3 g4] | [g5 g6 g7] @<lookup-name> | [g8 g9]
+
+          Each entry within brackets, ``[]``, represents a coverage table and
+          should be a list of glyph names. The brackets are specified literally.
+
+        When type="reversecoverage":
+
+          The rule should look something like: ::
+
+             [g1 g2] [g3 g4] | [g5 g6 g7] => [rg1 rg2 rg3] | [g8 g9]
+
+          Very similar to normal coverage tables except that instead of specifying
+          a lookup there are replacement glyphs inline. There must be the same
+          number of replacement glyphs (``rg1, rg2,rg3``) as match glyphs
+          (``g5, g6, g7``) and there may be only one coverage table in the match
+          section.
+
+        Warning:
+
+          This format has some limitations, if there are multiple lookups they
+          will be applied in textual order (First lookup in the string is the first
+          one applied). This limitation is also present in Adobe's feature files.
         """
         ...
 
     def addSmallCaps(
         self,
-        scheight: Optional[float] = None,
-        capheight: Optional[float] = None,
-        lcstem: Optional[float] = None,
-        ucstem: Optional[float] = None,
-        symbols: Optional[bool] = None,
-        letter_extension: Optional[str] = None,
-        symbol_extension: Optional[str] = None,
-        stem_height_factor: Optional[float] = None,
+        *,
+        scheight: float | None = None,
+        capheight: float | None = None,
+        lcstem: float | None = None,
+        ucstem: float | None = None,
+        symbols: bool = False,
+        letter_extension: str = "sc",
+        symbol_extension: str = "taboldstyle",
+        stem_height_factor: float | None = None,
     ) -> None:
         """
-        For each selected letter, this function will create a corresponding small caps glyph.
-        If you set the ``symbol`` keyword to ``True`` it will also create small caps
-        variants of digits and symbols.
+        This function uses keyword parameters. None are required, if omitted a
+        default value will be used (generally found by analyzing the font).
+
+        For each selected letter, this function will create a corresponding small
+        caps glyph. If you set the ``symbols`` keyword to ``True`` it will also
+        create small caps variants of digits and symbols.
+
+        The outlines of the new glyph will be based on the outlines of the
+        upper-case variant of the letter. These will then be scaled so that a glyph
+        which was ``capheight`` high will now be ``scheight`` high, and so that
+        stems which were ``ucstem`` wide will be ``lcstem`` wide. Normally the ratio
+        of stem heights is the same as the ratio of stem widths, but you may change
+        that with ``stem_height_factor``.
+
+        When it creates a new glyph it will name that glyph by appending ".sc" to
+        the original lower case letter name (so "a" would become "a.sc") you may
+        change the extension used with ``letter_extension``. Similarly symbols and
+        digits will use the extension "taboldstyle", but you may change that with
+        ``symbol_extension``.
+
+        When it creates a glyph it also creates two lookups one bound to the feature
+        "c2sc" and the other to "smcp". A mapping from the lower case letter to the
+        small caps letter will be provided under "smcp", while a mapping from the
+        upper case to the small caps under "c2sc". Symbols will have both lookup
+        maps attached to the original glyph.
         """
         ...
 
     def alterKerningClass(
         self,
         subtable_name: str,
-        first_classes: Tuple[Tuple[str, ...], ...],
-        second_classes: Tuple[Tuple[str, ...], ...],
-        offsets: Tuple[int, ...],
+        first_classes: tuple[tuple[str, ...], ...],
+        second_classes: tuple[tuple[str, ...], ...],
+        offsets: tuple[int, ...],
     ) -> None:
         """
-        Changes the kerning class in the named subtable.
-        The classes arguments are tuples of tuples of glyph names.
+        Changes the kerning class in the named subtable. The classes arguments are
+        tuples of tuples of glyph names (each sub-tuble of glyph names is a kerning
+        class). The offsets argument is a tuple of kerning offsets. There must be as
+        many entries as ``len(first-class)*len(second-class)``.
         """
         ...
 
@@ -5431,98 +5627,893 @@ class font:
         self,
         subtable_name: str,
         separation: int,
-        minKern: Optional[int] = None,
-        onlyCloser: Optional[bool] = None,
-        touch: Optional[int] = None,
+        *,
+        minKern: int = 10,
+        onlyCloser: bool = False,
+        touch: int = 0,
     ) -> None: ...
     @overload
     def autoKern(
         self,
         subtable_name: str,
         separation: int,
-        glyph_list1: List[str],
-        glyph_list2: List[str],
-        minKern: Optional[int] = None,
-        onlyCloser: Optional[bool] = None,
-        touch: Optional[int] = None,
-    ) -> None: ...
-    def autoKern(self, *args, **kwargs) -> None:
+        glyph_list1: tuple[str, ...],
+        glyph_list2: tuple[str, ...],
+        *,
+        minKern: int = 10,
+        onlyCloser: bool = False,
+        touch: int = 0,
+    ) -> None:
         """
-        This command will automatically generate kerning pairs for the named subtable.
-        If no glyph lists are specified it will look at all pairs of the glyphs in the selection.
+        The named subtable must be a kerning pair subtable that already exists.
+
+        This command will automatically generate kerning pairs for the named
+        subtable. If no glyph lists are specified it will look at all pairs of the
+        glyphs in the selection; if glyph lists are specified then it will look at
+        all pairs that can be made with one glyph from the first list and the second
+        from the second list.
+
+        It will attempt to guess a good kerning value between the two glyphs -- a
+        value which will make the optical separation between the two appear to be
+        ``separation`` em-units. If ``minKern`` is specified and the (absolute
+        value of the) kerning correction is less than this number then no kerning
+        pair will be generated. If ``onlyCloser`` is set to true then only negative
+        kerning offsets will be generated (only thing which moves two glyphs closer
+        together). If touch is set to 1 then the kerning offset will not be based on
+        optical distance but on the closest approach between the two glyphs.
         """
         ...
 
     def appendSFNTName(
-        self, language: Union[str, int], strid: Union[str, int], string: str
+        self, language: str | int, strid: str | int, string: str
     ) -> None:
         """
-        Adds a new (or replaces an old) string in the sfnt 'name' table.
-        Language may be either the English name of the language/locale or its numeric ID.
-        Strid may be one of the (english) string names (Copyright, etc.) or its numeric value.
+        Adds a new (or replaces an old) string in the sfnt 'name' table. Language
+        may be either the English name of the language/locale as a string, or the
+        number representing that language in MicroSoft's specification. Strid may be
+        one of the (english) string names (Copyright, Family, SubFamily, etc.) or
+        the numeric value of that item. The string itself is in UTF-8.
         """
         ...
 
     def buildOrReplaceAALTFeatures(self) -> None:
         """
-        Removes any existing AALT features and creates new ones containing all
-        possible single and alternate substutions available for each glyph.
+        Removes any existing AALT features (and any lookups solely controlled by such
+        features) and creates new ones containing all possible single and alternate
+        substutions available for each glyph.
         """
         ...
+
+    def cidConvertByCMap(self, cmap_filename: str) -> None:
+        """
+        Converts a normal font into a CID-keyed font with one subfont using
+        the CMAP to determine the mapping.
+        """
+
+    def cidConvertTo(self, registry: str, ordering: str, supplement: int) -> None:
+        """Converts a normal font into a CID-keyed font with one subfont."""
+
+    def cidFlatten(self) -> None:
+        """Converts a CID font into a normal font (glyphs will be in CID order)."""
+
+    def cidFlattenByCMap(self, cmap_filename: str) -> None:
+        """
+        Converts a CID font into a normal font using the encoding specified in the
+        CMAP file.
+        """
+
+    def cidInsertBlankSubFont(self) -> None:
+        """
+        Adds a new (blank) sub-font into a cid-keyed font and changes the current
+        sub-font to be it.
+        """
+
+    def cidRemoveSubFont(self) -> None:
+        """Removes the current subfont from a cid-keyed font."""
 
     def close(self) -> None:
         """
         Frees memory for the current font.
+
         Warning: Any python references to it will become invalid.
         """
         ...
 
-    def createChar(self, uni: int, name: Optional[str] = None) -> glyph:
+    def compareFonts(
+        self,
+        other_font: font,
+        filename: str,
+        flags_tuple: tuple[
+            Literal[
+                "outlines",
+                "outlines-exactly",
+                "warn-outlines-mismatch",
+                "hints",
+                "warn-refs-unlink",
+                "strikes",
+                "fontnames",
+                "gpos",
+                "gsub",
+                "add-outlines",
+                "create-glyphs",
+            ],
+            ...,
+        ],
+    ) -> None:
         """
-        Create (and return) a character at the specified unicode codepoint.
-        To create a glyph with no unicode codepoint, set the first argument to -1
-        and specify a name.
+        This will compare the current font with the font in ``other_font`` (which
+        must already have been opened). It will write the results to the
+        ``filename``, you may use "-" to send the output to stdout. The ``flags``
+        argument is a tuple of strings and controls what will be compared.
+
+        outlines:
+
+          compare outlines
+
+        outlines-exactly:
+
+          compare outlines exactly (otherwise allow slight errors and the unlinking
+          of references)
+
+          warn-outlines-mismatch:
+
+          warn if the outlines don't exactly match (but are pretty close)
+
+        hints:
+
+          compare hints
+
+        warn-refs-unlink:
+
+          warn if references need to be unlinked before a match is found
+
+        strikes:
+
+          compare bitmap strikes
+
+        fontnames:
+
+          compare font names
+
+        gpos:
+
+          compare glyph positioning
+
+        gsub:
+
+          compare glyph substitutions
+
+        add-outlines:
+
+          for any glyphs whose outlines differ, add the outlines of the glyph in
+          the second font to the background of the glyph in the first
+
+        create-glyphs:
+
+          if a glyph exists in the second font but not the first, create that
+          glyph in the first and add the outlines from the second into the
+          background layer
         """
         ...
+
+    def createChar(self, uni: int, name: str | None = None) -> glyph:
+        """
+        Create (and return) a character at the specified unicode codepoint in this
+        font and optionally name it. If you wish to create a glyph with no unicode
+        codepoint, set the first argument to -1 and specify a name.
+
+        If there is already a character at that (positive) codepoint then it is
+        returned. If the optional name parameter is included and differs from its
+        current name then the character is also renamed.
+        """
+        ...
+
+    def createInterpolatedGlyph(
+        self, glyph1: glyph, glyph2: glyph, amount: float
+    ) -> glyph:
+        """
+        Create (and return) a glyph with the same unicode code point as glyph1.
+        The glyph may not already exist. The contents of the glyph will be formed
+        by interpolating between glyph1 and glyph2. If amount==0 the result will
+        look like glyph1, or 1 then like glyph2.
+        """
+        ...
+
+    @overload
+    def createMappedChar(self, enc: int) -> glyph: ...
+    @overload
+    def createMappedChar(self, name: str) -> glyph:
+        """
+        Create (and return) a character at the specified encoding in this font.
+        If there is already a character there, return it
+        """
+        ...
+
+    def find(
+        self,
+        contour: contour | layer,
+        error_bound: float = 0.01,
+        search_flags: tuple[Literal["reverse", "flips", "rotate", "scale"], ...] = (
+            "reverse",
+            "flips",
+        ),
+    ) -> Iterator[glyph]:
+        """
+        Searches the font for all glyphs containing the contour (or layer) and
+        returns an iterator which returns those glyphs.
+
+        When found, the glyph.temporary is set to a dict of::
+
+          {
+            "findMatchedRefs": matched_refs_bit_map,
+            "findMatchedContours": matched_contours_bit_map,
+            "findMatchedContoursStart": matched_contours_start_bit_map,
+          }
+        """
+        ...
+
+    @overload
+    def findEncodingSlot(self, uni: int) -> int: ...
+    @overload
+    def findEncodingSlot(self, name: str) -> int:
+        """
+        Tests whether a glyph with this codepoint or name is in the font's encoding
+        and returns the encoding slot. If the glyph is not present it returns -1.
+
+        (If a glyph with that name/unicode is in the font, but is not in the
+        encoding, then a value beyond the end of the encoding will be returned).
+        """
+
+    def glyphs(self, type: Literal["GID", "encoding"] = "GID") -> Iterator[glyph]:
+        """
+        Returns an iterator which will return the glyphs in the font. By default
+        they will be returned in "GID" order, but if type is specified as "encoding"
+        they will be returned in encoding order. If returned in encoding order it
+        is possible that a glyph will be returned more than once if there are
+        multiple encoding slots which reference it.
+        """
 
     def generate(
         self,
         filename: str,
-        bitmap_type: Optional[str] = None,
-        flags: Optional[Tuple[str, ...]] = None,
-        bitmap_resolution: Optional[int] = None,
-        subfont_directory: Optional[str] = None,
-        namelist: Optional[str] = None,
-        layer: Optional[Union[str, int]] = None,
+        *,
+        bitmap_type: str | None = None,
+        flags: tuple[
+            Literal[
+                "afm",
+                "pfm",
+                "tfm",
+                "ofm",
+                "composites-in-afm",
+                "glyph-map-file",
+                "short-post",
+                "apple",
+                "opentype",
+                "old-kern",
+                "winkern",
+                "dummy-dsig",
+                "no-FFTM-table",
+                "TeX-table",
+                "round",
+                "no-hints",
+                "no-flex",
+                "omit-instructions",
+                "PfEd-comments",
+                "PfEd-colors",
+                "PfEd-lookups",
+                "PfEd-guidelines",
+                "PfEd-background",
+                "symbol",
+            ],
+            ...,
+        ] = (),
+        bitmap_resolution: int | None = None,
+        subfont_directory: str | None = None,
+        namelist: str | None = None,
+        layer: str | int | None = None,
     ) -> None:
         """
-        Generates a font. The type is determined by the font's extension.
-        Flags can be 'apple', 'opentype', 'no-hints', etc.
+        Generates a font. The type is determined by the font's extension. The bitmap
+        type (if specified) is also an extension. If layer is specified, then the
+        splines and references in that layer will be used instead of the foreground
+        layer.
+
+        Flags is a tuple containing some of
+
+        afm:
+
+          output an afm file
+
+        pfm:
+
+          output a pfm file
+
+        tfm:
+
+          output a tfm file
+
+        ofm:
+
+          output a ofm file
+
+        composites-in-afm:
+
+          Store composite info in the afm file
+
+        glyph-map-file:
+
+          Output a glyph map file giving the mapping between output gid and glyphnames
+
+        short-post:
+
+          Do not include glyphnames in a ttf/otf file
+
+        apple:
+
+          output apple advanced typography tables
+
+        opentype:
+
+          output opentype tables
+
+        old-kern:
+
+          output an old style 'kern' with opentype tables
+
+        winkern:
+
+          only add kern pairs for mapped glyphs (required for kerning in some/all
+          versions of Windows)
+
+        dummy-dsig:
+
+          output an empty DSIG table so MS will mark a font with .ttf extension as
+          an OpenType font.
+
+        no-FFTM-table:
+
+          Do not generate an 'FFTM' table
+
+        TeX-table:
+
+          Include a 'TeX ' table in an ttf/otf file
+
+        round:
+
+          Round PS coordinates to integers
+
+        no-hints:
+
+          Do not include PS hints
+
+        no-flex:
+
+          Do not include PS flex hints
+
+        omit-instructions:
+
+          Do not include TrueType instructions
+
+        PfEd-comments:
+
+          Include font and glyph comments in the 'PfEd' table
+
+        PfEd-colors:
+
+          Include glyph colors in the 'PfEd' table
+
+        PfEd-lookups:
+
+          Include lookup names in the 'PfEd' table
+
+        PfEd-guidelines:
+
+          Include guideline locations in the 'PfEd' table
+
+        PfEd-background:
+
+          Include background (and spiro) layers in the 'PfEd' table
+
+        symbol:
+
+          Generate an sfnt with a Symbol cmap entry rather than a Unicode entry.
+
+        See also :meth:`font.save()`.
         """
         ...
 
+    def generateTtc(
+        self,
+        filename: str,
+        others: Sequence[font] | font | None,
+        *,
+        flags: tuple[
+            Literal[
+                "afm",
+                "pfm",
+                "tfm",
+                "ofm",
+                "composites-in-afm",
+                "glyph-map-file",
+                "short-post",
+                "apple",
+                "opentype",
+                "old-kern",
+                "winkern",
+                "dummy-dsig",
+                "no-FFTM-table",
+                "TeX-table",
+                "round",
+                "no-hints",
+                "no-flex",
+                "omit-instructions",
+                "PfEd-comments",
+                "PfEd-colors",
+                "PfEd-lookups",
+                "PfEd-guidelines",
+                "PfEd-background",
+                "symbol",
+            ],
+            ...,
+        ] = (),
+        ttcflags: tuple[Literal["merge", "cff"], ...] = (),
+        namelist: str | None = None,
+        layer: str | int | None = None,
+    ) -> None:
+        """
+        Generates a truetype collection file containing the current font and all
+        others listed -- the ``others`` argument may be ``None``, a font, or a tuple
+        (or list) of fonts.
+
+        Flags are the same as ``font.generate``.
+
+        Ttcflags is a tuple consisting of the following
+
+        merge:
+
+          Try and share tables and glyphs among the various fonts.
+
+        cff:
+
+          Use the CFF glyph format rather than the TrueType format (the OpenType
+          documentation says that this does not work, but both the Mac and
+          unix/linux accept it).
+        """
+        ...
+
+    def generateFeatureFile(
+        self, filename: str, lookup_name: str | None = None
+    ) -> None:
+        """
+        Generates an adobe feature file for the current font. If a lookup-name is
+        specified then only data for that lookup will be generated.
+        """
+        ...
+
+    def genericGlyphChange(self, **kwargs: GlyphChangeOptions) -> None:
+        """Applies generic changes to all glyphs."""
+        ...
+
+    def getKerningClass(
+        self, subtable_name: str
+    ) -> tuple[
+        tuple[tuple[str, ...], ...],
+        tuple[tuple[str, ...], ...],
+        tuple[int, ...],
+    ]:
+        """
+        Returns a tuple whose entries are: (first-classes, second-classes, offsets).
+        The classes are themselves tuples of tuples of glyph names. The offsets will
+        be a tuple of numeric kerning offsets.
+        """
+        ...
+
+    def getLookupInfo(
+        self, lookup_name: str
+    ) -> tuple[
+        Literal[
+            "gsub_single",
+            "gsub_multiple",
+            "gsub_alternate",
+            "gsub_ligature",
+            "gsub_context",
+            "gsub_contextchain",
+            "gsub_revesechain",
+            "morx_indic",
+            "morx_context",
+            "morx_insert",
+            "gpos_single",
+            "gpos_pair",
+            "gpos_cursive",
+            "gpos_mark2base",
+            "gpos_mark2ligature",
+            "gpos_mark2mark",
+            "gpos_context",
+            "gpos_contextchain",
+            "kern_statemachine",
+        ],
+        tuple[
+            str
+            | Literal[
+                "right_to_left", "ignore_bases", "ignore_ligatures", "ignore_marks"
+            ],
+            ...,
+        ]
+        | None,
+        tuple[tuple[str, tuple[tuple[str, tuple[str, ...]], ...]], ...],
+    ]:
+        """
+        Returns a tuple whose entries are: (lookup-type, lookup-flags,
+        feature-script-lang-tuple). The lookup type is a string as described in
+        :meth:`font.addLookup`, and the feature-script-lang tuple is also described
+        there.
+        """
+        ...
+
+    def getLookupSubtables(self, lookup_name: str) -> tuple[str, ...]:
+        """Returns a tuple of all subtable names in that lookup."""
+        ...
+
+    def getLookupSubtableAnchorClasses(self, subtable_name: str) -> tuple[str, ...]:
+        """Returns a tuple of all anchor class names in that subtable."""
+        ...
+
+    def getLookupOfSubtable(self, subtable_name: str) -> str:
+        """Returns the name of the lookup containing this subtable."""
+        ...
+
+    def getSubtableOfAnchor(self, anchor_class_name: str) -> str:
+        """Returns the name of the subtable containing this anchor class."""
+        ...
+
+    def importBitmaps(
+        self, bitmap_font_file: str, to_background: int | None = None
+    ) -> None:
+        """Load any bitmap strikes out of the bitmap-font-file into the current font"""
+        ...
+
+    def importLookups(
+        self,
+        another_font: font,
+        lookup_names: str | tuple[str, ...],
+        before_name: str | None = None,
+    ) -> None:
+        """
+        It will search the other font for the named lookup(s) and import it into the
+        current font. (Contextual lookups which invoke other lookups will have any
+        nested lookups imported as well).
+
+        Lookups will be imported in the order listed. If a before-name is specified,
+        then it is looked up in the current font and all lookups will be added
+        before it, if not specified lookups will appear at the end of the list.
+        """
+
+    def interpolateFonts(self, fraction: float, filename: str) -> None:
+        """
+        Interpolates a font between the current font and the font contained in
+        filename.
+        """
+        ...
+
+    def isKerningClass(self, subtable_name: str) -> bool:
+        """Returns whether the named subtable contains a kerning class."""
+        ...
+
+    def isVerticalKerning(self, subtable_name: str) -> bool:
+        """Returns whether the named subtable contains a vertical kerning data"""
+        ...
+
+    def italicize(
+        self,
+        *,
+        italic_angle: float = -13,
+        ia: float = -13,
+        lc_condense: tuple[float, float, float, float] = ...,
+        lc: tuple[float, float, float, float] = ...,
+        uc_condense: tuple[float, float, float, float] = ...,
+        uc: tuple[float, float, float, float] = ...,
+        symbol_condense: tuple[float, float, float, float] = ...,
+        symbol: tuple[float, float, float, float] = ...,
+        deserif_flat: bool = True,
+        deserif_slant: bool = True,
+        deserif_pen: bool = True,
+        baseline_serifs: bool = True,
+        xheight_serifs: bool = True,
+        ascent_serifs: bool = False,
+        descent_serifs: bool = True,
+        diagonal_serifs: bool = True,
+        a: bool = True,
+        f: Literal[0, 1, 2] = 1,
+        u0438: bool = True,
+        u043F: bool = True,
+        u0442: bool = True,
+        u0444: bool = True,
+        u0448: bool = True,
+        u0452: bool = True,
+        u045f: bool = True,
+    ) -> None:
+        """
+        This function uses keyword parameters. None are required, if omitted a
+        default value will be used. Some keywords have abbreviations ("ia" for
+        "italic_angle") you may use either.
+
+        This function will attempt to italicize each selected glyph.
+
+        The ``*_condense`` keywords should be 4 element tuples of floating point
+        numbers; these numbers correspond to: Left side bearing condensation,
+        stem condensation, counter condensation and right side bearing condensation.
+        These numbers should be small numbers around 1 (scale factors, not
+        percentages).
+
+        Set at most one of the ``deserif_*`` keywords.
+
+        Setting ``a`` to ``True`` will turn on the transformation that applies to
+        the "a" glyph. Setting ``u0438`` will control the transformation that
+        applies to the glyph at unicode codepoint U+0438.
+
+        The ``f`` keyword is slightly more complex. Setting it to 0 turns off all
+        transformations of glyphs like "f", setting it to 1 will give "f" a tail
+        which looks like a rotated version of its head, and setting it to 2 will
+        simply extend the main stem of "f" below the baseline.
+        """
+        ...
+
+    def lookupSetFeatureList(
+        self,
+        lookup_name: str,
+        feature_script_lang_tuple: tuple[
+            tuple[str, tuple[tuple[str, tuple[str, ...]], ...]], ...
+        ],
+    ) -> None:
+        """
+        Sets the feature list of indicated lookup. The feature-script-lang tuple is
+        described at :meth:`font.addLookup()`.
+        """
+        ...
+
+    def lookupSetFlags(
+        self,
+        lookup_name: str,
+        flags: tuple[
+            Literal[
+                "right_to_left", "ignore_bases", "ignore_ligatures", "ignore_marks"
+            ],
+            ...,
+        ],
+    ) -> None:
+        """Sets the lookup flags for the named lookup."""
+        ...
+
+    def lookupSetStoreLigatureInAfm(self, lookup_name: str, boolean: bool) -> None:
+        """Sets whether this ligature lookup contains data to store in the afm."""
+        ...
+
+    @overload
     def mergeFonts(
         self,
-        filename: Union[str, font],
-        preserveCrossFontKerning: Optional[bool] = None,
+        filename: str,
+        preserveCrossFontKerning: bool = False,
+    ) -> None: ...
+    @overload
+    def mergeFonts(
+        self,
+        font: font,
+        preserveCrossFontKerning: bool = False,
     ) -> None:
         """Merges the font in the file into the current font."""
         ...
 
-    def reencode(self, encoding: str, force: Optional[bool] = None) -> None:
-        """Reencodes the current font into the given encoding."""
+    def mergeFeature(self, filename: str, boolean: bool) -> None:
+        """
+        Merge feature and lookup information from an adobe feature file, or metrics
+        information from the (afm, tfm, etc) file into the current font. The
+        optional boolean will try to skip invalid feature lookups containing
+        replacement glyphs which do not exist in the font, which can help in reusing
+        large feature files.
+        """
         ...
+
+    @deprecated("Use mergeFeature instead")
+    def mergeKern(self, filename: str) -> None: ...
+    def mergeLookups(self, lookup_name1: str, lookup_name2: str) -> None:
+        """
+        The lookups must be of the same type. All subtables from lookup_name2 will
+        be moved to lookup_name1, the features list of lookup_name2 will be merged
+        with that of lookup_name1, and lookup_name2 will be removed.
+        """
+        ...
+
+    def mergeLookupSubtables(self, subtable_name1: str, subtable_name2: str) -> None:
+        """
+        The subtables must be in the same lookup. Not all lookup types allow their
+        subtables to be merged (contextual subtables may not be merged, kerning
+        classes may not be (kerning pairs may be)). Any information bound to
+        subtable2 will be bound to subtable1 and subtable2 will be removed.
+        """
+
+    def printSample(
+        self,
+        type: Literal[
+            "fontdisplay", "chars", "waterfall", "fontsample", "fontsampleinfile"
+        ],
+        pointsize: int | Sequence[int],
+        sample: str,
+        output_file: str,
+    ) -> None:
+        """
+        Type is a string which must be one of
+
+        fontdisplay:
+
+          Display all glyphs in the font in encoding order
+
+        chars:
+
+          Display the selected glyphs scaled to fill a page
+
+          Ignores the pointsize argument.
+
+        waterfall:
+
+          Displays the selected glyphs at many pointsizes.
+
+          The pointsize argument should be a tuple of pointsizes here.
+
+        fontsample:
+
+          The third argument should contain a string which will be layed out
+          and displayed as well as FontForge can.
+
+        fontsampleinfile:
+
+          The third argument should contain the name of a file which contains
+          text to be layed out and displayed.
+
+        If output is to a file (see :func:`fontforge.printSetup()`) then the last
+        argument specifies a file name in which to store output.
+        """
+
+    def randomText(self, script: str, lang: str | None = None) -> str:
+        """
+        Returns a random text sample using the letter frequencies of the specified
+        script (and optionally language). Both script and language should be
+        expressed as strings containing OpenType Script and Language tags. "dflt" is
+        a reasonable language tag. If the language is not specified, one will be
+        chosen at random. If ff has no frequency information for the script/language
+        specified it will use the letters in the script with equal frequencies.
+        """
+
+    def reencode(self, encoding: str, force: bool = False) -> None:
+        """
+        Reencodes the current font into the given encoding. Optionally force
+        reencoding.
+        """
+        ...
+
+    def regenBitmaps(self, tuple_of_sizes: tuple[int, ...]) -> None:
+        """
+        A tuple with an entry for each bitmap strike to be regenerated
+        (rerasterized). Each strike is identified by pixelsize (if the strike is a
+        grey scale font it will be indicated by ``(bitmap-depth<<16)|pixelsize``.
+        """
+        ...
+
+    def removeAnchorClass(self, anchor_class_name: str) -> None:
+        """Removes the named AnchorClass (and all associated points) from the font."""
+        ...
+
+    def removeLookup(self, lookup_name: str, remove_acs: Literal[0, 1] = 0) -> None:
+        """
+        Remove the lookup (and any subtables within it). remove_acs (0 or 1),
+        specifies whether to remove associated anchor classes and points.
+        """
+
+    def removeLookupSubtable(
+        self, subtable_name: str, remove_acs: Literal[0, 1] = 0
+    ) -> None:
+        """
+        Remove the subtable (and all data associated with it). remove_acs (0 or 1),
+        specifies whether to remove associated anchor classes and points
+        """
+        ...
+
+    @overload
+    def removeGlyph(self, uni: int, name: str | None = None) -> None: ...
+    @overload
+    def removeGlyph(self, name: str) -> None: ...
+    @overload
+    def removeGlyph(self, glyph: glyph) -> None:
+        """
+        You may either pass in a FontForge glyph object (from this font) or identify
+        a glyph in the font by unicode code point or name. In any case the glyph
+        will be removed from the font.
+
+        If you use (uni,name) to specify a name, set uni to -1.
+
+        Warning:
+
+           This frees FontForge's storage to this glyph. If you have any python
+           references to that storage they will be looking at garbage. This does not
+           go through the usual python reference mechanism.
+        """
+        ...
+
+    def replaceAll(
+        self, srch: contour | layer, rpl: contour | layer, error_bound: float = 0.01
+    ) -> int:
+        """
+        Searches the font for all occurrences of the srch contour (or layer) and
+        replaces them with the replace contour (or layer).
+        """
 
     def revert(self) -> None:
         """
         Reloads the font from the disk.
-        Warning: If you have any references to glyphs which live in the font those
-        references will no longer be valid, and using them will cause crashes. [cite: 342, 343]
+
+        Warning:
+
+          If you have any references to glyphs which live in the font those
+          references will no longer be valid, and using them will cause crashes.
+          This is very un-python-like.
         """
         ...
 
-    def save(self, filename: Optional[str] = None) -> None:
-        """Saves the font to an sfd file."""
+    def revertFromBackup(self) -> None:
+        """
+        Reloads the font from the backup file on the disk.
+
+        Warning:
+
+          If you have any references to glyphs which live in the font those
+          references will no longer be valid, and using them will cause crashes.
+          This is very un-python-like.
+        """
+        ...
+
+    def save(self, filename: str | None = None) -> None:
+        """Saves the font to an sfd file. See also :meth:`font.generate()`"""
+        ...
+
+    def saveNamelist(self, filename: str) -> None:
+        """Saves the font's namelist to a file."""
+
+    def getTableData(self, table_name: str) -> bytes:
+        """
+        Gets binary data from any saved table. FF will save 'fpgm', 'prep', 'cvt '
+        and 'maxp'. FF may also save tables which you explicitly request. Do not
+        expect to get binary data for tables like 'GPOS' or 'glyf' which FF will
+        generate when it creates a font... that information is not currently available.
+
+        Returns a binary string.
+        """
+
+    def setTableData(
+        self, table_name: str, sequence: bytes | Sequence[int] | None
+    ) -> None:
+        """
+        Sets binary data of any saved table. FF will save 'fpgm', 'prep', 'cvt '
+        and 'maxp'. FF may also save tables which you explicitly request. Do not
+        expect to set binary data for tables like 'GPOS' or 'glyf' which FF will
+        generate when it creates a font... that information is not currently available.
+
+        If sequence is None, then the named table will be removed from the font.
+        """
+
+    def validate(self, force: int = 0) -> int:
+        """
+        Validates the font and returns a bit mask of all errors from all glyphs (as
+        defined in the ``validation_state`` of a glyph -- except bit 0x1 is clear).
+        If the font passed the validation then the return value will be 0 (not 0x1).
+        Otherwise the return value will be the set of errors found.
+
+        Note: The set of errors is slightly different for TrueType and PostScript
+        output. The returned mask contains the list of potential errors. You must
+        figure out which apply to you.
+
+        Normally each glyph will cache its validation_state and it will not be
+        recalculated. If you pass a non-zero argument to the routine then it will
+        force recalculation of each glyph -- this can be slow.
+        """
         ...
 
     # --- Selection-Based Methods ---
@@ -5606,8 +6597,8 @@ class font:
 
     def transform(
         self,
-        matrix: Tuple[float, float, float, float, float, float],
-        flags: Optional[Tuple[str, ...]] = None,
+        matrix: tuple[float, float, float, float, float, float],
+        flags: Optional[tuple[str, ...]] = None,
     ) -> None:
         """
         Transforms all selected glyphs by the matrix.
