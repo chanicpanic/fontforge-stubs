@@ -6519,7 +6519,14 @@ class font:
     # --- Selection-Based Methods ---
 
     def addExtrema(self) -> None:
-        """If a curve in any selected glyph lacks a point at a significant extremum, this command will add one."""
+        """
+        Extrema should be marked by on-curve points. If a curve in any selected
+        glyph lacks a point at a significant extremum this command will add one.
+        """
+        ...
+
+    def addInflections(self) -> None:
+        """Please see :meth:`contour.addInflections()`."""
         ...
 
     def autoHint(self) -> None:
@@ -6530,82 +6537,372 @@ class font:
         """Generates TrueType instructions for all selected glyphs."""
         ...
 
+    def autoWidth(
+        self,
+        separation: int,
+        *,
+        minBearing: int = 10,
+        maxBearing: int = -1,
+        height: int = 0,
+        loopCnt: int = 1,
+    ) -> None:
+        """Guesses at reasonable horizontal advance widths for the selected glyphs"""
+        ...
+
+    def autoTrace(self) -> None:
+        """Auto traces any background images in all selected glyphs"""
+        ...
+
     def build(self) -> None:
         """
-        If any selected character is a composite, this command clears it and inserts
-        references to its components.
+        If any of the selected characters is a composite character, then this
+        command will clear it and insert references to its components (this command
+        can create new glyphs).
+        """
+        ...
+
+    def canonicalContours(self) -> None:
+        """
+        Orders the contours in the selected glyphs by the x coordinate of their
+        leftmost point. (This can reduce the size of the charstring needed to
+        describe the glyph(s).
+        """
+        ...
+
+    def canonicalStart(self) -> None:
+        """
+        Sets the start point of all the contours of the selected glyphs to be the
+        leftmost point on the contour. (If there are several points with that value
+        then use the one which is closest to the baseline). This can reduce the size
+        of the charstring needed to describe the glyph(s). By regularizing things it
+        can also make more things available to be put in subroutines.
+        """
+        ...
+
+    @overload
+    def changeWeight(
+        self,
+        stroke_width: float,
+        type: Literal["LCG", "CJK", "auto"] = "auto",
+        serif_height: int | None = None,
+        serif_fuzz: float = 0.9,
+        counter_type: Literal["squish", "retain", "auto"] = "auto",
+    ) -> None: ...
+    @overload
+    def changeWeight(
+        self,
+        stroke_width: float,
+        type: Literal["custom"],
+        serif_height: int | None = None,
+        serif_fuzz: float = 0.9,
+        counter_type: Literal["squish", "retain", "auto"] = "auto",
+        custom_zones: int | tuple[int, int, int, int] = ...,
+    ) -> None:
+        """
+        Stroke_width is the amount by which all stems are expanded.
+
+        Type is one of "LCG", "CJK", "auto", "custom".
+
+        Serif_height tells ff not to expand serifs which are that much off the
+        baseline, while serif_fuzz specifies the amount of fuzziness allowed in the
+        match. If you don't want special serif behavior set this to 0.
+
+        Counter_type is one of "squish", "retain", "auto".
+
+        Custom_zones is only meaningful if the type argument were "custom". It may
+        be either a number, which specifies the "top hint" value (bottom hint is
+        assumed to be 0, others are between), or a tuple of 4 numbers (top hint,
+        top zone, bottom zone, bottom hint).
+        """
+        ...
+
+    def condenseExtend(
+        self,
+        c_factor: float,
+        c_add: float,
+        sb_factor: float | None = None,
+        sb_add: float | None = None,
+        correct: bool = True,
+    ) -> None:
+        """
+        Condenses or extends the size of the counters and side-bearings of the
+        selected glyphs. The first two arguments provide information on
+        shrinking/growing the counters, the second two the sidebearings. If the last
+        two are omitted they default to the same values as the first two.
+
+        A counter's width will become: ::
+
+          new_width = c_factor * old_width + c_add
+
+        If present the ``correct`` argument allows you to specify whether you want
+        to correct for the italic angle before condensing the glyph. (it defaults to
+        True)
+        """
+        ...
+
+    def clear(self) -> None:
+        """Clears the contents of all selected glyphs"""
+        ...
+
+    def cluster(self, within: float = 0.1, max: float = 0.5) -> None:
+        """
+        Moves clustered coordinates to a standard central value in all selected
+        glyphs. See also :meth:`font.round()`.
         """
         ...
 
     def copy(self) -> None:
-        """Copies all selected glyphs into FontForge's internal clipboard."""
+        """Copies all selected glyphs into (FontForge's internal) clipboard."""
+        ...
+
+    def copyReference(self) -> None:
+        """
+        Copies all selected glyphs (as references) into (FontForge's internal)
+        clipboard.
+        """
+        ...
+
+    def correctDirection(self) -> None:
+        """
+        Orients all contours so that external ones are clockwise and internal
+        counter-clockwise in all selected glyphs.
+        """
+        ...
+
+    def correctReferences(self) -> None:
+        """
+        Checks a font for glyphs with mixed contours and references (or references
+        with transformation matrices which cannot be represented in truetype (ie.
+        scaling by 2 or more)). If a mixed case is discovered FontForge will take
+        the contours out of the glyph, put them in a new glyph, and make a reference
+        to the new glyph.
+        """
         ...
 
     def cut(self) -> None:
-        """Copies all selected glyphs into FontForge's internal clipboard and then clears them."""
+        """
+        Copies all selected glyphs into (FontForge's internal) clipboard. And then
+        clears them.
+        """
         ...
 
     def paste(self) -> None:
-        """Pastes the clipboard into the selected glyphs, removing what was there before."""
+        """
+        Pastes the contents of (FontForge's internal) clipboard into the selected
+        glyphs -- and removes what was there before.
+        """
+        ...
+
+    def intersect(self) -> None:
+        """
+        Leaves only areas in the intersection of contours in all selected glyphs.
+        See also :meth:`font.removeOverlap()`.
+        """
+        ...
+
+    def pasteInto(self) -> None:
+        """
+        Pastes the contents of (FontForge's internal) clipboard into the selected
+        glyphs -- and retains what was there before.
+        """
         ...
 
     def removeOverlap(self) -> None:
-        """Removes overlapping areas in all selected glyphs."""
+        """
+        Removes overlapping areas in all selected glyphs.
+        See also :meth:`font.intersect()`.
+        """
         ...
 
-    def round(self, factor: Optional[float] = None) -> None:
+    def replaceWithReference(self, fudge: float = 0.01) -> None:
         """
-        Rounds the x and y coordinates of each point in all selected glyphs.
-        If factor is specified: new_coord = round(factor*old-coord)/factor.
+        Finds any glyph which contains an inline copy of one of the selected glyphs,
+        and converts that copy into a reference to the appropriate glyph. Selection
+        is changed to the set of glyphs which the command alters.
+
+        If specified the fudge argument specifies the error allowed for coordinate
+        differences.
+        """
+
+    def round(self, factor: float = 1) -> None:
+        """
+        Rounds the x and y coordinates of each point in all selected glyphs. If
+        factor is specified then ::
+
+          new-coord = round(factor*old-coord)/factor
+
+        See also :meth:`font.cluster()`.
+        """
+        ...
+
+    def simplify(
+        self,
+        error_bound: float | None = None,
+        flags: tuple[
+            Literal[
+                "ignoreslopes",
+                "ignoreextrema",
+                "smoothcurves",
+                "choosehv",
+                "forcelines",
+                "nearlyhvlines",
+                "mergelines",
+                "setstarttoextremum",
+                "removesingletonpoints",
+            ],
+            ...,
+        ] = (),
+        tan_bounds: float | None = None,
+        linefixup: float | None = None,
+        linelenmax: float | None = None,
+    ) -> None:
+        """
+        Tries to remove excess points in all selected glyphs if doing so will not
+        perturb the curve by more than ``error-bound``. Flags is a tuple of the
+        following strings
+
+        ignoreslopes:
+
+          Allow slopes to change
+
+        ignoreextrema:
+
+          Allow removal of extrema
+
+        smoothcurves:
+
+          Allow curve smoothing
+
+        choosehv:
+
+          Snap to horizontal or vertical
+
+        forcelines:
+
+          flatten bumps on lines
+
+        nearlyhvlines:
+
+          Make nearly horizontal/vertical lines be so
+
+        mergelines:
+
+          Merge adjacent lines into one
+
+        setstarttoextremum:
+
+          Rotate the point list so that the start point is on an extremum
+
+        removesingletonpoints:
+
+          If the contour contains just one point then remove it
         """
         ...
 
     @overload
     def stroke(
         self,
-        type: str,
+        type: Literal["circular"],
         width: float,
-        CAP: Optional[str] = None,
-        JOIN: Optional[str] = None,
-        ANGLE: Optional[float] = None,
-        **kwargs,
+        /,
+        cap: Literal["nib", "butt", "round", "bevel"] = "nib",
+        join: Literal["nib", "bevel", "miter", "miterclip", "round", "arcs"] = "nib",
+        angle: float = 0,
+        **kwargs: StrokeOptions,
     ) -> None: ...
     @overload
     def stroke(
         self,
-        type: str,
+        type: Literal["elliptical"],
         width: float,
         minor_width: float,
-        ANGLE: Optional[float] = None,
-        CAP: Optional[str] = None,
-        JOIN: Optional[str] = None,
-        **kwargs,
+        /,
+        angle: float = 0,
+        cap: Literal["nib", "butt", "round", "bevel"] = "nib",
+        join: Literal["nib", "bevel", "miter", "miterclip", "round", "arcs"] = "nib",
+        **kwargs: StrokeOptions,
     ) -> None: ...
     @overload
     def stroke(
-        self, type: str, width: float, height: float, angle: float, **kwargs
+        self,
+        type: Literal["calligraphic"],
+        width: float,
+        height: float,
+        /,
+        angle: float = 0,
+        cap: Literal["nib", "butt", "round", "bevel"] = "nib",
+        join: Literal["nib", "bevel", "miter", "miterclip", "round", "arcs"] = "nib",
+        **kwargs: StrokeOptions,
     ) -> None: ...
     @overload
-    def stroke(self, type: str, contour: contour, **kwargs) -> None: ...
-    def stroke(self, *args, **kwargs) -> None:
+    def stroke(
+        self,
+        type: Literal["convex"],
+        nib: contour | layer,
+        /,
+        angle: float = 0,
+        cap: Literal["nib", "butt", "round", "bevel"] = "nib",
+        join: Literal["nib", "bevel", "miter", "miterclip", "round", "arcs"] = "nib",
+        **kwargs: StrokeOptions,
+    ) -> None:
         """
         Strokes the lines of the contours in all selected glyphs according to the
-        supplied parameters.  Supports "circular", "elliptical", "calligraphic",
-        and "convex" stroke types.
+        supplied parameters. See :meth:`glyph.stroke()` for a description of the
+        syntax.
         """
         ...
 
     def transform(
         self,
         matrix: tuple[float, float, float, float, float, float],
-        flags: Optional[tuple[str, ...]] = None,
+        flags: tuple[
+            Literal[
+                "activeLayer", "guide", "noWidth", "round", "simplePos", "kernClasses"
+            ],
+            ...,
+        ] = (),
     ) -> None:
         """
-        Transforms all selected glyphs by the matrix.
-        Flags include 'activeLayer', 'guide', 'noWidth', 'round', etc. [cite: 400, 401, 402, 403]
+        Transforms all selected glyphs by the matrix. The optional flags argument
+        should be a tuple containing any of the following strings:
+
+        activeLayer:
+
+          Transform :attr:`font.activeLayer` only. (By default all layers are
+          transformed.)
+
+        guide:
+
+          Also transform :attr:`font.guide` layer.
+
+        noWidth:
+
+          Do not change :attr:`glyph.width`.
+
+        round:
+
+          Round to int after the transformation is done.
+
+        simplePos:
+
+          Also transform simple positioning features and kern pairs.
+
+        kernClasses:
+
+          Also transform kerning classes.
+        """
+        ...
+
+    def nltransform(self, xexpr: str, yexpr: str) -> None:
+        """
+        xexpr and yexpr are strings specifying non-linear transformations that will
+        be applied to all points in the selected glyphs of the font (with xexpr
+        being applied to x values, and yexpr to y values, of course).
         """
         ...
 
     def unlinkReferences(self) -> None:
-        """Unlinks all references in all selected glyphs and replaces them with splines."""
+        """
+        Unlinks all references in all selected glyphs and replaces them with splines.
+        """
         ...
