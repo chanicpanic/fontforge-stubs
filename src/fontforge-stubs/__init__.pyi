@@ -550,21 +550,23 @@ def hasUserInterface() -> bool:
     """Returns ``True`` if this session of FontForge has a user interface"""
     ...
 
+FontOrGlyph = TypeVar("FontOrGlyph", bound=font | glyph)
+
 @overload
 def registerMenuItem(
-    callback: Callable[[T | None, glyph | font], None],
-    enable: Callable[[T | None, glyph | font], bool] | None,
-    data: T | None,
-    context: Literal["Font", "Glyph"] | tuple[Literal["Font"], Literal["Glyph"]],
-    hotkey: str | None,
+    callback: Callable[[T, FontOrGlyph], None],
+    enable: Callable[[T, FontOrGlyph], bool] | None,
+    data: T = None,
+    context: Literal["Font", "Glyph"] | tuple[Literal["Font"], Literal["Glyph"]] = ...,
+    hotkey: str | None = None,
     *submenu_names: str | tuple[str, str] | tuple[str, str, str],
     name: str | tuple[str, str] | tuple[str, str, str],
 ) -> None: ...
 @overload
 def registerMenuItem(
-    callback: Callable[[T | None, glyph | font], None],
-    enable: Callable[[T | None, glyph | font], bool] | None = None,
-    data: T | None = None,
+    callback: Callable[[T, FontOrGlyph], None],
+    enable: Callable[[T, FontOrGlyph], bool] | None = None,
+    data: T = None,
     context: Literal["Font", "Glyph"] | tuple[Literal["Font"], Literal["Glyph"]] = ...,
     hotkey: str | None = None,
     name: str | tuple[str, str] | tuple[str, str, str] = ...,
@@ -699,9 +701,9 @@ def registerMenuItem(
     ...
 
 def registerImportExport(
-    import_function: Callable[[T | None, glyph, str, bool], None] | None,
-    export_function: Callable[[T | None, glyph, str], None] | None,
-    data: T | None,
+    import_function: Callable[[T, glyph, str, bool], None] | None,
+    export_function: Callable[[T, glyph, str], None] | None,
+    data: T,
     name: str,
     extension: str,
     extension_list: str | None = None,
@@ -2783,7 +2785,7 @@ class glyph:
     def addAnchorPoint(
         self,
         anchor_class_name: str,
-        anchor_type: Literal["mark", "base", "ligature", "basemark", "entry", "entry"],
+        anchor_type: Literal["mark", "base", "ligature", "basemark", "entry", "exit"],
         x: float,
         y: float,
         ligature_index: int | None = None,
