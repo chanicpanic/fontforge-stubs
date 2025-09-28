@@ -530,7 +530,7 @@ def unitShape(n: int) -> contour:
     """
     ...
 
-def registerGlyphSeparationHook[T](
+def registerGlyphSeparationHook(
     hook: Callable[[glyph, glyph, Any, T | None], int] | None = None,
     arg: T | None = None,
 ) -> None:
@@ -551,7 +551,7 @@ def hasUserInterface() -> bool:
     ...
 
 @overload
-def registerMenuItem[T](
+def registerMenuItem(
     callback: Callable[[T | None, glyph | font], None],
     enable: Callable[[T | None, glyph | font], bool] | None,
     data: T | None,
@@ -561,7 +561,7 @@ def registerMenuItem[T](
     name: str | tuple[str, str] | tuple[str, str, str],
 ) -> None: ...
 @overload
-def registerMenuItem[T](
+def registerMenuItem(
     callback: Callable[[T | None, glyph | font], None],
     enable: Callable[[T | None, glyph | font], bool] | None = None,
     data: T | None = None,
@@ -698,7 +698,7 @@ def registerMenuItem(
     """
     ...
 
-def registerImportExport[T](
+def registerImportExport(
     import_function: Callable[[T | None, glyph, str, bool], None] | None,
     export_function: Callable[[T | None, glyph, str], None] | None,
     data: T | None,
