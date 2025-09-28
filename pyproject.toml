@@ -1,0 +1,39 @@
+[build-system]
+requires = ["uv_build>=0.8.22,<0.9.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = ["fontforge-stubs", "psMat-stubs"]
+
+[project]
+name = "fontforge-stubs"
+version = "0.1.0"
+requires-python = ">=3.10"
+authors = [
+  { name = "chanicpanic" },
+]
+description = "Type stubs for FontForge's Python modules"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+keywords = ["fontforge", "stubs", "psMat"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Natural Language :: English",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Topic :: Software Development :: Documentation",
+  "Typing :: Stubs Only",
+]
+
+[project.urls]
+Homepage = "https://github.com/chanicpanic/fontforge-stubs"
+Repository = "https://github.com/chanicpanic/fontforge-stubs.git"
+Issues = "https://github.com/chanicpanic/fontforge-stubs/issues"
+Changelog = "https://github.com/chanicpanic/fontforge-stubs/blob/main/CHANGELOG.md"
