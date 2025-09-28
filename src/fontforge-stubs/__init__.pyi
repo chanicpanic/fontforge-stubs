@@ -2,26 +2,17 @@
 The primary module for interacting with FontForge
 """
 
-from collections.abc import Mapping
+from collections.abc import Callable, Hashable, Iterable, Iterator, Mapping, Sequence
 from typing import (
     Any,
-    Tuple,
-    List,
-    Union,
-    Optional,
-    Iterator,
-    overload,
-    override,
-    Sequence,
-    TypedDict,
-    Callable,
     Final,
     Literal,
-    Iterable,
-    TypeVar,
-    Hashable,
-    TypeAlias,
     NoReturn,
+    TypeAlias,
+    TypedDict,
+    TypeVar,
+    overload,
+    override,
 )
 
 from typing_extensions import (
@@ -5278,7 +5269,7 @@ class font:
         """The number of glyph slots in the current encoding."""
         ...
 
-    def __getitem__(self, key: Union[int, str]) -> glyph:
+    def __getitem__(self, key: int | str) -> glyph:
         """
         If ``key`` is an integer, then returns the glyph at that encoding. If a
         string then returns the glyph with that name. May not be assigned to.
