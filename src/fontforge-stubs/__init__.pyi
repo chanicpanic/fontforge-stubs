@@ -11,20 +11,23 @@ from typing import (
     TypeAlias,
     TypedDict,
     TypeVar,
+    final,
     overload,
-    override,
+    type_check_only,
 )
 
 from typing_extensions import (
     NotRequired,
     Unpack,
     deprecated,
+    override,
 )
 
-T = TypeVar("T")
+_T = TypeVar("_T")
 
 # Module attributes
 
+@type_check_only
 class GlobalHooks(TypedDict):
     newFontHook: Callable[[font], None]
     """
@@ -99,7 +102,7 @@ This may only be used on the first point in a spiro tuple. It indicates that
 the tuple describes an open contour.
 """
 
-unspecifiedMathValue: Final
+unspecifiedMathValue: Final[int]
 """A constant, used when the value is unspecified"""
 
 # Module functions
@@ -311,7 +314,7 @@ def loadPlugins() -> None:
     is delayed by the ``-skippyplug`` command-line flag.
     """
     ...
-
+@type_check_only
 class PluginInfo(TypedDict):
     """
     Information describing configured and/or discovered plugins.
@@ -383,7 +386,7 @@ def getPluginInfo() -> list[PluginInfo]:
     any newly discovered plugins.
     """
     ...
-
+@type_check_only
 class PluginConfiguration(TypedDict):
     name: str
     """
@@ -531,8 +534,8 @@ def unitShape(n: int) -> contour:
     ...
 
 def registerGlyphSeparationHook(
-    hook: Callable[[glyph, glyph, Any, T | None], int] | None = None,
-    arg: T | None = None,
+    hook: Callable[[glyph, glyph, Any, _T | None], int] | None = None,
+    arg: _T | None = None,
 ) -> None:
     """
     The GlyphSeparationHook is a python routine which FontForge will call when
@@ -550,13 +553,13 @@ def hasUserInterface() -> bool:
     """Returns ``True`` if this session of FontForge has a user interface"""
     ...
 
-FontOrGlyph = TypeVar("FontOrGlyph", bound=font | glyph)
+_FontOrGlyph = TypeVar("_FontOrGlyph", bound=font | glyph)
 
 @overload
 def registerMenuItem(
-    callback: Callable[[T, FontOrGlyph], None],
-    enable: Callable[[T, FontOrGlyph], bool] | None,
-    data: T = None,
+    callback: Callable[[_T, _FontOrGlyph], None],
+    enable: Callable[[_T, _FontOrGlyph], bool] | None,
+    data: _T | None = None,
     context: Literal["Font", "Glyph"] | tuple[Literal["Font"], Literal["Glyph"]] = ...,
     hotkey: str | None = None,
     *submenu_names: str | tuple[str, str] | tuple[str, str, str],
@@ -564,9 +567,9 @@ def registerMenuItem(
 ) -> None: ...
 @overload
 def registerMenuItem(
-    callback: Callable[[T, FontOrGlyph], None],
-    enable: Callable[[T, FontOrGlyph], bool] | None = None,
-    data: T = None,
+    callback: Callable[[_T, _FontOrGlyph], None],
+    enable: Callable[[_T, _FontOrGlyph], bool] | None = None,
+    data: _T | None = None,
     context: Literal["Font", "Glyph"] | tuple[Literal["Font"], Literal["Glyph"]] = ...,
     hotkey: str | None = None,
     name: str | tuple[str, str] | tuple[str, str, str] = ...,
@@ -701,9 +704,9 @@ def registerMenuItem(
     ...
 
 def registerImportExport(
-    import_function: Callable[[T, glyph, str, bool], None] | None,
-    export_function: Callable[[T, glyph, str], None] | None,
-    data: T,
+    import_function: Callable[[_T, glyph, str, bool], None] | None,
+    export_function: Callable[[_T, glyph, str], None] | None,
+    data: _T,
     name: str,
     extension: str,
     extension_list: str | None = None,
@@ -893,7 +896,7 @@ def askString(
     Throws an exception if there is no user interface.
     """
     ...
-
+@type_check_only
 class BaseQuestion(TypedDict):
     """
     Represents common keys for questions passed to ``askMulti``.
@@ -923,6 +926,7 @@ class BaseQuestion(TypedDict):
     so if you want an aligned, empty label use a space as the ``question`` value.)
     """
 
+@type_check_only
 class StringQuestion(BaseQuestion):
     """
     Represents a string question that displays the label followed by a text
@@ -934,6 +938,7 @@ class StringQuestion(BaseQuestion):
     default: NotRequired[str]
     """The initial value of the answer entry field."""
 
+@type_check_only
 class Answer(TypedDict):
     """Represents potential answer for a ``ChoiceQuestion``."""
 
@@ -952,6 +957,7 @@ class Answer(TypedDict):
     when the dialog is presented.
     """
 
+@type_check_only
 class ChoiceQuestion(BaseQuestion):
     """
     Represents a choice question that asks the user to pick a subset of given
@@ -980,6 +986,7 @@ class ChoiceQuestion(BaseQuestion):
     ``multiple`` is ``True`` the answers are presented as checkboxes.
     """
 
+@type_check_only
 class PathnameQuestion(BaseQuestion):
     """
     Represents open pathname and save pathname questions that display an entry
@@ -994,21 +1001,22 @@ class PathnameQuestion(BaseQuestion):
     filter: NotRequired[str]
     """Optional file filter."""
 
-Question: TypeAlias = StringQuestion | ChoiceQuestion | PathnameQuestion
+_Question: TypeAlias = StringQuestion | ChoiceQuestion | PathnameQuestion
 """A question that may be passed to ``askMulti``."""
 
+@type_check_only
 class Category(TypedDict):
     """Represents a group of questions."""
 
     category: str | None
     """A label to display to the user."""
 
-    questions: list[Question]
+    questions: list[_Question]
     """A list of questions."""
 
 def askMulti(
     title: str,
-    specification: Question | list[Question] | Category | list[Category],
+    specification: _Question | list[_Question] | Category | list[Category],
 ) -> dict[Hashable, object | tuple[object, ...]] | None:
     """
     This method raises a dialog with multiple questions for the user, optionally
@@ -1025,15 +1033,16 @@ def askMulti(
     ...
 
 # Point class
+@final
 class point:
-    def __init__(
-        self,
+    def __new__(
+        cls,
         x: float = 0,
         y: float = 0,
         on_curve: bool = True,
         type: Literal[0, 1, 2, 3] = 0,
         selected: bool = False,
-    ) -> None:
+    ) -> point:
         """
         Creates a new point. Optionally specifying its x,y location, on-curve status
         and selected status. x and y must be supplied together.
@@ -1101,7 +1110,7 @@ class point:
         """Transforms the point by the transformation matrix"""
         ...
 
-PointInitializer: TypeAlias = (
+_PointInitializer: TypeAlias = (
     tuple[()]
     | tuple[float, float]
     | tuple[float, float, bool]
@@ -1111,6 +1120,7 @@ PointInitializer: TypeAlias = (
 """Represents a tuple of parameters that could be passed to the ``point`` initializer."""
 
 # Contour class
+@final
 class contour(Sequence[point]):
     """
     A contour is a collection of points. A contour may be either based on cubic or
@@ -1147,7 +1157,7 @@ class contour(Sequence[point]):
         """Creates a new contour."""
         ...
 
-    is_quadratic: bool
+    is_quadratic: int
     """
     Whether the contour should be interpreted as a set of quadratic or cubic
     splines. Setting this value has the side effect of converting the point list
@@ -1228,19 +1238,25 @@ class contour(Sequence[point]):
     @overload
     def __getitem__(self, key: slice) -> contour: ...
     @overload
-    def __setitem__(self, key: int, value: point | PointInitializer) -> None: ...
+    def __setitem__(self, key: int, value: point | _PointInitializer) -> None: ...
     @overload
     def __setitem__(
-        self, key: slice, value: contour | Sequence[point | PointInitializer]
+        self, key: slice, value: contour | Sequence[point | _PointInitializer]
     ) -> None: ...
     def __delitem__(self, key: int) -> None: ...
     def __add__(
         self,
-        other: contour | Sequence[point | PointInitializer] | point | PointInitializer,
+        other: contour
+        | Sequence[point | _PointInitializer]
+        | point
+        | _PointInitializer,
     ) -> contour: ...
     def __iadd__(
         self,
-        other: contour | Sequence[point | PointInitializer] | point | PointInitializer,
+        other: contour
+        | Sequence[point | _PointInitializer]
+        | point
+        | _PointInitializer,
     ) -> contour: ...
     @overload
     def __contains__(self, p: point | tuple[float, float]) -> bool: ...
@@ -1286,7 +1302,7 @@ class contour(Sequence[point]):
         ...
 
     def insertPoint(
-        self, point: point | PointInitializer, pos: int | None = None
+        self, point: point | _PointInitializer, pos: int | None = None
     ) -> None:
         """
         Adds a point to the contour. If the optional second argument is given, the point
@@ -1503,6 +1519,7 @@ class contour(Sequence[point]):
         """
         ...
 
+@type_check_only
 class StrokeOptions(TypedDict, total=False):
     "Additional options for stroke operations."
 
@@ -1600,6 +1617,7 @@ class StrokeOptions(TypedDict, total=False):
     """
 
 # Layer class
+@final
 class layer(Sequence[contour]):
     """
     A layer is a collection of contours. All the contours must be the same order
@@ -1608,17 +1626,16 @@ class layer(Sequence[contour]):
     Layers may be compared to see if their contours are similar.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, is_quadratic: bool = False) -> None:
         """Creates a new layer"""
         ...
 
-    def is_quadratic(self) -> bool:
-        """
-        Whether the contours should be interpreted as a set of quadratic cubic
-        splines. Setting this value has the side effect of converting the contour
-        list to the appropriate format.
-        """
-        ...
+    is_quadratic: int
+    """
+    Whether the contours should be interpreted as a set of quadratic cubic
+    splines. Setting this value has the side effect of converting the contour
+    list to the appropriate format.
+    """
 
     @override
     def __iter__(self) -> Iterator[contour]:
@@ -1986,6 +2003,7 @@ class layer(Sequence[contour]):
     def __iadd__(self, other: layer | contour) -> layer: ...
 
 # GlyphPen class
+@final
 class glyphPen:
     """
     This implements the Pen Protocol http://robofab.org/objects/pens.html to
@@ -2094,7 +2112,7 @@ class glyphPen:
         """
         ...
 
-GlyphReference: TypeAlias = (
+_GlyphReference: TypeAlias = (
     tuple[str]
     | tuple[str, tuple[float, float, float, float, float, float]]
     | tuple[str, tuple[float, float, float, float, float, float], bool]
@@ -2104,6 +2122,7 @@ A tuple of a glyph-name, a transformation matrix, and whether the reference is
 currently selected.
 """
 
+@type_check_only
 class GlyphMathKerning:
     """
     Represents math kerning data for a glyph.
@@ -2125,6 +2144,7 @@ class GlyphMathKerning:
     topRight: tuple[tuple[int, int], tuple[int, int]]
     """The glyph's math kerning data associated with the top right vertex."""
 
+@type_check_only
 class GlyphChangeOptions(TypedDict, total=False):
     """Options for ``glyph.genericGlyphChange`` and ``font.genericGlyphChange``"""
 
@@ -2292,6 +2312,7 @@ class GlyphChangeOptions(TypedDict, total=False):
     """
 
 # Glyph class
+@final
 class glyph:
     """
     The glyph type refers to a :class:`glyph` object. It has no independent life
@@ -2503,7 +2524,7 @@ class glyph:
     background layer. Layer 1 is the foreground layer.
     """
 
-    layerrefs: dict[str | int, GlyphReference]
+    layerrefs: dict[str | int, _GlyphReference]
     """
     A dictionary like object containing the references in the layers of the
     glyph. It may be indexed by either a layer name, or an integer between 0 and
@@ -2544,7 +2565,7 @@ class glyph:
     See also the :attr:`glyph.temporary` field.
     """
 
-    references: tuple[GlyphReference, ...]
+    references: tuple[_GlyphReference, ...]
     """
     A tuple of tuples containing, for each reference in the foreground, a
     glyph-name, a transformation matrix, and whether the reference is currently
@@ -3607,6 +3628,7 @@ class glyph:
         """Please see :meth:`contour.harmonize()`."""
         ...
 
+@final
 class selection:
     """
     This represents a font's selection. You may index it with an encoding value (in
@@ -3720,6 +3742,7 @@ class selection:
     def __getitem__(self, key: int | str | glyph) -> bool: ...
 
 # Private class
+@final
 class private(Mapping[str, str | float | int | tuple[float, ...]]):
     """
     This represents a font's postscript private dictionary. You may index it with
@@ -3748,12 +3771,13 @@ class private(Mapping[str, str | float | int | tuple[float, ...]]):
         self, key: str, value: str | float | int | tuple[float, ...]
     ) -> None: ...
 
-DeviceTable = dict[int, int]
+_DeviceTable: TypeAlias = dict[int, int]
 """
 A dictionary with keys representing a font size in pixels and values representing
 the corresponding adjustment, e.g. ``{9: -1, 10: -1, 12: -1}``.
 """
 
+@final
 class math:
     """
     This represents a font's math constant table. Not all fonts have math tables,
@@ -3792,25 +3816,25 @@ class math:
     MathLeading: int
     """White space to be left between math formulae to ensure proper line spacing."""
 
-    MathLeadingDeviceTable: DeviceTable | None
+    MathLeadingDeviceTable: _DeviceTable | None
     """White space to be left between math formulae to ensure proper line spacing."""
 
     AxisHeight: int
     """Axis height of the font."""
 
-    AxisHeightDeviceTable: DeviceTable | None
+    AxisHeightDeviceTable: _DeviceTable | None
     """Axis height of the font."""
 
     AccentBaseHeight: int
     """Maximum (ink) height of accent base that does not require raising the accents."""
 
-    AccentBaseHeightDeviceTable: DeviceTable | None
+    AccentBaseHeightDeviceTable: _DeviceTable | None
     """Maximum (ink) height of accent base that does not require raising the accents."""
 
     FlattenedAccentBaseHeight: int
     """Maximum (ink) height of accent base that does not require flattening the accents."""
 
-    FlattenedAccentBaseHeightDeviceTable: DeviceTable | None
+    FlattenedAccentBaseHeightDeviceTable: _DeviceTable | None
     """Maximum (ink) height of accent base that does not require flattening the accents."""
 
     SubscriptShiftDown: int
@@ -3819,7 +3843,7 @@ class math:
     moving downward.
     """
 
-    SubscriptShiftDownDeviceTable: DeviceTable | None
+    SubscriptShiftDownDeviceTable: _DeviceTable | None
     """
     The standard shift down applied to subscript elements. Positive for
     moving downward.
@@ -3831,7 +3855,7 @@ class math:
     subscripts further down.
     """
 
-    SubscriptTopMaxDeviceTable: DeviceTable | None
+    SubscriptTopMaxDeviceTable: _DeviceTable | None
     """
     Maximum height of the (ink) top of subscripts that does not require moving
     subscripts further down.
@@ -3844,7 +3868,7 @@ class math:
     Positive for subscript baseline dropped below base bottom.
     """
 
-    SubscriptBaselineDropMinDeviceTable: DeviceTable | None
+    SubscriptBaselineDropMinDeviceTable: _DeviceTable | None
     """
     Maximum allowed drop of the baseline of subscripts relative to the bottom of
     the base. Used for bases that are treated as a box or extended shape.
@@ -3854,13 +3878,13 @@ class math:
     SuperscriptShiftUp: int
     """Standard shift up applied to superscript elements."""
 
-    SuperscriptShiftUpDeviceTable: DeviceTable | None
+    SuperscriptShiftUpDeviceTable: _DeviceTable | None
     """Standard shift up applied to superscript elements."""
 
     SuperscriptShiftUpCramped: int
     """Standard shift of superscript relative to base in cramped mode."""
 
-    SuperscriptShiftUpCrampedDeviceTable: DeviceTable | None
+    SuperscriptShiftUpCrampedDeviceTable: _DeviceTable | None
     """Standard shift of superscript relative to base in cramped mode."""
 
     SuperscriptBottomMin: int
@@ -3869,7 +3893,7 @@ class math:
     moving them further up.
     """
 
-    SuperscriptBottomMinDeviceTable: DeviceTable | None
+    SuperscriptBottomMinDeviceTable: _DeviceTable | None
     """
     Minimum allowed height of the bottom of superscripts that does not require
     moving them further up.
@@ -3882,7 +3906,7 @@ class math:
     Positive for superscript baseline below base top.
     """
 
-    SuperscriptBaselineDropMaxDeviceTable: DeviceTable | None
+    SuperscriptBaselineDropMaxDeviceTable: _DeviceTable | None
     """
     Maximum allowed drop of the baseline of superscripts relative to the top of
     the base. Used for bases that are treated as a box or extended shape.
@@ -3892,7 +3916,7 @@ class math:
     SubSuperscriptGapMin: int
     """Minimum gap between the superscript and subscript ink."""
 
-    SubSuperscriptGapMinDeviceTable: DeviceTable | None
+    SubSuperscriptGapMinDeviceTable: _DeviceTable | None
     """Minimum gap between the superscript and subscript ink."""
 
     SuperscriptBottomMaxWithSubscript: int
@@ -3902,7 +3926,7 @@ class math:
     being moved down.
     """
 
-    SuperscriptBottomMaxWithSubscriptDeviceTable: DeviceTable | None
+    SuperscriptBottomMaxWithSubscriptDeviceTable: _DeviceTable | None
     """
     The maximum level to which the (ink) bottom of superscript can be pushed to
     increase the gap between superscript and subscript, before subscript starts
@@ -3912,7 +3936,7 @@ class math:
     SpaceAfterScript: int
     """Extra white space to be added after each sub/superscript."""
 
-    SpaceAfterScriptDeviceTable: DeviceTable | None
+    SpaceAfterScriptDeviceTable: _DeviceTable | None
     """Extra white space to be added after each sub/superscript."""
 
     UpperLimitGapMin: int
@@ -3921,7 +3945,7 @@ class math:
     operator.
     """
 
-    UpperLimitGapMinDeviceTable: DeviceTable | None
+    UpperLimitGapMinDeviceTable: _DeviceTable | None
     """
     Minimum gap between the bottom of the upper limit, and the top of the base
     operator.
@@ -3933,7 +3957,7 @@ class math:
     the base operator.
     """
 
-    UpperLimitBaselineRiseMinDeviceTable: DeviceTable | None
+    UpperLimitBaselineRiseMinDeviceTable: _DeviceTable | None
     """
     Minimum distance between the baseline of an upper limit and the bottom of
     the base operator.
@@ -3945,7 +3969,7 @@ class math:
     base operator.
     """
 
-    LowerLimitGapMinDeviceTable: DeviceTable | None
+    LowerLimitGapMinDeviceTable: _DeviceTable | None
     """
     Minimum gap between (ink) top of the lower limit, and (ink) bottom of the
     base operator.
@@ -3957,7 +3981,7 @@ class math:
     base operator.
     """
 
-    LowerLimitBaselineDropMinDeviceTable: DeviceTable | None
+    LowerLimitBaselineDropMinDeviceTable: _DeviceTable | None
     """
     Minimum distance between the baseline of the lower limit and bottom of the
     base operator.
@@ -3966,7 +3990,7 @@ class math:
     StackTopShiftUp: int
     """Standard shift up applied to the top element of a stack."""
 
-    StackTopShiftUpDeviceTable: DeviceTable | None
+    StackTopShiftUpDeviceTable: _DeviceTable | None
     """Standard shift up applied to the top element of a stack."""
 
     StackTopDisplayStyleShiftUp: int
@@ -3974,7 +3998,7 @@ class math:
     Standard shift up applied to the top element of a stack in display style.
     """
 
-    StackTopDisplayStyleShiftUpDeviceTable: DeviceTable | None
+    StackTopDisplayStyleShiftUpDeviceTable: _DeviceTable | None
     """
     Standard shift up applied to the top element of a stack in display style.
     """
@@ -3985,7 +4009,7 @@ class math:
     values indicate downward motion.
     """
 
-    StackBottomShiftDownDeviceTable: DeviceTable | None
+    StackBottomShiftDownDeviceTable: _DeviceTable | None
     """
     Standard shift down applied to the bottom element of a stack. Positive
     values indicate downward motion.
@@ -3997,7 +4021,7 @@ class math:
     style. Positive values indicate downward motion.
     """
 
-    StackBottomDisplayStyleShiftDownDeviceTable: DeviceTable | None
+    StackBottomDisplayStyleShiftDownDeviceTable: _DeviceTable | None
     """
     Standard shift down applied to the bottom element of a stack in display
     style. Positive values indicate downward motion.
@@ -4009,7 +4033,7 @@ class math:
     the bottom element.
     """
 
-    StackGapMinDeviceTable: DeviceTable | None
+    StackGapMinDeviceTable: _DeviceTable | None
     """
     Minimum gap between bottom of the top element of a stack, and the top of
     the bottom element.
@@ -4021,7 +4045,7 @@ class math:
     bottom element in display style.
     """
 
-    StackDisplayStyleGapMinDeviceTable: DeviceTable | None
+    StackDisplayStyleGapMinDeviceTable: _DeviceTable | None
     """
     Minimum gap between bottom of the top element of a stack and the top of the
     bottom element in display style.
@@ -4030,7 +4054,7 @@ class math:
     StretchStackTopShiftUp: int
     """Standard shift up applied to the top element of the stretch stack."""
 
-    StretchStackTopShiftUpDeviceTable: DeviceTable | None
+    StretchStackTopShiftUpDeviceTable: _DeviceTable | None
     """Standard shift up applied to the top element of the stretch stack."""
 
     StretchStackBottomShiftDown: int
@@ -4039,7 +4063,7 @@ class math:
     Positive values indicate downward motion.
     """
 
-    StretchStackBottomShiftDownDeviceTable: DeviceTable | None
+    StretchStackBottomShiftDownDeviceTable: _DeviceTable | None
     """
     Standard shift down applied to the bottom element of the stretch stack.
     Positive values indicate downward motion.
@@ -4051,7 +4075,7 @@ class math:
     the element above.
     """
 
-    StretchStackGapAboveMinDeviceTable: DeviceTable | None
+    StretchStackGapAboveMinDeviceTable: _DeviceTable | None
     """
     Minimum gap between the ink of the stretched element and the ink bottom of
     the element above.
@@ -4063,7 +4087,7 @@ class math:
     the element below.
     """
 
-    StretchStackGapBelowMinDeviceTable: DeviceTable | None
+    StretchStackGapBelowMinDeviceTable: _DeviceTable | None
     """
     Minimum gap between the ink of the stretched element and the ink top of
     the element below.
@@ -4072,13 +4096,13 @@ class math:
     FractionNumeratorShiftUp: int
     """Standard shift up applied to the numerator."""
 
-    FractionNumeratorShiftUpDeviceTable: DeviceTable | None
+    FractionNumeratorShiftUpDeviceTable: _DeviceTable | None
     """Standard shift up applied to the numerator."""
 
     FractionNumeratorDisplayStyleShiftUp: int
     """Standard shift up applied to the numerator in display style."""
 
-    FractionNumeratorDisplayStyleShiftUpDeviceTable: DeviceTable | None
+    FractionNumeratorDisplayStyleShiftUpDeviceTable: _DeviceTable | None
     """Standard shift up applied to the numerator in display style."""
 
     FractionDenominatorShiftDown: int
@@ -4087,7 +4111,7 @@ class math:
     downward motion.
     """
 
-    FractionDenominatorShiftDownDeviceTable: DeviceTable | None
+    FractionDenominatorShiftDownDeviceTable: _DeviceTable | None
     """
     Standard shift down applied to the denominator. Positive values indicate
     downward motion.
@@ -4099,7 +4123,7 @@ class math:
     values indicate downward motion.
     """
 
-    FractionDenominatorDisplayStyleShiftDownDeviceTable: DeviceTable | None
+    FractionDenominatorDisplayStyleShiftDownDeviceTable: _DeviceTable | None
     """
     Standard shift down applied to the denominator in display style. Positive
     values indicate downward motion.
@@ -4111,7 +4135,7 @@ class math:
     the fraction bar.
     """
 
-    FractionNumeratorGapMinDeviceTable: DeviceTable | None
+    FractionNumeratorGapMinDeviceTable: _DeviceTable | None
     """
     Minimum tolerated gap between the ink bottom of the numerator and the ink of
     the fraction bar.
@@ -4123,7 +4147,7 @@ class math:
     the fraction bar in display style.
     """
 
-    FractionNumeratorDisplayStyleGapMinDeviceTable: DeviceTable | None
+    FractionNumeratorDisplayStyleGapMinDeviceTable: _DeviceTable | None
     """
     Minimum tolerated gap between the ink bottom of the numerator and the ink of
     the fraction bar in display style.
@@ -4132,7 +4156,7 @@ class math:
     FractionRuleThickness: int
     """Thickness of the fraction bar."""
 
-    FractionRuleThicknessDeviceTable: DeviceTable | None
+    FractionRuleThicknessDeviceTable: _DeviceTable | None
     """Thickness of the fraction bar."""
 
     FractionDenominatorGapMin: int
@@ -4141,7 +4165,7 @@ class math:
     the fraction bar.
     """
 
-    FractionDenominatorGapMinDeviceTable: DeviceTable | None
+    FractionDenominatorGapMinDeviceTable: _DeviceTable | None
     """
     Minimum tolerated gap between the ink top of the denominator and the ink of
     the fraction bar.
@@ -4153,7 +4177,7 @@ class math:
     the fraction bar in display style.
     """
 
-    FractionDenominatorDisplayStyleGapMinDeviceTable: DeviceTable | None
+    FractionDenominatorDisplayStyleGapMinDeviceTable: _DeviceTable | None
     """
     Minimum tolerated gap between the ink top of the denominator and the ink of
     the fraction bar in display style.
@@ -4164,7 +4188,7 @@ class math:
     Horizontal distance between the top and bottom elements of a skewed fraction.
     """
 
-    SkewedFractionHorizontalGapDeviceTable: DeviceTable | None
+    SkewedFractionHorizontalGapDeviceTable: _DeviceTable | None
     """
     Horizontal distance between the top and bottom elements of a skewed fraction.
     """
@@ -4175,7 +4199,7 @@ class math:
     fraction.
     """
 
-    SkewedFractionVerticalGapDeviceTable: DeviceTable | None
+    SkewedFractionVerticalGapDeviceTable: _DeviceTable | None
     """
     Vertical distance between the ink of the top and bottom elements of a skewed
     fraction.
@@ -4184,43 +4208,43 @@ class math:
     OverbarVerticalGap: int
     """Distance between the overbar and the ink top of the base."""
 
-    OverbarVerticalGapDeviceTable: DeviceTable | None
+    OverbarVerticalGapDeviceTable: _DeviceTable | None
     """Distance between the overbar and the ink top of the base."""
 
     OverbarRuleThickness: int
     """Thickness of the overbar."""
 
-    OverbarRuleThicknessDeviceTable: DeviceTable | None
+    OverbarRuleThicknessDeviceTable: _DeviceTable | None
     """Thickness of the overbar."""
 
     OverbarExtraAscender: int
     """Extra white space reserved above the overbar."""
 
-    OverbarExtraAscenderDeviceTable: DeviceTable | None
+    OverbarExtraAscenderDeviceTable: _DeviceTable | None
     """Extra white space reserved above the overbar."""
 
     UnderbarVerticalGap: int
     """Distance between underbar and the (ink) bottom of the base."""
 
-    UnderbarVerticalGapDeviceTable: DeviceTable | None
+    UnderbarVerticalGapDeviceTable: _DeviceTable | None
     """Distance between underbar and the (ink) bottom of the base."""
 
     UnderbarRuleThickness: int
     """Thickness of the underbar."""
 
-    UnderbarRuleThicknessDeviceTable: DeviceTable | None
+    UnderbarRuleThicknessDeviceTable: _DeviceTable | None
     """Thickness of the underbar."""
 
     UnderbarExtraDescender: int
     """Extra white space reserved below the underbar."""
 
-    UnderbarExtraDescenderDeviceTable: DeviceTable | None
+    UnderbarExtraDescenderDeviceTable: _DeviceTable | None
     """Extra white space reserved below the underbar."""
 
     RadicalVerticalGap: int
     """Space between the ink to of the expression and the bar over it."""
 
-    RadicalVerticalGapDeviceTable: DeviceTable | None
+    RadicalVerticalGapDeviceTable: _DeviceTable | None
     """Space between the ink to of the expression and the bar over it."""
 
     RadicalDisplayStyleVerticalGap: int
@@ -4229,7 +4253,7 @@ class math:
     style.
     """
 
-    RadicalDisplayStyleVerticalGapDeviceTable: DeviceTable | None
+    RadicalDisplayStyleVerticalGapDeviceTable: _DeviceTable | None
     """
     Space between the ink top of the expression and the bar over it in display
     style.
@@ -4240,7 +4264,7 @@ class math:
     Thickness of the radical rule in designed or constructed radical signs.
     """
 
-    RadicalRuleThicknessDeviceTable: DeviceTable | None
+    RadicalRuleThicknessDeviceTable: _DeviceTable | None
     """
     Thickness of the radical rule in designed or constructed radical signs.
     """
@@ -4248,7 +4272,7 @@ class math:
     RadicalExtraAscender: int
     """Extra white space reserved above the radical."""
 
-    RadicalExtraAscenderDeviceTable: DeviceTable | None
+    RadicalExtraAscenderDeviceTable: _DeviceTable | None
     """Extra white space reserved above the radical."""
 
     RadicalKernBeforeDegree: int
@@ -4256,7 +4280,7 @@ class math:
     Extra horizontal kern before the degree of a radical if such be present.
     """
 
-    RadicalKernBeforeDegreeDeviceTable: DeviceTable | None
+    RadicalKernBeforeDegreeDeviceTable: _DeviceTable | None
     """
     Extra horizontal kern before the degree of a radical if such be present.
     """
@@ -4266,7 +4290,7 @@ class math:
     Negative horizontal kern after the degree of a radical if such be present.
     """
 
-    RadicalKernAfterDegreeDeviceTable: DeviceTable | None
+    RadicalKernAfterDegreeDeviceTable: _DeviceTable | None
     """
     Negative horizontal kern after the degree of a radical if such be present.
     """
@@ -4292,6 +4316,7 @@ class math:
         """Removes any underlying math table from the font."""
         ...
 
+@type_check_only
 class FontLayerInfo:
     """Information about a layer of a font."""
 
@@ -4304,6 +4329,7 @@ class FontLayerInfo:
     is_background: bool
     """Whether the layer is a background layer."""
 
+@final
 class font:
     """
     The font type refers to a fontforge :class:`font` object. It generally contains
@@ -5677,7 +5703,7 @@ class font:
         """
         ...
 
-    def cidConvertByCMap(self, cmap_filename: str) -> None:
+    def cidConvertByCmap(self, cmap_filename: str) -> None:
         """
         Converts a normal font into a CID-keyed font with one subfont using
         the CMAP to determine the mapping.
