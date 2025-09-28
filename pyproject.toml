@@ -15,7 +15,7 @@ authors = [
 description = "Type stubs for FontForge's Python modules"
 readme = "README.md"
 license = "MIT"
-license-files = ["LICENSE"]
+license-files = ["LICENSE", "NOTICE"]
 keywords = ["fontforge", "stubs", "psMat"]
 classifiers = [
   "Development Status :: 3 - Alpha",
