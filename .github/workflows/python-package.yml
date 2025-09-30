@@ -55,4 +55,4 @@ jobs:
         # export SITE_PACKAGES=$(python -c "import site; print(site.getsitepackages()[0], end='')")
         # python -c "import site; print(site.getsitepackages(), end='')"
         # echo $SITE_PACKAGES
-        ./squashfs-root/AppRun -script $(pwd)/tests/run_stubtest.py $(pwd)/.venv/lib/python${{ $matrix.version }}/site-packages
+        ./squashfs-root/AppRun -script $(pwd)/tests/run_stubtest.py $(pwd)/.venv/lib/python${{ matrix.version }}/site-packages
