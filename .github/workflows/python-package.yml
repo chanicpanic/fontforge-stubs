@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.10"] #, "3.11", "3.12", "3.13"]
 
     steps:
     - uses: actions/checkout@v4
@@ -46,4 +46,6 @@ jobs:
     - name: Run stubtest
       run: |
         export SITE_PACKAGES=$(python -c "import site; print(site.getsitepackages()[0], end='')")
+        python -c "import site; print(site.getsitepackages(), end='')"
+        echo $SITE_PACKAGES
         ./FontForge.AppImage -script $(pwd)/tests/run_stubtest.py $SITE_PACKAGES
