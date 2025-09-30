@@ -1,0 +1,35 @@
+name: Test
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10"]
+
+    steps:
+    - uses: actions/checkout@v5
+    - name: Install uv and set the Python version
+      uses: astral-sh/setup-uv@v6
+      with:
+        version: "0.8.22"
+        python-version: ${{ matrix.python-version }}
+        enable-cache: true
+    - name: Install the project
+      run: uv sync --all-extras --dev
+    - name: Fetch FontForge
+      run: |
+        wget -O FontForge.AppImage https://github.com/fontforge/fontforge/releases/download/20230101/FontForge-2023-01-01-a1dad3e-x86_64.AppImage
+        chmod u+x FontForge.AppImage
+        ./FontForge.AppImage --appimage-extract
+    - name: Run stubtest
+      run: |
+        ./squashfs-root/AppRun -script $(pwd)/tests/run_stubtest.py $(pwd)/.venv/lib/python${{ matrix.python-version }}/site-packages
