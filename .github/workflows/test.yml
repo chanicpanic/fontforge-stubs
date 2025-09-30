@@ -23,7 +23,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
         enable-cache: true
     - name: Install the project
-      run: uv sync --lock --all-extras --dev
+      run: uv sync --locked --all-extras --dev
     - name: Fetch FontForge
       run: |
         wget -O FontForge.AppImage https://github.com/fontforge/fontforge/releases/download/20230101/FontForge-2023-01-01-a1dad3e-x86_64.AppImage
