@@ -24,17 +24,23 @@ jobs:
     #   uses: actions/setup-python@v6
     #   with:
     #     python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        python -m pip install --user --upgrade pip
-        python -m pip install --user flake8
-        python -m pip install --user ".[test]"
-    - name: Lint with flake8
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    # - name: Install dependencies
+    #   run: |
+    #     python -m pip install --user --upgrade pip
+    #     python -m pip install --user flake8
+    #     python -m pip install --user ".[test]"
+    - name: Install uv and set the Python version
+      uses: astral-sh/setup-uv@v6
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install the project
+      run: uv sync --locked --all-extras --dev
+    # - name: Lint with flake8
+    #   run: |
+    #     # stop the build if there are Python syntax errors or undefined names
+    #     flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+    #     # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+    #     flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     # - name: Install FUSE for AppImages
     #   run: |
     #     sudo add-apt-repository universe
@@ -46,7 +52,7 @@ jobs:
         ./FontForge.AppImage --appimage-extract
     - name: Run stubtest
       run: |
-        export SITE_PACKAGES=$(python -c "import site; print(site.getsitepackages()[0], end='')")
-        python -c "import site; print(site.getsitepackages(), end='')"
-        echo $SITE_PACKAGES
-        ./squashfs-root/AppRun -script $(pwd)/tests/run_stubtest.py $SITE_PACKAGES
+        # export SITE_PACKAGES=$(python -c "import site; print(site.getsitepackages()[0], end='')")
+        # python -c "import site; print(site.getsitepackages(), end='')"
+        # echo $SITE_PACKAGES
+        ./squashfs-root/AppRun -script $(pwd)/tests/run_stubtest.py $(pwd).venv/lib/python{{ $matrix.version }}/site-packages
