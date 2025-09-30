@@ -37,3 +37,6 @@ Homepage = "https://github.com/chanicpanic/fontforge-stubs"
 Repository = "https://github.com/chanicpanic/fontforge-stubs.git"
 Issues = "https://github.com/chanicpanic/fontforge-stubs/issues"
 Changelog = "https://github.com/chanicpanic/fontforge-stubs/blob/main/CHANGELOG.md"
+
+[project.optional-dependencies]
+test = ["mypy"]
