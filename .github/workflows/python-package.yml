@@ -35,17 +35,18 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Install FUSE for AppImages
-      run: |
-        sudo add-apt-repository universe
-        sudo apt install libfuse2t64
+    # - name: Install FUSE for AppImages
+    #   run: |
+    #     sudo add-apt-repository universe
+    #     sudo apt install libfuse2t64
     - name: Fetch FontForge
       run: |
         wget -O FontForge.AppImage https://github.com/fontforge/fontforge/releases/download/20230101/FontForge-2023-01-01-a1dad3e-x86_64.AppImage
         chmod u+x FontForge.AppImage
+        ./FontForge.AppImage --appimage-extract
     - name: Run stubtest
       run: |
         export SITE_PACKAGES=$(python -c "import site; print(site.getsitepackages()[0], end='')")
         python -c "import site; print(site.getsitepackages(), end='')"
         echo $SITE_PACKAGES
-        ./FontForge.AppImage -script $(pwd)/tests/run_stubtest.py $SITE_PACKAGES
+        ./squashfs-root/AppRun -script $(pwd)/tests/run_stubtest.py $SITE_PACKAGES
