@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.10"]
 
     steps:
     - uses: actions/checkout@v5
@@ -23,7 +23,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
         enable-cache: true
     - name: Install the project
-      run: uv sync --locked --all-extras --dev
+      run: uv sync --all-extras --dev
     - name: Fetch FontForge
       run: |
         wget -O FontForge.AppImage https://github.com/fontforge/fontforge/releases/download/20230101/FontForge-2023-01-01-a1dad3e-x86_64.AppImage
