@@ -7,7 +7,7 @@ module-name = ["fontforge-stubs", "psMat-stubs"]
 
 [project]
 name = "fontforge-stubs"
-version = "0.1.0"
+version = "2025.9.30"
 requires-python = ">=3.10"
 authors = [
   { name = "chanicpanic" },
