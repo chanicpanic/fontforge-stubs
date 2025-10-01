@@ -20,7 +20,7 @@ jobs:
       uses: astral-sh/setup-uv@v6
       with:
         version: "0.8.22"
-        python-version: "3.x"
+        python-version: "3.13"
         enable-cache: true
     - name: Build
       run: uv build
