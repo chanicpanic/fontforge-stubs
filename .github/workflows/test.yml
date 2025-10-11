@@ -13,23 +13,28 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10"]
+        config:
+        # Install dependencies using the same Python version FontForge embeds
+        - python-version: "3.10"
+          fontforge-url: https://github.com/fontforge/fontforge/releases/download/20230101/FontForge-2023-01-01-a1dad3e-x86_64.AppImage
+        - python-version: "3.10"
+          fontforge-url: https://github.com/fontforge/fontforge/releases/download/20251009/FontForge-2025-10-09-Linux-x86_64.AppImage
 
     steps:
     - uses: actions/checkout@v5
     - name: Install uv and set the Python version
       uses: astral-sh/setup-uv@v6
       with:
-        version: "0.8.22"
-        python-version: ${{ matrix.python-version }}
+        version: "0.9.2"
+        python-version: ${{ matrix.config.python-version }}
         enable-cache: true
     - name: Install the project
       run: uv sync --all-extras --dev
     - name: Fetch FontForge
       run: |
-        wget -O FontForge.AppImage https://github.com/fontforge/fontforge/releases/download/20230101/FontForge-2023-01-01-a1dad3e-x86_64.AppImage
+        wget -O FontForge.AppImage ${{ matrix.config.fontforge-url }}
         chmod u+x FontForge.AppImage
         ./FontForge.AppImage --appimage-extract
     - name: Run stubtest
       run: |
-        ./squashfs-root/AppRun -script $(pwd)/tests/run_stubtest.py $(pwd)/.venv/lib/python${{ matrix.python-version }}/site-packages
+        ./squashfs-root/AppRun -script $(pwd)/tests/run_stubtest.py $(pwd)/.venv/lib/python${{ matrix.config.python-version }}/site-packages
