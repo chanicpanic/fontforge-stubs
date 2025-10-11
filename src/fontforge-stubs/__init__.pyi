@@ -598,7 +598,7 @@ def registerMenuItem(
     keyword interface is explained in the ``divider`` section.
 
     Note: The positional interface is forward-compatible with earlier
-    verions of FontForge.
+    versions of FontForge.
 
     callback:
 
@@ -611,7 +611,7 @@ def registerMenuItem(
     enable:
 
       When specified this function is called with the same arguments as ``callback``
-      right before the menu or submenu is diplayed. When it returns ``True``
+      right before the menu or submenu is displayed. When it returns ``True``
       the menu item will be enabled and when it returns ``False`` it will be
       disabled. (When ``enable`` is ``None`` the menu item is always enabled.)
 
@@ -679,7 +679,7 @@ def registerMenuItem(
       identifier_string)``, or a string which is treated as the
       ``localized_name``. Submenus can and should also specify a *mnemonic*.
 
-      In the future the ``identfier_string`` will allow a whole submenu to be
+      In the future the ``identifier_string`` will allow a whole submenu to be
       moved to a different location in the menu hierarchy.
 
     submenu_names:
@@ -1189,7 +1189,7 @@ class contour(Sequence[point]):
     For more information on what these point types mean see
     Raph Levien's work https://www.levien.com/spiro.
 
-    The flags argument is treated as a bitmap of which currently one bit (0x1)
+    The flags argument is treated as a bitset of which currently only one bit (0x1)
     is defined. This indicates that this point is selected in the UI.
 
     When you assign a tuple of spiro control points to this member, the point
@@ -3710,7 +3710,7 @@ class selection:
 
           encoding:
 
-            Interpret integer arguments as encoding indeces.
+            Interpret integer arguments as encoding indices.
 
           more:
 
@@ -5635,7 +5635,7 @@ class font:
     ) -> None:
         """
         Changes the kerning class in the named subtable. The classes arguments are
-        tuples of tuples of glyph names (each sub-tuble of glyph names is a kerning
+        tuples of tuples of glyph names (each sub-tuple of glyph names is a kerning
         class). The offsets argument is a tuple of kerning offsets. There must be as
         many entries as ``len(first-class)*len(second-class)``.
         """
@@ -5699,7 +5699,7 @@ class font:
         """
         Removes any existing AALT features (and any lookups solely controlled by such
         features) and creates new ones containing all possible single and alternate
-        substutions available for each glyph.
+        substitutions available for each glyph.
         """
         ...
 
@@ -6380,13 +6380,13 @@ class font:
 
         fontsample:
 
-          The third argument should contain a string which will be layed out
+          The third argument should contain a string which will be laid out
           and displayed as well as FontForge can.
 
         fontsampleinfile:
 
           The third argument should contain the name of a file which contains
-          text to be layed out and displayed.
+          text to be laid out and displayed.
 
         If output is to a file (see :func:`fontforge.printSetup()`) then the last
         argument specifies a file name in which to store output.
