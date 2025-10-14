@@ -18,6 +18,7 @@ from typing import (
 
 from typing_extensions import (
     NotRequired,
+    Self,
     Unpack,
     deprecated,
     override,
@@ -1106,7 +1107,7 @@ class point:
 
     def transform(
         self, matrix: tuple[float, float, float, float, float, float]
-    ) -> None:
+    ) -> Self:
         """Transforms the point by the transformation matrix"""
         ...
 
@@ -1225,7 +1226,7 @@ class contour(Sequence[point]):
         """
         ...
 
-    def draw(self, pen: glyphPen) -> None:
+    def draw(self, pen: glyphPen) -> Self:
         """Draw the contour to the pen argument."""
         ...
 
@@ -1266,34 +1267,59 @@ class contour(Sequence[point]):
         """Adds an initial, on-curve point at ``(x,y)`` to the contour"""
         ...
 
-    def lineTo(self, x: float, y: float, pos: int | None = None) -> None:
+    @overload
+    def lineTo(self, point: tuple[float, float], pos: int | None = None) -> Self: ...
+    @overload
+    def lineTo(self, x: float, y: float, pos: int | None = None) -> Self:
         """
-        Adds a line to the contour. If the optional third argument is given, the
+        Adds a line to the contour. If the optional pos argument is given, the
         line will be added after the pos'th point, otherwise it will be at the end
         of the contour.
         """
         ...
 
+    @overload
     def cubicTo(
         self,
         cp1: tuple[float, float],
         cp2: tuple[float, float],
         end: tuple[float, float],
         pos: int | None = None,
-    ) -> None:
+    ) -> Self: ...
+    @overload
+    def cubicTo(
+        self,
+        cp1x: float,
+        cp1y: float,
+        cp2x: float,
+        cp2y: float,
+        endx: float,
+        endy: float,
+        pos: int | None = None,
+    ) -> Self:
         """
-        Adds a cubic curve to the contour. If the optional fourth argument is given,
+        Adds a cubic curve to the contour. If the optional pos argument is given,
         the curve will be added after the pos'th point, otherwise it will be at the
         end of the contour.
         """
         ...
 
+    @overload
     def quadraticTo(
         self,
         cp: tuple[float, float],
         end: tuple[float, float],
         pos: int | None = None,
-    ) -> None:
+    ) -> contour: ...
+    @overload
+    def quadraticTo(
+        self,
+        cpx: float,
+        cpy: float,
+        endx: float,
+        endy: float,
+        pos: int | None = None,
+    ) -> contour:
         """
         Adds a quadratic curve to the contour. If the optional third argument is
         given, the curve will be added after the pos'th point, otherwise it will be at
@@ -1303,15 +1329,15 @@ class contour(Sequence[point]):
 
     def insertPoint(
         self, point: point | _PointInitializer, pos: int | None = None
-    ) -> None:
+    ) -> Self:
         """
-        Adds a point to the contour. If the optional second argument is given, the point
+        Adds a point to the contour. If the optional pos argument is given, the point
         will be added after the pos'th point, otherwise it will be at the end of the
         contour.
         """
         ...
 
-    def makeFirst(self, pos: int) -> None:
+    def makeFirst(self, pos: int) -> Self:
         """Rotate the point list so that the pos'th point becomes the first point"""
         ...
 
@@ -1323,14 +1349,19 @@ class contour(Sequence[point]):
         """
         ...
 
-    def reverseDirection(self) -> None:
+    def reverseDirection(self) -> Self:
         """
         Reverse the order in which the contour is drawn (turns a clockwise contour
         into a counter-clockwise one). See also :meth:`layer.correctDirection`.
         """
         ...
 
-    def similar(self, other_contour: contour, error: float = 0.5) -> bool:
+    def similar(
+        self,
+        other_contour: contour,
+        pt_err: float = 0.5,
+        spline_err: float | None = None,
+    ) -> bool:
         """
         Checks whether this contour is similar to the other one where error is the
         maximum distance (in em-units) allowed for the two contours to diverge.
@@ -1370,7 +1401,7 @@ class contour(Sequence[point]):
         self,
         flags: Literal["all", "only_good", "only_good_rm"] = "only_good",
         emsize: int = 1000,
-    ) -> None:
+    ) -> Self:
         """
         Extrema should be marked by on-curve points. If a curve lacks a point at an
         extrema this command will add one. Flags may be one of the following strings:
@@ -1394,7 +1425,7 @@ class contour(Sequence[point]):
         self,
         within: float = 0.1,
         max: float = 0.5,
-    ) -> None:
+    ) -> Self:
         """
         Moves clustered coordinates to a standard central value.
 
@@ -1402,7 +1433,7 @@ class contour(Sequence[point]):
         """
         ...
 
-    def merge(self, pos: int | tuple[int, ...]) -> None:
+    def merge(self, pos: int | tuple[int, ...]) -> Self:
         """
         Removes the on-curve point at the given position and rearranges the other
         points to make the curve as similar to the original as possible. (pos may
@@ -1412,7 +1443,7 @@ class contour(Sequence[point]):
         """
         ...
 
-    def round(self, factor: float = 1) -> None:
+    def round(self, factor: float = 1) -> Self:
         """
         Rounds the x and y coordinates. If factor is specified then ::
 
@@ -1446,7 +1477,7 @@ class contour(Sequence[point]):
         tan_bounds: float = 0.2,
         linefixup: float = 2,
         linelenmax: float = 10,
-    ) -> None:
+    ) -> Self:
         """
         Tries to remove excess points on the contour if doing so will not perturb
         the curve by more than error-bound. Flags is a tuple of the following strings:
@@ -1493,18 +1524,18 @@ class contour(Sequence[point]):
 
     def transform(
         self, matrix: tuple[float, float, float, float, float, float]
-    ) -> None:
+    ) -> Self:
         """Transforms the contour by the matrix"""
         ...
 
-    def addInflections(self) -> None:
+    def addInflections(self) -> Self:
         """
         If the curvature of a spline in the contour changes sign then break the
         spline so that there will be a point at all points of inflection.
         """
         ...
 
-    def balance(self) -> None:
+    def balance(self) -> Self:
         """
         For all cubic bezier splines of the contour make the line between the control
         points parallel to the chord such that the area is preserved. This is an
@@ -1512,7 +1543,7 @@ class contour(Sequence[point]):
         """
         ...
 
-    def harmonize(self) -> None:
+    def harmonize(self) -> Self:
         """
         For all bezier splines of the contour move the smooth on-curve points between
         its adjacent control points such that the adjacent curvatures become equal.
@@ -1642,14 +1673,14 @@ class layer(Sequence[contour]):
         """Returns an iterator for the layer which will return the contours in order."""
         ...
 
-    def dup(self) -> "layer":
+    def dup(self) -> layer:
         """
         Returns a deep copy of the layer. That is, it will copy all the contours and
         all the points as well as copying the layer object itself.
         """
         ...
 
-    def isEmpty(self) -> bool:
+    def isEmpty(self) -> int:
         """Returns whether the layer is empty (contains no contour)"""
         ...
 
@@ -1657,7 +1688,7 @@ class layer(Sequence[contour]):
         self,
         flags: Literal["all", "only_good", "only_good_rm"] = "only_good",
         emsize: int = 1000,
-    ) -> None:
+    ) -> Self:
         """
         Extrema should be marked by on-curve points. If a curve lacks a point at an
         extrema this command will add one. Flags may be one of the following strings:
@@ -1681,7 +1712,7 @@ class layer(Sequence[contour]):
         self,
         within: float = 0.1,
         max: float = 0.5,
-    ) -> None:
+    ) -> Self:
         """
         Moves clustered coordinates to a standard central value.
 
@@ -1689,7 +1720,7 @@ class layer(Sequence[contour]):
         """
         ...
 
-    def correctDirection(self) -> None:
+    def correctDirection(self) -> Self:
         """
         Moves clustered coordinates to a standard central value.
 
@@ -1704,7 +1735,7 @@ class layer(Sequence[contour]):
         usetransform: bool = False,
         usesystem: bool = False,
         asksystem: bool = False,
-    ) -> None:
+    ) -> Self:
         """
         Exports the current layer (in outline format) to a file. The type of file is
         determined by the extension.
@@ -1728,21 +1759,21 @@ class layer(Sequence[contour]):
         """
         ...
 
-    def exclude(self, excluded_layer: layer) -> None:
+    def exclude(self, excluded_layer: layer) -> Self:
         """
         Removes the excluded area from the current contours. See also
         :meth:`layer.removeOverlap()` and :meth:`layer.intersect()`.
         """
         ...
 
-    def intersect(self) -> None:
+    def intersect(self) -> Self:
         """
         Leaves only areas in the intersection of contours. See also
         :meth:`layer.removeOverlap()` and :meth:`layer.exclude()`.
         """
         ...
 
-    def removeOverlap(self) -> None:
+    def removeOverlap(self) -> Self:
         """
         Removes overlapping areas. See also :meth:`layer.intersect()` and
         :meth:`layer.exclude()`.
@@ -1757,7 +1788,7 @@ class layer(Sequence[contour]):
         """
         ...
 
-    def round(self, factor: float = 1) -> None:
+    def round(self, factor: float = 1) -> Self:
         """
         Rounds the x and y coordinates. If factor is specified then ::
 
@@ -1774,7 +1805,9 @@ class layer(Sequence[contour]):
         """
         ...
 
-    def similar(self, other_layer: layer, error: float = 0.5) -> bool:
+    def similar(
+        self, other_layer: layer, pt_err: float = 0.5, spline_err: float | None = None
+    ) -> bool:
         """
         Checks whether this layer is similar to the other one where error is the
         maximum distance (in em-units) allowed for any two corresponding contours
@@ -1805,9 +1838,9 @@ class layer(Sequence[contour]):
         tan_bounds: float = 0.2,
         linefixup: float = 2,
         linelenmax: float = 10,
-    ) -> None:
+    ) -> Self:
         """
-        Tries to remove excess points on the contour if doing so will not perturb the
+        Tries to remove excess points on the layer if doing so will not perturb the
         curve by more than error-bound. Flags is a tuple of the following strings:
 
         ignoreslopes:
@@ -1855,7 +1888,7 @@ class layer(Sequence[contour]):
         stem_height_scale: float | None = None,
         vscale: float | None = None,
         xheight: float | None = None,
-    ) -> None:
+    ) -> Self:
         """
         Allows you to scale counters and stems independently of each other.
         ``stem_width_scale`` specifies by how much the widths of stems should be
@@ -1884,7 +1917,7 @@ class layer(Sequence[contour]):
         join: Literal["nib", "bevel", "miter", "miterclip", "round", "arcs"] = "nib",
         angle: float = 0,
         **kwargs: StrokeOptions,
-    ) -> None: ...
+    ) -> Self: ...
     @overload
     def stroke(
         self,
@@ -1896,7 +1929,7 @@ class layer(Sequence[contour]):
         cap: Literal["nib", "butt", "round", "bevel"] = "nib",
         join: Literal["nib", "bevel", "miter", "miterclip", "round", "arcs"] = "nib",
         **kwargs: StrokeOptions,
-    ) -> None: ...
+    ) -> Self: ...
     @overload
     def stroke(
         self,
@@ -1908,7 +1941,7 @@ class layer(Sequence[contour]):
         cap: Literal["nib", "butt", "round", "bevel"] = "nib",
         join: Literal["nib", "bevel", "miter", "miterclip", "round", "arcs"] = "nib",
         **kwargs: StrokeOptions,
-    ) -> None: ...
+    ) -> Self: ...
     @overload
     def stroke(
         self,
@@ -1919,7 +1952,7 @@ class layer(Sequence[contour]):
         cap: Literal["nib", "butt", "round", "bevel"] = "nib",
         join: Literal["nib", "bevel", "miter", "miterclip", "round", "arcs"] = "nib",
         **kwargs: StrokeOptions,
-    ) -> None:
+    ) -> Self:
         """
         Strokes the lines of each contour in the layer according to the supplied
         parameters. See the corresponding :meth:`glyph.stroke()` for a description
@@ -1929,11 +1962,11 @@ class layer(Sequence[contour]):
 
     def transform(
         self, matrix: tuple[float, float, float, float, float, float]
-    ) -> None:
+    ) -> Self:
         """Transforms the layer by the matrix"""
         ...
 
-    def nltransform(self, xexpr: str, yexpr: str) -> None:
+    def nltransform(self, xexpr: str, yexpr: str) -> Self:
         """
         xexpr and yexpr are strings specifying non-linear transformations that will
         be applied to all points in the layer (with xexpr being applied to x values,
@@ -1975,19 +2008,19 @@ class layer(Sequence[contour]):
         """
         ...
 
-    def draw(self, pen: glyphPen) -> None:
+    def draw(self, pen: glyphPen) -> Self:
         """Draw the layer to the pen argument."""
         ...
 
-    def addInflections(self) -> None:
+    def addInflections(self) -> Self:
         """Please see :meth:`contour.addInflections()`."""
         ...
 
-    def balance(self) -> None:
+    def balance(self) -> Self:
         """Please see :meth:`contour.balance()`."""
         ...
 
-    def harmonize(self) -> None:
+    def harmonize(self) -> Self:
         """Please see :meth:`contour.harmonize()`."""
         ...
 
@@ -2032,7 +2065,10 @@ class glyphPen:
                                              # it to refresh the display (if a UI is active).
     """
 
-    def moveTo(self, point: tuple[float, float]) -> None:
+    @overload
+    def moveTo(self, point: tuple[float, float]) -> Self: ...
+    @overload
+    def moveTo(self, x: float, y: float) -> Self:
         """
         With one exception this call begins every contour and creates an on curve
         point at ``(x,y)`` as the start point of that contour. This should be the
@@ -2041,7 +2077,10 @@ class glyphPen:
         """
         ...
 
-    def lineTo(self, point: tuple[float, float]) -> None:
+    @overload
+    def lineTo(self, point: tuple[float, float]) -> Self: ...
+    @overload
+    def lineTo(self, x: float, y: float) -> Self:
         """Draws a line from the last point to ``(x,y)`` and adds that to the contour."""
         ...
 
@@ -2051,9 +2090,27 @@ class glyphPen:
         cp1: tuple[float, float],
         cp2: tuple[float, float],
         end: tuple[float, float],
-    ) -> None: ...
+    ) -> Self: ...
     @overload
-    def curveTo(self, cp: tuple[float, float], end: tuple[float, float]) -> None:
+    def curveTo(
+        self,
+        cp1x: float,
+        cp1y: float,
+        cp2x: float,
+        cp2y: float,
+        endx: float,
+        endy: float,
+    ) -> Self: ...
+    @overload
+    def curveTo(self, cp: tuple[float, float], end: tuple[float, float]) -> Self: ...
+    @overload
+    def curveTo(
+        self,
+        cpx: float,
+        cpy: float,
+        endx: float,
+        endy: float,
+    ) -> Self:
         """
         This routine has slightly different arguments depending on the type of the
         font. When drawing into a cubic font (PostScript) use the first set of
@@ -2069,7 +2126,7 @@ class glyphPen:
 
     def qCurveTo(
         self, *points: tuple[float, float], end: tuple[float, float] | None
-    ) -> None:
+    ) -> Self:
         """
         This routine may only be used in quadratic (TrueType) fonts and has two
         different formats. It is used to express the TrueType idiom where an on-curve
@@ -2087,11 +2144,11 @@ class glyphPen:
         """
         ...
 
-    def closePath(self) -> None:
+    def closePath(self) -> Self:
         """Closes the contour (connects the last point to the first point to make a loop) and ends it."""
         ...
 
-    def endPath(self) -> None:
+    def endPath(self) -> Self:
         """
         Ends the contour without closing it. This is only relevant if you are
         stroking contours.
@@ -2103,7 +2160,7 @@ class glyphPen:
         glyph_name: str,
         transform: tuple[float, float, float, float, float, float] = (1, 0, 0, 1, 0, 0),
         selected: bool = False,
-    ) -> None:
+    ) -> Self:
         """
         Adds a reference (a component) to the glyph. The PostScript transformation
         matrix is a 6 element tuple (with a default of the identity transformation).
@@ -2810,7 +2867,7 @@ class glyph:
         x: float,
         y: float,
         ligature_index: int | None = None,
-    ) -> None:
+    ) -> Self:
         """
         Adds an anchor point. anchor-type may be one of the strings
 
@@ -2835,7 +2892,7 @@ class glyph:
         self,
         flags: Literal["all", "only_good", "only_good_rm"] = "only_good",
         emsize: int = 1000,
-    ) -> None:
+    ) -> Self:
         """
         Extrema should be marked by on-curve points. If a curve lacks a point at an
         extrema this command will add one. Flags may be one of the following strings
@@ -2860,7 +2917,7 @@ class glyph:
         glyph_name: str,
         transform: tuple[float, float, float, float, float, float] = (1, 0, 0, 1, 0, 0),
         selected: bool = False,
-    ) -> None:
+    ) -> Self:
         """
         Adds a reference to the specified glyph into the current glyph. Optionally
         specifying a transformation matrix and whether the reference is to be
@@ -2868,7 +2925,7 @@ class glyph:
         """
         ...
 
-    def addHint(self, is_vertical: bool, start: float, width: float) -> None:
+    def addHint(self, is_vertical: bool, start: float, width: float) -> Self:
         """
         Adds a postscript hint. Takes a boolean flag indicating whether the hint is
         horizontal or vertical, a start location and the hint's width.
@@ -2876,21 +2933,21 @@ class glyph:
         ...
 
     @overload
-    def addPosSub(self, subtable_name: str, variant: str) -> None: ...
+    def addPosSub(self, subtable_name: str, variant: str) -> Self: ...
     @overload
-    def addPosSub(self, subtable_name: str, variants: tuple[str, ...]) -> None: ...
+    def addPosSub(self, subtable_name: str, variants: tuple[str, ...]) -> Self: ...
     @overload
     def addPosSub(
         self, subtable_name: str, ligature_components: tuple[str, ...]
-    ) -> None: ...
+    ) -> Self: ...
     @overload
     def addPosSub(
         self, subtable_name: str, xoff: int, yoff: int, xadv: int, yadv: int
-    ) -> None: ...
+    ) -> Self: ...
     @overload
     def addPosSub(
         self, subtable_name: str, other_glyph_name: str, kerning: int
-    ) -> None: ...
+    ) -> Self: ...
     @overload
     def addPosSub(
         self,
@@ -2904,7 +2961,7 @@ class glyph:
         yoff2: int,
         xadv2: int,
         yadv2: int,
-    ) -> None:
+    ) -> Self:
         """
         Adds position/substitution data to the glyph. The number and type of the
         arguments vary according to the type of the lookup containing the subtable.
@@ -2931,24 +2988,24 @@ class glyph:
         ...
 
     @overload
-    def appendAccent(self, name: str) -> None: ...
+    def appendAccent(self, name: str) -> Self: ...
     @overload
-    def appendAccent(self, unicode: int) -> None:
+    def appendAccent(self, unicode: int) -> Self:
         """
         Makes a reference to the specified glyph, adds that reference to the current
         layer of this glyph, and positions it to make a reasonable accent.
         """
         ...
 
-    def autoHint(self) -> None:
+    def autoHint(self) -> Self:
         """Generates PostScript hints for this glyph."""
         ...
 
-    def autoInstr(self) -> None:
+    def autoInstr(self) -> Self:
         """Generates TrueType instructions for this glyph."""
         ...
 
-    def autoTrace(self) -> None:
+    def autoTrace(self) -> Self:
         """Auto traces any background images"""
         ...
 
@@ -2959,14 +3016,14 @@ class glyph:
         """
         ...
 
-    def build(self) -> None:
+    def build(self, accent_hint: bool = False) -> Self:
         """
         If the character is a composite character, then clears it and inserts
         references to its components.
         """
         ...
 
-    def canonicalContours(self) -> None:
+    def canonicalContours(self) -> Self:
         """
         Orders the contours in the current glyph by the x coordinate of their
         leftmost point. (This can reduce the size of the charstring needed to
@@ -2974,7 +3031,7 @@ class glyph:
         """
         ...
 
-    def canonicalStart(self) -> None:
+    def canonicalStart(self) -> Self:
         """
         Sets the start point of all the contours of the current glyph to be the
         leftmost point on the contour. (If there are several points with that value
@@ -2993,7 +3050,7 @@ class glyph:
         counter_type: Literal["squish", "retain", "auto"] = "auto",
         removeoverlap: Literal[0, 1] = 0,
         custom_zones: int | tuple[int, int, int, int] | None = None,
-    ) -> None:
+    ) -> Self:
         """
         ``stroke_width`` is the amount by which all stems are expanded.
 
@@ -3024,7 +3081,7 @@ class glyph:
         sb_factor: float | None = None,
         sb_add: float | None = None,
         correct: bool = True,
-    ) -> None:
+    ) -> Self:
         """
         Condenses or extends the size of the counters and side-bearings of the glyph.
         The first two arguments provide information on shrinking/growing the
@@ -3041,7 +3098,7 @@ class glyph:
         """
         ...
 
-    def clear(self, layer: int | str | None = None) -> None:
+    def clear(self, layer: int | str | None = None) -> Self:
         """
         With no arguments, clears the contents of the glyph (and marks it as not
          :meth:`glyph.isWorthOutputting()`).
@@ -3054,14 +3111,14 @@ class glyph:
         self,
         within: float = 0.1,
         max: float = 0.5,
-    ) -> None:
+    ) -> Self:
         """
         Moves clustered coordinates to a standard central value.
         See also :meth:`glyph.round()`.
         """
         ...
 
-    def correctDirection(self) -> None:
+    def correctDirection(self) -> Self:
         """
         Orients all contours so that external ones are clockwise and internal
         counter-clockwise.
@@ -3072,7 +3129,7 @@ class glyph:
         self,
         layer: int | str | None = None,
         redo: bool = False,
-    ) -> None:
+    ) -> Self:
         """
         When ``redo`` is False this method is equivalent to the "Undo" UI menu item.
         It restores the last preserved layer state discarding the current state.
@@ -3086,7 +3143,7 @@ class glyph:
         """
         ...
 
-    def exclude(self, excluded_layer: layer) -> None:
+    def exclude(self, excluded_layer: layer) -> Self:
         """
         Removes the excluded area from the current glyph. Takes an argument which is
         a layer. See also :meth:`glyph.removeOverlap()` and :meth:`glyph.intersect()`.
@@ -3104,11 +3161,11 @@ class glyph:
         usetransform: bool = False,
         usesystem: bool = False,
         asksystem: bool = False,
-    ) -> None: ...
+    ) -> Self: ...
     @overload
-    def export(self, filename: str, layer: layer, /) -> None: ...
+    def export(self, filename: str, layer: layer, /) -> Self: ...
     @overload
-    def export(self, filename: str, pixelsize: int = 100, bitdepth: int = 8, /) -> None:
+    def export(self, filename: str, pixelsize: int = 100, bitdepth: int = 8, /) -> Self:
         """
         Creates a file with the specified name containing a representation of
         the glyph. Uses the file's extension to determine output file type.
@@ -3144,7 +3201,7 @@ class glyph:
         """
         ...
 
-    def genericGlyphChange(self, **kwargs: GlyphChangeOptions) -> None:
+    def genericGlyphChange(self, **kwargs: GlyphChangeOptions) -> Self:
         """Similar to font.genericGlyphChange, but acting on this glyph only."""
         ...
 
@@ -3201,14 +3258,14 @@ class glyph:
         correctdir: bool = False,
         usesystem: bool = False,
         asksystem: bool = False,
-    ) -> None: ...
+    ) -> Self: ...
     @overload
     def importOutlines(
         self,
         filename: str,
         flags: tuple[Literal["handle_eraser", "correctdir"], ...],
         /,
-    ) -> None:
+    ) -> Self:
         """
         Uses the file's extension to determine behavior. Imports outline descriptions
         (eps, svg, glif files) into the foreground layer. Imports image descriptions
@@ -3254,7 +3311,7 @@ class glyph:
         """
         ...
 
-    def intersect(self) -> None:
+    def intersect(self) -> Self:
         """
         Leaves only areas in the intersection of contours. See also
         :meth:`glyph.removeOverlap()` and :meth:`glyph.exclude()`.
@@ -3273,7 +3330,7 @@ class glyph:
         self,
         layer: int | str | None = None,
         dohints: bool = False,
-    ) -> None:
+    ) -> Self:
         """
         Normally undo handling is turned off during python scripting. This method
         preserves the current state of a layer so that whatever you do after can be
@@ -3284,21 +3341,21 @@ class glyph:
         """
         ...
 
-    def removeOverlap(self) -> None:
+    def removeOverlap(self) -> Self:
         """
         Removes overlapping areas.
         See also :meth:`glyph.intersect()` and :meth:`glyph.exclude()`.
         """
         ...
 
-    def removePosSub(self, lookup_subtable_name: str) -> None:
+    def removePosSub(self, lookup_subtable_name: str) -> Self:
         """
         Removes all data from the glyph corresponding to the given lookup-subtable.
         If the name is "*" then all data will be removed.
         """
         ...
 
-    def round(self, factor: float = 1) -> None:
+    def round(self, factor: float = 1) -> Self:
         """
         Rounds the x and y coordinates of each point in the glyph. If factor is
         specified then ::
@@ -3318,8 +3375,8 @@ class glyph:
 
     def setLayer(
         self,
-        layer: layer,
-        layer_index: int,
+        layer: layer | contour,
+        layer_index: int | str,
         flags: tuple[
             Literal[
                 "select_none",
@@ -3334,7 +3391,7 @@ class glyph:
             ],
             ...,
         ] = ("select_all", "by_geom"),
-    ) -> None:
+    ) -> Self:
         """
         An alternative to assigning to :attr:`glyph.layers`, :attr:`glyph.background`,
         or :attr:`glyph.foreground`, and equivalent to those when not using the
@@ -3427,7 +3484,7 @@ class glyph:
         tan_bounds: float | None = None,
         linefixup: float | None = None,
         linelenmax: float | None = None,
-    ) -> None:
+    ) -> Self:
         """
         Tries to remove excess points in the glyph if doing so will not perturb the
         curve by more than ``error-bound``. Flags is a tuple of the following strings
@@ -3480,7 +3537,7 @@ class glyph:
         join: Literal["nib", "bevel", "miter", "miterclip", "round", "arcs"] = "nib",
         angle: float = 0,
         **kwargs: StrokeOptions,
-    ) -> None: ...
+    ) -> Self: ...
     @overload
     def stroke(
         self,
@@ -3492,7 +3549,7 @@ class glyph:
         cap: Literal["nib", "butt", "round", "bevel"] = "nib",
         join: Literal["nib", "bevel", "miter", "miterclip", "round", "arcs"] = "nib",
         **kwargs: StrokeOptions,
-    ) -> None: ...
+    ) -> Self: ...
     @overload
     def stroke(
         self,
@@ -3504,7 +3561,7 @@ class glyph:
         cap: Literal["nib", "butt", "round", "bevel"] = "nib",
         join: Literal["nib", "bevel", "miter", "miterclip", "round", "arcs"] = "nib",
         **kwargs: StrokeOptions,
-    ) -> None: ...
+    ) -> Self: ...
     @overload
     def stroke(
         self,
@@ -3515,7 +3572,7 @@ class glyph:
         cap: Literal["nib", "butt", "round", "bevel"] = "nib",
         join: Literal["nib", "bevel", "miter", "miterclip", "round", "arcs"] = "nib",
         **kwargs: StrokeOptions,
-    ) -> None:
+    ) -> Self:
         """
         Strokes the contours of the glyph according to the supplied parameters.
 
@@ -3544,7 +3601,7 @@ class glyph:
         self,
         matrix: tuple[float, float, float, float, float, float],
         flags: tuple[Literal["partialRefs", "round"], ...] = (),
-    ) -> None:
+    ) -> Self:
         """
         Transforms the glyph by the matrix. The optional flags argument should be a
         tuple containing any of the following strings:
@@ -3560,7 +3617,7 @@ class glyph:
         """
         ...
 
-    def nltransform(self, xexpr: str, yexpr: str) -> None:
+    def nltransform(self, xexpr: str, yexpr: str) -> Self:
         """
         xexpr and yexpr are strings specifying non-linear transformations that will
         be applied to all points in the current layer (with xexpr being applied to x
@@ -3568,21 +3625,21 @@ class glyph:
         """
         ...
 
-    def unlinkRef(self, ref_name: str | None = None) -> None:
+    def unlinkRef(self, ref_name: str | None = None) -> Self:
         """
         Unlinks the reference to the glyph named ``ref-name``. If ``ref-name`` is
         omitted, unlinks all references.
         """
         ...
 
-    def unlinkThisGlyph(self) -> None:
+    def unlinkThisGlyph(self) -> Self:
         """
         Unlinks all the references to the current glyph within any other glyph in
         the font.
         """
         ...
 
-    def useRefsMetrics(self, ref_name: str, flag: bool = True) -> None:
+    def useRefsMetrics(self, ref_name: str, flag: bool = True) -> Self:
         """
         Finds a reference with the given name and sets the "use_my_metrics" flag on
         it (so this glyph will have the same advance width as the glyph the
@@ -3604,7 +3661,7 @@ class glyph:
         """
         ...
 
-    def draw(self, pen: glyphPen) -> None:
+    def draw(self, pen: glyphPen) -> layer:
         """Draw the glyph's outline to the pen argument. http://robofab.org/objects/pens.html"""
         ...
 
@@ -3616,15 +3673,15 @@ class glyph:
         """
         ...
 
-    def addInflections(self) -> None:
+    def addInflections(self) -> Self:
         """Please see :meth:`contour.addInflections()`."""
         ...
 
-    def balance(self) -> None:
+    def balance(self) -> Self:
         """Please see :meth:`contour.balance()`."""
         ...
 
-    def harmonize(self) -> None:
+    def harmonize(self) -> Self:
         """Please see :meth:`contour.harmonize()`."""
         ...
 
@@ -3661,19 +3718,19 @@ class selection:
         """
         ...
 
-    def all(self) -> None:
+    def all(self) -> Self:
         """Select everything."""
         ...
 
-    def none(self) -> None:
+    def none(self) -> Self:
         """Deselect everything."""
         ...
 
-    def changed(self) -> None:
+    def changed(self) -> Self:
         """Select all glyphs which have changed."""
         ...
 
-    def invert(self) -> None:
+    def invert(self) -> Self:
         """Invert the selection."""
         ...
 
@@ -3685,7 +3742,7 @@ class selection:
         | tuple[
             Literal["unicode", "encoding", "more", "less", "singletons", "ranges"], ...
         ],
-    ) -> None:
+    ) -> Self:
         """
         There may be an arbitrary number of arguments. Each argument may be either:
 
@@ -4312,7 +4369,7 @@ class math:
         """
         ...
 
-    def clear(self) -> None:
+    def clear(self) -> Self:
         """Removes any underlying math table from the font."""
         ...
 
@@ -5305,8 +5362,14 @@ class font:
         ...
 
     def addAnchorClass(
-        self, lookup_subtable_name: str, new_anchor_class_name: str
-    ) -> None:
+        self,
+        lookup_subtable_name: str,
+        new_anchor_class_name: str,
+        anchor_type: Literal[
+            "mark", "base", "ligature", "basemark", "entry", "exit", "baselig"
+        ]
+        | None = None,
+    ) -> Self:
         """Adds an anchor class to the specified (anchor) subtable."""
         ...
 
@@ -5319,7 +5382,7 @@ class font:
         second_classes: tuple[tuple[str, ...], ...],
         offsets: tuple[int, ...],
         after: str | None = None,
-    ) -> None: ...
+    ) -> Self: ...
     @overload
     def addKerningClass(
         self,
@@ -5331,7 +5394,7 @@ class font:
         onlyCloser: bool = False,
         autokern: bool = True,
         after: str | None = None,
-    ) -> None: ...
+    ) -> Self: ...
     @overload
     def addKerningClass(
         self,
@@ -5344,7 +5407,7 @@ class font:
         onlyCloser: bool = False,
         autokern: bool = True,
         after: str | None = None,
-    ) -> None: ...
+    ) -> Self: ...
     @overload
     def addKerningClass(
         self,
@@ -5355,7 +5418,7 @@ class font:
         onlyCloser: bool = False,
         autokern: bool = True,
         after: str | None = None,
-    ) -> None:
+    ) -> Self:
         """
         Creates a new subtable and a new kerning class in the named lookup. The
         classes arguments are tuples of tuples of glyph names (each sub-tuple of
@@ -5421,7 +5484,7 @@ class font:
             tuple[str, tuple[tuple[str, tuple[str, ...]], ...]], ...
         ],
         after_lookup_name: str | None = None,
-    ) -> None:
+    ) -> Self:
         """
         Creates a new lookup with the given name, type and flags. It will tag it
         with any indicated features.
@@ -5453,7 +5516,7 @@ class font:
         lookup_name: str,
         new_subtable_name: str,
         after_subtable_name: str | None = None,
-    ) -> None:
+    ) -> Self:
         """
         Creates a new subtable within the specified lookup. The lookup name should
         be a string specifying an existing lookup. The subtable name should also be
@@ -5476,7 +5539,7 @@ class font:
         rule: str,
         *,
         afterSubtable: str | None = None,
-    ) -> None: ...
+    ) -> Self: ...
     @overload
     def addContextualSubtable(
         self,
@@ -5492,7 +5555,7 @@ class font:
         bclassnames: tuple[str, ...] | None = None,
         mclassnames: tuple[str, ...] | None = None,
         fclassnames: tuple[str, ...] | None = None,
-    ) -> None:
+    ) -> Self:
         """
         Creates a new subtable within the specified contextual lookup (contextual,
         contextual chaining, or reverse contextual chaining). The lookup name should
@@ -5596,7 +5659,7 @@ class font:
         letter_extension: str = "sc",
         symbol_extension: str = "taboldstyle",
         stem_height_factor: float | None = None,
-    ) -> None:
+    ) -> Self:
         """
         This function uses keyword parameters. None are required, if omitted a
         default value will be used (generally found by analyzing the font).
@@ -5632,7 +5695,7 @@ class font:
         first_classes: tuple[tuple[str, ...], ...],
         second_classes: tuple[tuple[str, ...], ...],
         offsets: tuple[int, ...],
-    ) -> None:
+    ) -> Self:
         """
         Changes the kerning class in the named subtable. The classes arguments are
         tuples of tuples of glyph names (each sub-tuple of glyph names is a kerning
@@ -5650,7 +5713,7 @@ class font:
         minKern: int = 10,
         onlyCloser: bool = False,
         touch: int = 0,
-    ) -> None: ...
+    ) -> Self: ...
     @overload
     def autoKern(
         self,
@@ -5662,7 +5725,7 @@ class font:
         minKern: int = 10,
         onlyCloser: bool = False,
         touch: int = 0,
-    ) -> None:
+    ) -> Self:
         """
         The named subtable must be a kerning pair subtable that already exists.
 
@@ -5685,7 +5748,7 @@ class font:
 
     def appendSFNTName(
         self, language: str | int, strid: str | int, string: str
-    ) -> None:
+    ) -> Self:
         """
         Adds a new (or replaces an old) string in the sfnt 'name' table. Language
         may be either the English name of the language/locale as a string, or the
@@ -5695,7 +5758,7 @@ class font:
         """
         ...
 
-    def buildOrReplaceAALTFeatures(self) -> None:
+    def buildOrReplaceAALTFeatures(self) -> Self:
         """
         Removes any existing AALT features (and any lookups solely controlled by such
         features) and creates new ones containing all possible single and alternate
@@ -5703,31 +5766,31 @@ class font:
         """
         ...
 
-    def cidConvertByCmap(self, cmap_filename: str) -> None:
+    def cidConvertByCmap(self, cmap_filename: str) -> Self:
         """
         Converts a normal font into a CID-keyed font with one subfont using
         the CMAP to determine the mapping.
         """
 
-    def cidConvertTo(self, registry: str, ordering: str, supplement: int) -> None:
+    def cidConvertTo(self, registry: str, ordering: str, supplement: int) -> Self:
         """Converts a normal font into a CID-keyed font with one subfont."""
 
-    def cidFlatten(self) -> None:
+    def cidFlatten(self) -> Self:
         """Converts a CID font into a normal font (glyphs will be in CID order)."""
 
-    def cidFlattenByCMap(self, cmap_filename: str) -> None:
+    def cidFlattenByCMap(self, cmap_filename: str) -> Self:
         """
         Converts a CID font into a normal font using the encoding specified in the
         CMAP file.
         """
 
-    def cidInsertBlankSubFont(self) -> None:
+    def cidInsertBlankSubFont(self) -> Self:
         """
         Adds a new (blank) sub-font into a cid-keyed font and changes the current
         sub-font to be it.
         """
 
-    def cidRemoveSubFont(self) -> None:
+    def cidRemoveSubFont(self) -> Self:
         """Removes the current subfont from a cid-keyed font."""
 
     def close(self) -> None:
@@ -5758,7 +5821,7 @@ class font:
             ],
             ...,
         ],
-    ) -> None:
+    ) -> int:
         """
         This will compare the current font with the font in ``other_font`` (which
         must already have been opened). It will write the results to the
@@ -5930,7 +5993,7 @@ class font:
         subfont_directory: str | None = None,
         namelist: str | None = None,
         layer: str | int | None = None,
-    ) -> None:
+    ) -> Self:
         """
         Generates a font. The type is determined by the font's extension. The bitmap
         type (if specified) is also an extension. If layer is specified, then the
@@ -6078,7 +6141,7 @@ class font:
         ttcflags: tuple[Literal["merge", "cff"], ...] = (),
         namelist: str | None = None,
         layer: str | int | None = None,
-    ) -> None:
+    ) -> Self:
         """
         Generates a truetype collection file containing the current font and all
         others listed -- the ``others`` argument may be ``None``, a font, or a tuple
@@ -6102,14 +6165,14 @@ class font:
 
     def generateFeatureFile(
         self, filename: str, lookup_name: str | None = None
-    ) -> None:
+    ) -> Self:
         """
         Generates an adobe feature file for the current font. If a lookup-name is
         specified then only data for that lookup will be generated.
         """
         ...
 
-    def genericGlyphChange(self, **kwargs: GlyphChangeOptions) -> None:
+    def genericGlyphChange(self, **kwargs: GlyphChangeOptions) -> Self:
         """Applies generic changes to all glyphs."""
         ...
 
@@ -6187,7 +6250,7 @@ class font:
 
     def importBitmaps(
         self, bitmap_font_file: str, to_background: int | None = None
-    ) -> None:
+    ) -> Self:
         """Load any bitmap strikes out of the bitmap-font-file into the current font"""
         ...
 
@@ -6196,7 +6259,7 @@ class font:
         another_font: font,
         lookup_names: str | tuple[str, ...],
         before_name: str | None = None,
-    ) -> None:
+    ) -> Self:
         """
         It will search the other font for the named lookup(s) and import it into the
         current font. (Contextual lookups which invoke other lookups will have any
@@ -6207,7 +6270,7 @@ class font:
         before it, if not specified lookups will appear at the end of the list.
         """
 
-    def interpolateFonts(self, fraction: float, filename: str) -> None:
+    def interpolateFonts(self, fraction: float, filename: str) -> font:
         """
         Interpolates a font between the current font and the font contained in
         filename.
@@ -6250,7 +6313,7 @@ class font:
         u0448: bool = True,
         u0452: bool = True,
         u045f: bool = True,
-    ) -> None:
+    ) -> Self:
         """
         This function uses keyword parameters. None are required, if omitted a
         default value will be used. Some keywords have abbreviations ("ia" for
@@ -6283,7 +6346,7 @@ class font:
         feature_script_lang_tuple: tuple[
             tuple[str, tuple[tuple[str, tuple[str, ...]], ...]], ...
         ],
-    ) -> None:
+    ) -> Self:
         """
         Sets the feature list of indicated lookup. The feature-script-lang tuple is
         described at :meth:`font.addLookup()`.
@@ -6299,11 +6362,11 @@ class font:
             ],
             ...,
         ],
-    ) -> None:
+    ) -> Self:
         """Sets the lookup flags for the named lookup."""
         ...
 
-    def lookupSetStoreLigatureInAfm(self, lookup_name: str, boolean: bool) -> None:
+    def lookupSetStoreLigatureInAfm(self, lookup_name: str, boolean: bool) -> Self:
         """Sets whether this ligature lookup contains data to store in the afm."""
         ...
 
@@ -6312,17 +6375,17 @@ class font:
         self,
         filename: str,
         preserveCrossFontKerning: bool = False,
-    ) -> None: ...
+    ) -> Self: ...
     @overload
     def mergeFonts(
         self,
         font: font,
         preserveCrossFontKerning: bool = False,
-    ) -> None:
+    ) -> Self:
         """Merges the font in the file into the current font."""
         ...
 
-    def mergeFeature(self, filename: str, boolean: bool) -> None:
+    def mergeFeature(self, filename: str, boolean: bool) -> Self:
         """
         Merge feature and lookup information from an adobe feature file, or metrics
         information from the (afm, tfm, etc) file into the current font. The
@@ -6333,8 +6396,8 @@ class font:
         ...
 
     @deprecated("Use mergeFeature instead")
-    def mergeKern(self, filename: str) -> None: ...
-    def mergeLookups(self, lookup_name1: str, lookup_name2: str) -> None:
+    def mergeKern(self, filename: str) -> Self: ...
+    def mergeLookups(self, lookup_name1: str, lookup_name2: str) -> Self:
         """
         The lookups must be of the same type. All subtables from lookup_name2 will
         be moved to lookup_name1, the features list of lookup_name2 will be merged
@@ -6342,7 +6405,7 @@ class font:
         """
         ...
 
-    def mergeLookupSubtables(self, subtable_name1: str, subtable_name2: str) -> None:
+    def mergeLookupSubtables(self, subtable_name1: str, subtable_name2: str) -> Self:
         """
         The subtables must be in the same lookup. Not all lookup types allow their
         subtables to be merged (contextual subtables may not be merged, kerning
@@ -6358,7 +6421,7 @@ class font:
         pointsize: int | Sequence[int],
         sample: str,
         output_file: str,
-    ) -> None:
+    ) -> Self:
         """
         Type is a string which must be one of
 
@@ -6402,14 +6465,14 @@ class font:
         specified it will use the letters in the script with equal frequencies.
         """
 
-    def reencode(self, encoding: str, force: bool = False) -> None:
+    def reencode(self, encoding: str, force: bool = False) -> Self:
         """
         Reencodes the current font into the given encoding. Optionally force
         reencoding.
         """
         ...
 
-    def regenBitmaps(self, tuple_of_sizes: tuple[int, ...]) -> None:
+    def regenBitmaps(self, tuple_of_sizes: tuple[int, ...]) -> Self:
         """
         A tuple with an entry for each bitmap strike to be regenerated
         (rerasterized). Each strike is identified by pixelsize (if the strike is a
@@ -6417,11 +6480,11 @@ class font:
         """
         ...
 
-    def removeAnchorClass(self, anchor_class_name: str) -> None:
+    def removeAnchorClass(self, anchor_class_name: str) -> Self:
         """Removes the named AnchorClass (and all associated points) from the font."""
         ...
 
-    def removeLookup(self, lookup_name: str, remove_acs: Literal[0, 1] = 0) -> None:
+    def removeLookup(self, lookup_name: str, remove_acs: Literal[0, 1] = 0) -> Self:
         """
         Remove the lookup (and any subtables within it). remove_acs (0 or 1),
         specifies whether to remove associated anchor classes and points.
@@ -6429,7 +6492,7 @@ class font:
 
     def removeLookupSubtable(
         self, subtable_name: str, remove_acs: Literal[0, 1] = 0
-    ) -> None:
+    ) -> Self:
         """
         Remove the subtable (and all data associated with it). remove_acs (0 or 1),
         specifies whether to remove associated anchor classes and points
@@ -6437,11 +6500,11 @@ class font:
         ...
 
     @overload
-    def removeGlyph(self, uni: int, name: str | None = None) -> None: ...
+    def removeGlyph(self, uni: int, name: str | None = None) -> Self: ...
     @overload
-    def removeGlyph(self, name: str) -> None: ...
+    def removeGlyph(self, name: str) -> Self: ...
     @overload
-    def removeGlyph(self, glyph: glyph) -> None:
+    def removeGlyph(self, glyph: glyph) -> Self:
         """
         You may either pass in a FontForge glyph object (from this font) or identify
         a glyph in the font by unicode code point or name. In any case the glyph
@@ -6465,7 +6528,7 @@ class font:
         replaces them with the replace contour (or layer).
         """
 
-    def revert(self) -> None:
+    def revert(self) -> Self:
         """
         Reloads the font from the disk.
 
@@ -6477,7 +6540,7 @@ class font:
         """
         ...
 
-    def revertFromBackup(self) -> None:
+    def revertFromBackup(self) -> Self:
         """
         Reloads the font from the backup file on the disk.
 
@@ -6489,7 +6552,9 @@ class font:
         """
         ...
 
-    def save(self, filename: str | None = None) -> None:
+    def save(
+        self, filename: str | None = None, localRevisionsToRetain: int | None = None
+    ) -> None:
         """Saves the font to an sfd file. See also :meth:`font.generate()`"""
         ...
 
@@ -6508,7 +6573,7 @@ class font:
 
     def setTableData(
         self, table_name: str, sequence: bytes | Sequence[int] | None
-    ) -> None:
+    ) -> Self:
         """
         Sets binary data of any saved table. FF will save 'fpgm', 'prep', 'cvt '
         and 'maxp'. FF may also save tables which you explicitly request. Do not
@@ -6537,22 +6602,22 @@ class font:
 
     # --- Selection-Based Methods ---
 
-    def addExtrema(self) -> None:
+    def addExtrema(self) -> Self:
         """
         Extrema should be marked by on-curve points. If a curve in any selected
         glyph lacks a point at a significant extremum this command will add one.
         """
         ...
 
-    def addInflections(self) -> None:
+    def addInflections(self) -> Self:
         """Please see :meth:`contour.addInflections()`."""
         ...
 
-    def autoHint(self) -> None:
+    def autoHint(self) -> Self:
         """Generates PostScript hints for all selected glyphs."""
         ...
 
-    def autoInstr(self) -> None:
+    def autoInstr(self) -> Self:
         """Generates TrueType instructions for all selected glyphs."""
         ...
 
@@ -6564,15 +6629,15 @@ class font:
         maxBearing: int = -1,
         height: int = 0,
         loopCnt: int = 1,
-    ) -> None:
+    ) -> Self:
         """Guesses at reasonable horizontal advance widths for the selected glyphs"""
         ...
 
-    def autoTrace(self) -> None:
+    def autoTrace(self) -> Self:
         """Auto traces any background images in all selected glyphs"""
         ...
 
-    def build(self) -> None:
+    def build(self) -> Self:
         """
         If any of the selected characters is a composite character, then this
         command will clear it and insert references to its components (this command
@@ -6580,7 +6645,7 @@ class font:
         """
         ...
 
-    def canonicalContours(self) -> None:
+    def canonicalContours(self) -> Self:
         """
         Orders the contours in the selected glyphs by the x coordinate of their
         leftmost point. (This can reduce the size of the charstring needed to
@@ -6588,7 +6653,7 @@ class font:
         """
         ...
 
-    def canonicalStart(self) -> None:
+    def canonicalStart(self) -> Self:
         """
         Sets the start point of all the contours of the selected glyphs to be the
         leftmost point on the contour. (If there are several points with that value
@@ -6606,7 +6671,7 @@ class font:
         serif_height: int | None = None,
         serif_fuzz: float = 0.9,
         counter_type: Literal["squish", "retain", "auto"] = "auto",
-    ) -> None: ...
+    ) -> Self: ...
     @overload
     def changeWeight(
         self,
@@ -6616,7 +6681,7 @@ class font:
         serif_fuzz: float = 0.9,
         counter_type: Literal["squish", "retain", "auto"] = "auto",
         custom_zones: int | tuple[int, int, int, int] = ...,
-    ) -> None:
+    ) -> Self:
         """
         Stroke_width is the amount by which all stems are expanded.
 
@@ -6642,7 +6707,7 @@ class font:
         sb_factor: float | None = None,
         sb_add: float | None = None,
         correct: bool = True,
-    ) -> None:
+    ) -> Self:
         """
         Condenses or extends the size of the counters and side-bearings of the
         selected glyphs. The first two arguments provide information on
@@ -6659,36 +6724,36 @@ class font:
         """
         ...
 
-    def clear(self) -> None:
+    def clear(self) -> Self:
         """Clears the contents of all selected glyphs"""
         ...
 
-    def cluster(self, within: float = 0.1, max: float = 0.5) -> None:
+    def cluster(self, within: float = 0.1, max: float = 0.5) -> Self:
         """
         Moves clustered coordinates to a standard central value in all selected
         glyphs. See also :meth:`font.round()`.
         """
         ...
 
-    def copy(self) -> None:
+    def copy(self) -> Self:
         """Copies all selected glyphs into (FontForge's internal) clipboard."""
         ...
 
-    def copyReference(self) -> None:
+    def copyReference(self) -> Self:
         """
         Copies all selected glyphs (as references) into (FontForge's internal)
         clipboard.
         """
         ...
 
-    def correctDirection(self) -> None:
+    def correctDirection(self) -> Self:
         """
         Orients all contours so that external ones are clockwise and internal
         counter-clockwise in all selected glyphs.
         """
         ...
 
-    def correctReferences(self) -> None:
+    def correctReferences(self) -> Self:
         """
         Checks a font for glyphs with mixed contours and references (or references
         with transformation matrices which cannot be represented in truetype (ie.
@@ -6698,42 +6763,42 @@ class font:
         """
         ...
 
-    def cut(self) -> None:
+    def cut(self) -> Self:
         """
         Copies all selected glyphs into (FontForge's internal) clipboard. And then
         clears them.
         """
         ...
 
-    def paste(self) -> None:
+    def paste(self) -> Self:
         """
         Pastes the contents of (FontForge's internal) clipboard into the selected
         glyphs -- and removes what was there before.
         """
         ...
 
-    def intersect(self) -> None:
+    def intersect(self) -> Self:
         """
         Leaves only areas in the intersection of contours in all selected glyphs.
         See also :meth:`font.removeOverlap()`.
         """
         ...
 
-    def pasteInto(self) -> None:
+    def pasteInto(self) -> Self:
         """
         Pastes the contents of (FontForge's internal) clipboard into the selected
         glyphs -- and retains what was there before.
         """
         ...
 
-    def removeOverlap(self) -> None:
+    def removeOverlap(self) -> Self:
         """
         Removes overlapping areas in all selected glyphs.
         See also :meth:`font.intersect()`.
         """
         ...
 
-    def replaceWithReference(self, fudge: float = 0.01) -> None:
+    def replaceWithReference(self, fudge: float = 0.01) -> Self:
         """
         Finds any glyph which contains an inline copy of one of the selected glyphs,
         and converts that copy into a reference to the appropriate glyph. Selection
@@ -6743,7 +6808,7 @@ class font:
         differences.
         """
 
-    def round(self, factor: float = 1) -> None:
+    def round(self, factor: float = 1) -> Self:
         """
         Rounds the x and y coordinates of each point in all selected glyphs. If
         factor is specified then ::
@@ -6774,7 +6839,7 @@ class font:
         tan_bounds: float | None = None,
         linefixup: float | None = None,
         linelenmax: float | None = None,
-    ) -> None:
+    ) -> Self:
         """
         Tries to remove excess points in all selected glyphs if doing so will not
         perturb the curve by more than ``error-bound``. Flags is a tuple of the
@@ -6828,7 +6893,7 @@ class font:
         join: Literal["nib", "bevel", "miter", "miterclip", "round", "arcs"] = "nib",
         angle: float = 0,
         **kwargs: StrokeOptions,
-    ) -> None: ...
+    ) -> Self: ...
     @overload
     def stroke(
         self,
@@ -6840,7 +6905,7 @@ class font:
         cap: Literal["nib", "butt", "round", "bevel"] = "nib",
         join: Literal["nib", "bevel", "miter", "miterclip", "round", "arcs"] = "nib",
         **kwargs: StrokeOptions,
-    ) -> None: ...
+    ) -> Self: ...
     @overload
     def stroke(
         self,
@@ -6852,7 +6917,7 @@ class font:
         cap: Literal["nib", "butt", "round", "bevel"] = "nib",
         join: Literal["nib", "bevel", "miter", "miterclip", "round", "arcs"] = "nib",
         **kwargs: StrokeOptions,
-    ) -> None: ...
+    ) -> Self: ...
     @overload
     def stroke(
         self,
@@ -6863,7 +6928,7 @@ class font:
         cap: Literal["nib", "butt", "round", "bevel"] = "nib",
         join: Literal["nib", "bevel", "miter", "miterclip", "round", "arcs"] = "nib",
         **kwargs: StrokeOptions,
-    ) -> None:
+    ) -> Self:
         """
         Strokes the lines of the contours in all selected glyphs according to the
         supplied parameters. See :meth:`glyph.stroke()` for a description of the
@@ -6880,7 +6945,7 @@ class font:
             ],
             ...,
         ] = (),
-    ) -> None:
+    ) -> Self:
         """
         Transforms all selected glyphs by the matrix. The optional flags argument
         should be a tuple containing any of the following strings:
@@ -6912,7 +6977,7 @@ class font:
         """
         ...
 
-    def nltransform(self, xexpr: str, yexpr: str) -> None:
+    def nltransform(self, xexpr: str, yexpr: str) -> Self:
         """
         xexpr and yexpr are strings specifying non-linear transformations that will
         be applied to all points in the selected glyphs of the font (with xexpr
@@ -6920,7 +6985,7 @@ class font:
         """
         ...
 
-    def unlinkReferences(self) -> None:
+    def unlinkReferences(self) -> Self:
         """
         Unlinks all references in all selected glyphs and replaces them with splines.
         """

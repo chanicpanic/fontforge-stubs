@@ -7,9 +7,14 @@ and this project uses YYYY.MM.DD [calendar versioning](https://calver.org/).
 
 ## Unreleased
 
+### Added
+
+- Various undocumented method overloads and parameters
+
 ### Fixed
 
 - Various typos in docstrings
+- Return types of several class methods from `None` to `Self`
 
 ## 2025.9.30 - 2025-09-30
 
