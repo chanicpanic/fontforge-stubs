@@ -3207,14 +3207,17 @@ class glyph:
 
     def getPosSub(
         self, lookup_subtable_name: str
-    ) -> (
-        tuple[str, Literal["Position"], int, int, int, int, int]
-        | tuple[str, Literal["Pair"], str, int, int, int, int, int, int, int, int]
-        | tuple[str, Literal["Substitution"], str]
-        | tuple[
-            str, Literal["AltSubs", "MultSubs", "Ligature"], Unpack[tuple[str, ...]]
-        ]
-    ):
+    ) -> tuple[
+        (
+            tuple[str, Literal["Position"], int, int, int, int]
+            | tuple[str, Literal["Pair"], str, int, int, int, int, int, int, int, int]
+            | tuple[str, Literal["Substitution"], str]
+            | tuple[
+                str, Literal["AltSubs", "MultSubs", "Ligature"], Unpack[tuple[str, ...]]
+            ]
+        ),
+        ...,
+    ]:
         """
         Returns any positioning/substitution data attached to the glyph controlled
         by the lookup-subtable. If the name is ``"*"`` then returns data from all
