@@ -426,6 +426,13 @@ def scriptPath() -> tuple[str, ...]:
     """Returns a tuple listing the directory paths which are searched for python scripts during FontForge initialization."""
     ...
 
+def userConfigPath() -> str:
+   """
+   Returns the path to the user's FontForge configuration directory, which should
+   be writable.
+   """
+   ...
+
 def fonts() -> tuple[font, ...]:
     """Returns a tuple of all fonts currently loaded into FontForge for editing"""
     ...
@@ -546,6 +553,10 @@ def registerGlyphSeparationHook(
     and computing the optical left and right side bearings (for 'lfbd' and 'rtbd'
     features).
     """
+    ...
+
+def onAppClosing(hook: Callable[[], None]) -> bool:
+    """Add a python function which is called when FontForge is closing down."""
     ...
 
 # User Interface Module Functions
@@ -753,6 +764,14 @@ def registerImportExport(
        should be a comma separated list of extensions. It may be omitted, in
        which case it defaults to being the same as the "extension" argument above.
     """
+    ...
+
+def getConvexNib(context: Literal["default", "freehand", "ui"]) -> layer | None:
+    """Returns the specified 'Convex' nib as a layer."""
+    ...
+
+def setConvexNib(nib: layer | contour, context: Literal["default", "freehand", "ui"]) -> None:
+    """Sets the specified 'Convex' to the layer/contour argument."""
     ...
 
 def logWarning(msg: str) -> None:
@@ -1788,6 +1807,10 @@ class layer(Sequence[contour]):
         """
         ...
 
+    def reverseDirection(self) -> Self:
+        """Reverse the orientation of each contour in the layer."""
+        ...
+
     def round(self, factor: float = 1) -> Self:
         """
         Rounds the x and y coordinates. If factor is specified then ::
@@ -1988,7 +2011,7 @@ class layer(Sequence[contour]):
         ytop: float | None = None,
     ) -> tuple[float, float] | None:
         """
-        Finds the minimum and maximum x positions attained by the contour when y is
+        Finds the minimum and maximum x positions attained by the layer when y is
         between ybottom and ytop (if ytop is not specified it is assumed the same as
         ybottom). If the layer does not have any y values in the specified range
         then FontForge will return ``None``.
@@ -2001,7 +2024,7 @@ class layer(Sequence[contour]):
         xright: float | None = None,
     ) -> tuple[float, float] | None:
         """
-        Finds the minimum and maximum y positions attained by the contour when x is
+        Finds the minimum and maximum y positions attained by the layer when x is
         between xleft and xright (if xright is not specified it is assumed the same
         as xleft). If the layer does not have any x values in the specified range
         then FontForge will return ``None``.
@@ -2470,6 +2493,9 @@ class glyph:
     Whether this glyph has been modified. This is (should be) maintained
     automatically, but you may set it if you wish.
     """
+
+    codepoint: str
+    """Unicode code point for this glyph in U+XXXX format, or ``None``. (readonly)"""
 
     color: int
     """
@@ -3664,6 +3690,38 @@ class glyph:
         """
         ...
 
+    def xBoundsAtY(
+        self,
+        ybottom: float,
+        ytop: float | None = None,
+        *,
+        layer: str | int | None = None,
+    ) -> tuple[float, float] | None:
+        """
+        Finds the minimum and maximum x positions attained by the glyph when y is
+        between ybottom and ytop (if ytop is not specified it is assumed the same as
+        ybottom). If the glyph does not have any y values in the specified range
+        then FontForge will return ``None``. A layer name or index may be provided
+        to only find bounds for a particular layer.
+        """
+        ...
+
+    def yBoundsAtX(
+        self,
+        xleft: float,
+        xright: float | None = None,
+        *,
+        layer: str | int | None = None,
+    ) -> tuple[float, float] | None:
+        """
+        Finds the minimum and maximum y positions attained by the glyph when x is
+        between xleft and xright (if xright is not specified it is assumed the same
+        as xleft). If the glyph does not have any x values in the specified range
+        then FontForge will return ``None``. A layer name or index may be provided
+        to only find bounds for a particular layer.
+        """
+        ...
+
     def draw(self, pen: glyphPen) -> layer:
         """Draw the glyph's outline to the pen argument. http://robofab.org/objects/pens.html"""
         ...
@@ -3713,6 +3771,9 @@ class selection:
     This is read-only.
     """
     ...
+
+    font: font | None
+    """Returns the font for which this is a selection."""
 
     def __iter__(self) -> Iterator[Any]:
         """
@@ -4492,6 +4553,9 @@ class font:
     copyright: str | None
     """PostScript copyright notice."""
 
+    creationtime: str
+    """Font creation time. (readonly)"""
+
     cvt: Sequence[int]
     """
     Returns a sequence object containing the font's cvt table. Changes made
@@ -4841,6 +4905,12 @@ class font:
       reject OT-CFF fonts with a version number of 1
     """
 
+    markClasses: tuple[tuple[str, tuple[str, ...]]] | None
+    """
+    A tuple each entry of which is itself a tuple containing a mark-class-name
+    and a tuple of glyph-names.
+    """
+
     maxp_FDEFs: int
     """The number of function definitions used by the tt program"""
 
@@ -4961,8 +5031,20 @@ class font:
     os2_winascent: int
     """OS/2 Windows Ascent"""
 
+    os2_winascent_add: int
+    """
+    Whether the os2_winascent field is used as is, or as an offset applied to
+    the value FontForge thinks appropriate
+    """
+
     os2_windescent: int
     """OS/2 Windows Descent"""
+
+    os2_windescent_add: int
+    """
+    Whether the os2_windescent field is used as is, or as an offset applied to
+    the value FontForge thinks appropriate
+    """
 
     os2_xheight: int
     """OS/2 x Height"""
@@ -5340,6 +5422,11 @@ class font:
     "x"). A negative number indicates the value could not be computed (the font
     might have no lower case letters because it was upper case only, or didn't
     include glyphs for a script with lower case letters).
+    """
+
+    xuid: str
+    """
+    PostScript eXtended Unique ID.
     """
 
     def __iter__(self) -> Iterator[str]:
@@ -5795,6 +5882,9 @@ class font:
 
     def cidRemoveSubFont(self) -> Self:
         """Removes the current subfont from a cid-keyed font."""
+
+    def clearSpecialData(self) -> Self:
+        """Clear special data not accessible in FontForge."""
 
     def close(self) -> None:
         """
