@@ -5548,7 +5548,7 @@ class font:
             "gsub_ligature",
             "gsub_context",
             "gsub_contextchain",
-            "gsub_revesechain",
+            "gsub_reversecchain",
             "morx_indic",
             "morx_context",
             "morx_insert",
