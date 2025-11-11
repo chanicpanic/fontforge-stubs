@@ -7,6 +7,25 @@ and this project uses YYYY.MM.DD [calendar versioning](https://calver.org/).
 
 ## Unreleased
 
+### Added
+
+- Several missing module members:
+  - `userConfigPath`
+  - `onAppClosing`
+  - `getConvexNib`
+  - `setConvexNib`
+  - `layer.reverseDirection`
+  - `glyph.codepoint`
+  - `glyph.xBoundsAtY`
+  - `glyph.yBoundsAtX`
+  - `selection.font`
+  - `font.creationtime`
+  - `font.markClasses`
+  - `font.os2_winascent_add`
+  - `font.os2_windescent_add`
+  - `font.xuid`
+  - `font.clearSpecialData`
+
 ### Fixed
 
 - Return type of `glyph.getPosSub`
