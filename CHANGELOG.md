@@ -29,6 +29,7 @@ and this project uses YYYY.MM.DD [calendar versioning](https://calver.org/).
 ### Fixed
 
 - Return type of `glyph.getPosSub`
+- `gsub_reversecchain` lookup type in `font.addLookup`
 
 ## 2025.10.13 - 2025-10-13
 
