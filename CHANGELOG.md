@@ -7,9 +7,11 @@ and this project uses YYYY.MM.DD [calendar versioning](https://calver.org/).
 
 ## Unreleased
 
+## 2025.11.10 - 2025-11-10
+
 ### Added
 
-- Several missing module members:
+- Several missing `fontforge` module members:
   - `userConfigPath`
   - `onAppClosing`
   - `getConvexNib`
