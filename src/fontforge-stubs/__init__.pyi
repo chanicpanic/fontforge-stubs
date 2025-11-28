@@ -4911,6 +4911,12 @@ class font:
     and a tuple of glyph-names.
     """
 
+    markSets: tuple[tuple[str, tuple[str, ...]], ...] | None
+    """
+    A tuple each entry of which is itself a tuple containing a mark-set-name
+    and a tuple of glyph-names.
+    """
+
     maxp_FDEFs: int
     """The number of function definitions used by the tt program"""
 
