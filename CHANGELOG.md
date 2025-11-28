@@ -7,6 +7,10 @@ and this project uses YYYY.MM.DD [calendar versioning](https://calver.org/).
 
 ## Unreleased
 
+### Added
+
+- Missing `no-mac-names` flag for `font.generate`
+
 ## 2025.11.10 - 2025-11-10
 
 ### Added
