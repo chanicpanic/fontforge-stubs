@@ -15,6 +15,10 @@ and this project uses YYYY.MM.DD [calendar versioning](https://calver.org/).
 
 - `font.addLookup` docstring to document mark sets
 
+### Fixed
+
+- `font.markClasses` to be a tuple of arbitrary length
+
 ## 2025.11.10 - 2025-11-10
 
 ### Added

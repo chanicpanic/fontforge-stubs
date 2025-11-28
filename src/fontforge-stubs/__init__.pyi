@@ -4905,7 +4905,7 @@ class font:
       reject OT-CFF fonts with a version number of 1
     """
 
-    markClasses: tuple[tuple[str, tuple[str, ...]]] | None
+    markClasses: tuple[tuple[str, tuple[str, ...]], ...] | None
     """
     A tuple each entry of which is itself a tuple containing a mark-class-name
     and a tuple of glyph-names.
