@@ -6069,6 +6069,7 @@ class font:
                 "dummy-dsig",
                 "no-FFTM-table",
                 "TeX-table",
+                "no-mac-names",
                 "round",
                 "no-hints",
                 "no-flex",
@@ -6152,6 +6153,11 @@ class font:
         TeX-table:
 
           Include a 'TeX ' table in an ttf/otf file
+
+        no-mac-names:
+
+          Do not include Mac names used on Classic Mac OS. This option does not
+          affect native macOS (formerly known as Mac OS X) applications.
 
         round:
 
