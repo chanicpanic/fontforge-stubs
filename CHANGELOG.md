@@ -11,6 +11,10 @@ and this project uses YYYY.MM.DD [calendar versioning](https://calver.org/).
 
 - Missing `no-mac-names` flag for `font.generate`
 
+### Changed
+
+- `font.addLookup` docstring to document mark sets
+
 ## 2025.11.10 - 2025-11-10
 
 ### Added
