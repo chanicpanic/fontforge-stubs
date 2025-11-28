@@ -5270,10 +5270,16 @@ class font:
     strokewidth: float
     """The stroke width of a stroked font"""
 
-    style_set_names: tuple[tuple[str | int, str, str], ...]
+    style_set_names: tuple[tuple[str | int, str, str | tuple[str | None, str | None, str | None, tuple[str | None, ...], None]], ...]
     """
-    A tuple, each entry of which is a 3-element tuple containing the language name
-    (e.g. ``"English (US)"``), the style set tag (e.g. ``"ss01"``) and the style set name.
+    A tuple, each entry of which is a 3-element tuple containing:
+
+      * For style sets, the language name (e.g. ``"English (US)"``), the style set
+        tag (e.g. ``"ss01"``) and the style set name.
+      * For character variants, the language name, the character variant tag (e.g.
+        ``"cv01"``) and a 5-element tuple containing the feature name, the tooltip text,
+        the sample text (these three can be ``None``), a tuple containing parameter
+        names (can be empty) and ``None`` (reserved for the character list).
     """
 
     temporary: object
