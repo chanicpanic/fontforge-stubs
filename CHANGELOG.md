@@ -7,12 +7,22 @@ and this project uses YYYY.MM.DD [calendar versioning](https://calver.org/).
 
 ## Unreleased
 
+### Added
+
+- Missing `no-mac-names` flag for `font.generateTtc`
+
 ### Changed
 
 - Several class attributes to properties to:
   - Handle setters that accept a wider range of types than returned by their
     getters
   - Represent attributes that are read-only
+- Widen typing of flags to accept a string for a single flag or a sequence
+  of strings
+
+### Fixed
+
+- `font.gasp` to be a tuple of arbitrary length
 
 ## 2025.11.28 - 2025-11-28
 

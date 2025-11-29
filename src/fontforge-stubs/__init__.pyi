@@ -468,13 +468,15 @@ def fontsInFile(filename: str) -> tuple[str, ...]:
     """
     ...
 
+_F = TypeVar("_F", bound=str)
+_Flags = _F | Sequence[_F]
+
 def open(
     filename: str,
-    flags: tuple[
+    flags: _Flags[
         Literal[
             "fstypepermitted", "allglyphsinttc", "fontlint", "hidewindow", "alltables"
         ],
-        ...,
     ]
     | int
     | None = None,
@@ -1509,7 +1511,7 @@ class contour(Sequence[point]):
     def simplify(
         self,
         error_bound: float = 1,
-        flags: tuple[
+        flags: _Flags[
             Literal[
                 "ignoreslopes",
                 "ignoreextrema",
@@ -1521,7 +1523,6 @@ class contour(Sequence[point]):
                 "setstarttoextremum",
                 "removesingletonpoints",
             ],
-            ...,
         ] = (),
         tan_bounds: float = 0.2,
         linefixup: float = 2,
@@ -1874,7 +1875,7 @@ class layer(Sequence[contour]):
     def simplify(
         self,
         error_bound: float = 1,
-        flags: tuple[
+        flags: _Flags[
             Literal[
                 "ignoreslopes",
                 "ignoreextrema",
@@ -1886,7 +1887,6 @@ class layer(Sequence[contour]):
                 "setstarttoextremum",
                 "removesingletonpoints",
             ],
-            ...,
         ] = (),
         tan_bounds: float = 0.2,
         linefixup: float = 2,
@@ -3358,7 +3358,7 @@ class glyph:
     def importOutlines(
         self,
         filename: str,
-        flags: tuple[Literal["handle_eraser", "correctdir"], ...],
+        flags: _Flags[Literal["handle_eraser", "correctdir"]],
         /,
     ) -> Self:
         """
@@ -3472,7 +3472,7 @@ class glyph:
         self,
         layer: layer | contour,
         layer_index: int | str,
-        flags: tuple[
+        flags: _Flags[
             Literal[
                 "select_none",
                 "select_all",
@@ -3484,7 +3484,6 @@ class glyph:
                 "force",
                 "hvcurve",
             ],
-            ...,
         ] = ("select_all", "by_geom"),
     ) -> Self:
         """
@@ -3562,7 +3561,7 @@ class glyph:
     def simplify(
         self,
         error_bound: float | None = None,
-        flags: tuple[
+        flags: _Flags[
             Literal[
                 "ignoreslopes",
                 "ignoreextrema",
@@ -3574,7 +3573,6 @@ class glyph:
                 "setstarttoextremum",
                 "removesingletonpoints",
             ],
-            ...,
         ] = (),
         tan_bounds: float | None = None,
         linefixup: float | None = None,
@@ -3695,7 +3693,7 @@ class glyph:
     def transform(
         self,
         matrix: tuple[float, float, float, float, float, float],
-        flags: tuple[Literal["partialRefs", "round"], ...] = (),
+        flags: _Flags[Literal["partialRefs", "round"]] = (),
     ) -> Self:
         """
         Transforms the glyph by the matrix. The optional flags argument should be a
@@ -3872,8 +3870,8 @@ class selection:
         *args: str
         | int
         | glyph
-        | tuple[
-            Literal["unicode", "encoding", "more", "less", "singletons", "ranges"], ...
+        | _Flags[
+            Literal["unicode", "encoding", "more", "less", "singletons", "ranges"],
         ],
     ) -> Self:
         """
@@ -4688,13 +4686,13 @@ class font:
     gasp: tuple[
         tuple[
             int,
-            tuple[
+            _Flags[
                 Literal[
                     "gridfit", "antialias", "symmetric-smoothing", "gridfit+smoothing"
                 ],
-                ...,
             ],
-        ]
+        ],
+        ...,
     ]
     """
     Returns a tuple of all gasp table entries. Each item in the tuple is itself
@@ -6013,7 +6011,7 @@ class font:
         self,
         other_font: font,
         filename: str,
-        flags_tuple: tuple[
+        flags: _Flags[
             Literal[
                 "outlines",
                 "outlines-exactly",
@@ -6027,7 +6025,6 @@ class font:
                 "add-outlines",
                 "create-glyphs",
             ],
-            ...,
         ],
     ) -> int:
         """
@@ -6123,7 +6120,7 @@ class font:
         self,
         contour: contour | layer,
         error_bound: float = 0.01,
-        search_flags: tuple[Literal["reverse", "flips", "rotate", "scale"], ...] = (
+        search_flags: _Flags[Literal["reverse", "flips", "rotate", "scale"]] = (
             "reverse",
             "flips",
         ),
@@ -6168,7 +6165,7 @@ class font:
         filename: str,
         *,
         bitmap_type: str | None = None,
-        flags: tuple[
+        flags: _Flags[
             Literal[
                 "afm",
                 "pfm",
@@ -6196,7 +6193,6 @@ class font:
                 "PfEd-background",
                 "symbol",
             ],
-            ...,
         ] = (),
         bitmap_resolution: int | None = None,
         subfont_directory: str | None = None,
@@ -6323,7 +6319,7 @@ class font:
         filename: str,
         others: Sequence[font] | font | None,
         *,
-        flags: tuple[
+        flags: _Flags[
             Literal[
                 "afm",
                 "pfm",
@@ -6339,6 +6335,7 @@ class font:
                 "dummy-dsig",
                 "no-FFTM-table",
                 "TeX-table",
+                "no-mac-names",
                 "round",
                 "no-hints",
                 "no-flex",
@@ -6350,9 +6347,8 @@ class font:
                 "PfEd-background",
                 "symbol",
             ],
-            ...,
         ] = (),
-        ttcflags: tuple[Literal["merge", "cff"], ...] = (),
+        ttcflags: _Flags[Literal["merge", "cff"]] = (),
         namelist: str | None = None,
         layer: str | int | None = None,
     ) -> Self:
@@ -7038,7 +7034,7 @@ class font:
     def simplify(
         self,
         error_bound: float | None = None,
-        flags: tuple[
+        flags: _Flags[
             Literal[
                 "ignoreslopes",
                 "ignoreextrema",
@@ -7050,7 +7046,6 @@ class font:
                 "setstarttoextremum",
                 "removesingletonpoints",
             ],
-            ...,
         ] = (),
         tan_bounds: float | None = None,
         linefixup: float | None = None,
@@ -7155,11 +7150,10 @@ class font:
     def transform(
         self,
         matrix: tuple[float, float, float, float, float, float],
-        flags: tuple[
+        flags: _Flags[
             Literal[
                 "activeLayer", "guide", "noWidth", "round", "simplePos", "kernClasses"
             ],
-            ...,
         ] = (),
     ) -> Self:
         """
