@@ -3,6 +3,8 @@ The primary module for interacting with FontForge
 """
 
 from collections.abc import Callable, Hashable, Iterable, Iterator, Mapping, Sequence
+from contextlib import AbstractContextManager
+from types import TracebackType
 from typing import (
     Any,
     Final,
@@ -514,6 +516,15 @@ def open(
     alltables (32)
 
       Retain all recognized font tables that do not have a native format.
+
+    This function can also be used with the ``with`` statement, in which case
+    there is no need to call :meth:`font.close()` explicitly:
+
+    ::
+
+       with fontforge.open('somefont.sfd') as fnt:
+           # do something
+           fnt.generate('somefont.ttf')
     """
     ...
 
@@ -4451,7 +4462,7 @@ class FontLayerInfo:
     """Whether the layer is a background layer."""
 
 @final
-class font:
+class font(AbstractContextManager[font]):
     """
     The font type refers to a fontforge :class:`font` object. It generally contains
     a list of :class:`glyphs <fontforge.glyph>`, an encoding to order those glyphs,
@@ -5460,6 +5471,19 @@ class font:
         """
         If ``key`` is an integer, then returns the glyph at that encoding. If a
         string then returns the glyph with that name. May not be assigned to.
+        """
+        ...
+
+    @override
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
+        """
+        Frees up memory for the current font. Any python pointers to it will
+        become invalid.
         """
         ...
 
