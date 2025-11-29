@@ -7,6 +7,13 @@ and this project uses YYYY.MM.DD [calendar versioning](https://calver.org/).
 
 ## Unreleased
 
+### Changed
+
+- Several class attributes to properties to:
+  - Handle setters that accept a wider range of types than returned by their
+    getters
+  - Represent attributes that are read-only
+
 ## 2025.11.28 - 2025-11-28
 
 ### Added
