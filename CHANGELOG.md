@@ -10,14 +10,27 @@ and this project uses YYYY.MM.DD [calendar versioning](https://calver.org/).
 ### Added
 
 - Missing `no-mac-names` flag for `font.generate`
+- More variants of the `point` initializer
+- `point` comparison methods
+- `contour.__delitem__` by `slice`
+- Optional `layer` parameter of `glyph.boundingBox`
 
 ### Changed
 
 - `font.addLookup` docstring to document mark sets
+- `font.__contains__` to accept a glyph encoding (`int`)
+- `feature_script_lang_tuple` parameter of `font.addLookup` to accept a single
+  string for the languages
 
 ### Fixed
 
 - `font.markClasses` to be a tuple of arbitrary length
+- `glyph.anchorPoints` to be a tuple of arbitrary length
+- `glyph.anchorPointsWithSel` to be a tuple of arbitrary length
+- `hvcurve` flag in `glyph.setLayer`
+- Remove nonexistent parameter of `UnicodeBlockCountFromLib`
+- Return type of `contour.moveTo` to `Self`
+- `font.mergeFeature` boolean parameter to have a default value
 
 ## 2025.11.10 - 2025-11-10
 
