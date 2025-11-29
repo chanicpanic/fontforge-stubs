@@ -217,7 +217,7 @@ def UnicodeAnnotationFromLib(n: int) -> str:
     """
     ...
 
-def UnicodeBlockCountFromLib(n: int) -> int:
+def UnicodeBlockCountFromLib() -> int:
     """
     Return the number of Unicode Blocks as described by www.unicode.org.
     Currently, the blocks are {0..233}, spanning unicode values {uni0..uni10FFFF}.
@@ -429,11 +429,11 @@ def scriptPath() -> tuple[str, ...]:
     ...
 
 def userConfigPath() -> str:
-   """
-   Returns the path to the user's FontForge configuration directory, which should
-   be writable.
-   """
-   ...
+    """
+    Returns the path to the user's FontForge configuration directory, which should
+    be writable.
+    """
+    ...
 
 def fonts() -> tuple[font, ...]:
     """Returns a tuple of all fonts currently loaded into FontForge for editing"""
@@ -781,7 +781,9 @@ def getConvexNib(context: Literal["default", "freehand", "ui"]) -> layer | None:
     """Returns the specified 'Convex' nib as a layer."""
     ...
 
-def setConvexNib(nib: layer | contour, context: Literal["default", "freehand", "ui"]) -> None:
+def setConvexNib(
+    nib: layer | contour, context: Literal["default", "freehand", "ui"]
+) -> None:
     """Sets the specified 'Convex' to the layer/contour argument."""
     ...
 
@@ -1066,11 +1068,28 @@ def askMulti(
 # Point class
 @final
 class point:
+    @overload
     def __new__(
         cls,
         x: float = 0,
         y: float = 0,
         on_curve: bool = True,
+        type: Literal[0, 1, 2, 3] = 0,
+        selected: bool = False,
+    ) -> point: ...
+    @overload
+    def __new__(
+        cls,
+        xy: tuple[float, float],
+        on_curve: bool = True,
+        type: Literal[0, 1, 2, 3] = 0,
+        selected: bool = False,
+        interpolated: bool = False,
+    ) -> point: ...
+    @overload
+    def __new__(
+        cls,
+        xy_on_curve: tuple[float, float, bool],
         type: Literal[0, 1, 2, 3] = 0,
         selected: bool = False,
     ) -> point:
@@ -1130,6 +1149,15 @@ class point:
 
     name: str
     """The point name (generally there is no name)"""
+
+    @override
+    def __eq__(self, other: object | point | tuple[float, float]) -> bool: ...
+    @override
+    def __ne__(self, other: object | point | tuple[float, float]) -> bool: ...
+    def __lt__(self, other: object | point | tuple[float, float]) -> bool: ...
+    def __le__(self, other: object | point | tuple[float, float]) -> bool: ...
+    def __gt__(self, other: object | point | tuple[float, float]) -> bool: ...
+    def __ge__(self, other: object | point | tuple[float, float]) -> bool: ...
 
     def dup(self) -> point:
         """Returns a copy of the current point."""
@@ -1274,7 +1302,10 @@ class contour(Sequence[point]):
     def __setitem__(
         self, key: slice, value: contour | Sequence[point | _PointInitializer]
     ) -> None: ...
+    @overload
     def __delitem__(self, key: int) -> None: ...
+    @overload
+    def __delitem__(self, key: slice) -> None: ...
     def __add__(
         self,
         other: contour
@@ -1293,7 +1324,7 @@ class contour(Sequence[point]):
     def __contains__(self, p: point | tuple[float, float]) -> bool: ...
     @overload
     def __contains__(self, p: object) -> bool: ...
-    def moveTo(self, x: float, y: float) -> None:
+    def moveTo(self, x: float, y: float) -> Self:
         """Adds an initial, on-curve point at ``(x,y)`` to the contour"""
         ...
 
@@ -2445,7 +2476,8 @@ class glyph:
 
     anchorPoints: tuple[
         tuple[str, Literal["mark", "base", "basemark", "entry", "exit"], float, float]
-        | tuple[str, Literal["ligature"], float, float, int]
+        | tuple[str, Literal["ligature"], float, float, int],
+        ...,
     ]
     """
     Returns the list of anchor points in the glyph. Each anchor point is a
@@ -2472,7 +2504,8 @@ class glyph:
             float,
             bool,
         ]
-        | tuple[str, Literal["ligature"], float, float, bool, int]
+        | tuple[str, Literal["ligature"], float, float, bool, int],
+        ...,
     ]
     """
     Same as :attr:``glyph.anchorPoints``, except also includes whether the anchor point is selected
@@ -3046,7 +3079,9 @@ class glyph:
         """Auto traces any background images"""
         ...
 
-    def boundingBox(self) -> tuple[float, float, float, float]:
+    def boundingBox(
+        self, *, layer: str | int | None = None
+    ) -> tuple[float, float, float, float]:
         """
         Returns a tuple representing a rectangle (xmin,ymin, xmax,ymax) which is
         the minimum bounding box of the glyph.
@@ -3427,7 +3462,7 @@ class glyph:
                 "downgrade",
                 "check",
                 "force",
-                "hcurve",
+                "hvcurve",
             ],
             ...,
         ] = ("select_all", "by_geom"),
@@ -4916,7 +4951,7 @@ class font(AbstractContextManager[font]):
       reject OT-CFF fonts with a version number of 1
     """
 
-    markClasses: tuple[tuple[str, tuple[str, ...]]] | None
+    markClasses: tuple[tuple[str, tuple[str, ...]], ...] | None
     """
     A tuple each entry of which is itself a tuple containing a mark-class-name
     and a tuple of glyph-names.
@@ -5459,8 +5494,11 @@ class font(AbstractContextManager[font]):
         """
         ...
 
-    def __contains__(self, name: str) -> bool:
-        """Returns whether the font contains a glyph with the given name."""
+    def __contains__(self, key: int | str) -> bool:
+        """
+        Returns whether the font contains a glyph with the given encoding or
+        with the given name.
+        """
         ...
 
     def __len__(self) -> int:
@@ -5607,7 +5645,7 @@ class font(AbstractContextManager[font]):
         ]
         | None,
         feature_script_lang_tuple: tuple[
-            tuple[str, tuple[tuple[str, tuple[str, ...]], ...]], ...
+            tuple[str, tuple[tuple[str, str | tuple[str, ...]], ...]], ...
         ],
         after_lookup_name: str | None = None,
     ) -> Self:
@@ -5616,7 +5654,7 @@ class font(AbstractContextManager[font]):
         with any indicated features.
 
         The flags argument is a tuple of strings, or ``None``. At most one of these
-        strings may be the name of a mark class. The others are:
+        strings may be the name of a mark class or a mark set. The others are:
 
         * ``right_to_left``
         * ``ignore_bases``
@@ -6105,6 +6143,7 @@ class font(AbstractContextManager[font]):
                 "dummy-dsig",
                 "no-FFTM-table",
                 "TeX-table",
+                "no-mac-names",
                 "round",
                 "no-hints",
                 "no-flex",
@@ -6188,6 +6227,11 @@ class font(AbstractContextManager[font]):
         TeX-table:
 
           Include a 'TeX ' table in an ttf/otf file
+
+        no-mac-names:
+
+          Do not include Mac names used on Classic Mac OS. This option does not
+          affect native macOS (formerly known as Mac OS X) applications.
 
         round:
 
@@ -6514,7 +6558,9 @@ class font(AbstractContextManager[font]):
         """Merges the font in the file into the current font."""
         ...
 
-    def mergeFeature(self, filename: str, boolean: bool) -> Self:
+    def mergeFeature(
+        self, filename: str, ignore_invalid_replacement: bool = False
+    ) -> Self:
         """
         Merge feature and lookup information from an adobe feature file, or metrics
         information from the (afm, tfm, etc) file into the current font. The

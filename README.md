@@ -46,6 +46,16 @@ This project uses YYYY.MM.DD [calendar versioning](https://calver.org/).
 It aims to be compatible with FontForge 20230101 and later. Legacy and
 deprecated FontForge Python APIs are not officially supported.
 
+Updates to the FontForge Python APIs since the latest offical release
+(currently 20251009) are kept in the
+[fontforge-next](https://github.com/chanicpanic/fontforge-stubs/tree/fontforge-next)
+branch until the next upstream release. If you are using a newer build, you may
+want to install from `fontforge-next`:
+
+```
+pip install git+https://github.com/chanicpanic/fontforge-stubs@fontforge-next
+```
+
 ## Contributing
 
 If you find any issues with the type stubs, please open an issue and/or pull request.
