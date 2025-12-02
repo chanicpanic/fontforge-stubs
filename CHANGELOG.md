@@ -7,6 +7,8 @@ and this project uses YYYY.MM.DD [calendar versioning](https://calver.org/).
 
 ## Unreleased
 
+## 2025.12.1 - 2025-12-01
+
 ### Added
 
 - Missing `no-mac-names` flag for `font.generateTtc`
