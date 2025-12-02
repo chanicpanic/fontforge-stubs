@@ -470,13 +470,15 @@ def fontsInFile(filename: str) -> tuple[str, ...]:
     """
     ...
 
+_F = TypeVar("_F", bound=str)
+_Flags = _F | Sequence[_F]
+
 def open(
     filename: str,
-    flags: tuple[
+    flags: _Flags[
         Literal[
             "fstypepermitted", "allglyphsinttc", "fontlint", "hidewindow", "alltables"
         ],
-        ...,
     ]
     | int
     | None = None,
@@ -1158,7 +1160,6 @@ class point:
     def __le__(self, other: object | point | tuple[float, float]) -> bool: ...
     def __gt__(self, other: object | point | tuple[float, float]) -> bool: ...
     def __ge__(self, other: object | point | tuple[float, float]) -> bool: ...
-
     def dup(self) -> point:
         """Returns a copy of the current point."""
         ...
@@ -1521,7 +1522,7 @@ class contour(Sequence[point]):
     def simplify(
         self,
         error_bound: float = 1,
-        flags: tuple[
+        flags: _Flags[
             Literal[
                 "ignoreslopes",
                 "ignoreextrema",
@@ -1533,7 +1534,6 @@ class contour(Sequence[point]):
                 "setstarttoextremum",
                 "removesingletonpoints",
             ],
-            ...,
         ] = (),
         tan_bounds: float = 0.2,
         linefixup: float = 2,
@@ -1886,7 +1886,7 @@ class layer(Sequence[contour]):
     def simplify(
         self,
         error_bound: float = 1,
-        flags: tuple[
+        flags: _Flags[
             Literal[
                 "ignoreslopes",
                 "ignoreextrema",
@@ -1898,7 +1898,6 @@ class layer(Sequence[contour]):
                 "setstarttoextremum",
                 "removesingletonpoints",
             ],
-            ...,
         ] = (),
         tan_bounds: float = 0.2,
         linefixup: float = 2,
@@ -2538,8 +2537,10 @@ class glyph:
     automatically, but you may set it if you wish.
     """
 
-    codepoint: str
-    """Unicode code point for this glyph in U+XXXX format, or ``None``. (readonly)"""
+    @property
+    def codepoint(self) -> str | None:
+        """Unicode code point for this glyph in U+XXXX format, or ``None``. (readonly)"""
+        ...
 
     color: int
     """
@@ -2560,18 +2561,22 @@ class glyph:
     other side, and a unit vector pointing in the stem's direction.
     """
 
-    encoding: int
-    """
-    Returns the glyph's encoding in the font's encoding. (readonly)
+    @property
+    def encoding(self) -> int:
+        """
+        Returns the glyph's encoding in the font's encoding. (readonly)
 
-    If the glyph has multiple encodings, one will be picked at random.
+        If the glyph has multiple encodings, one will be picked at random.
 
-    If the glyph is not in the font's encoding then a number will be returned
-    beyond the encoding size (or in some cases -1 will be returned).
-    """
+        If the glyph is not in the font's encoding then a number will be returned
+        beyond the encoding size (or in some cases -1 will be returned).
+        """
+        ...
 
-    font: font
-    """The font containing this glyph. (readonly)"""
+    @property
+    def font(self) -> font:
+        """The font containing this glyph. (readonly)"""
+        ...
 
     foreground: layer
     """
@@ -2620,15 +2625,19 @@ class glyph:
     horizontalComponentItalicCorrection: int
     """The italic correction for any composite glyph made with the horizontalComponents."""
 
-    horizontalVariants: str | tuple[glyph, ...]
-    """
-    A string containing a list of glyph names. These are
-    alternate forms of the current glyph for use in
-    typesetting math. Presumably the variants are of different sizes.
+    @property
+    def horizontalVariants(self) -> str | None:
+        """
+        A string containing a list of glyph names. These are
+        alternate forms of the current glyph for use in
+        typesetting math. Presumably the variants are of different sizes.
 
-    Although ff will always return a string of glyph names, you may assign to it
-    with a tuple of glyphs and ff will convert that to corresponding names.
-    """
+        Although ff will always return a string of glyph names, you may assign to it
+        with a sequence of glyphs and ff will convert that to corresponding names.
+        """
+
+    @horizontalVariants.setter
+    def horizontalVariants(self, value: str | Sequence[glyph] | None) -> None: ...
 
     isExtendedShape: bool
     """A boolean containing the MATH "is extended shape" field."""
@@ -2640,24 +2649,30 @@ class glyph:
     (An unspecified value will not go into the output tables, a value of 0 will)
     """
 
-    layer_cnt: int
-    """The number of layers in this glyph. (Cannot be set)"""
+    @property
+    def layer_cnt(self) -> int:
+        """The number of layers in this glyph. (Cannot be set)"""
+        ...
 
-    layers: dict[str | int, layer]
-    """
-    A dictionary like object containing the layers of the glyph. It may be
-    indexed by either a layer name or an integer between 0 and
-    ``glyph.layer_cnt-1`` to produce a :class:`layer` object. Layer 0 is the
-    background layer. Layer 1 is the foreground layer.
-    """
+    @property
+    def layers(self) -> dict[str | int, layer]:
+        """
+        A dictionary like object containing the layers of the glyph. It may be
+        indexed by either a layer name or an integer between 0 and
+        ``glyph.layer_cnt-1`` to produce a :class:`layer` object. Layer 0 is the
+        background layer. Layer 1 is the foreground layer.
+        """
+        ...
 
-    layerrefs: dict[str | int, _GlyphReference]
-    """
-    A dictionary like object containing the references in the layers of the
-    glyph. It may be indexed by either a layer name, or an integer between 0 and
-    ``glyph.layer_cnt-1`` to produce a reference tuple object. Layer 0 is the
-    background layer. Layer 1 is the foreground layer.
-    """
+    @property
+    def layerrefs(self) -> dict[str | int, _GlyphReference]:
+        """
+        A dictionary like object containing the references in the layers of the
+        glyph. It may be indexed by either a layer name, or an integer between 0 and
+        ``glyph.layer_cnt-1`` to produce a reference tuple object. Layer 0 is the
+        background layer. Layer 1 is the foreground layer.
+        """
+        ...
 
     lcarets: tuple[int, ...]
     """
@@ -2679,11 +2694,15 @@ class glyph:
     autohinted without a specific request from the user. The "Don't AutoHint" flag.
     """
 
-    mathKern: GlyphMathKerning
-    """The glyph's math kerning data associated with its vertices."""
+    @property
+    def mathKern(self) -> GlyphMathKerning:
+        """The glyph's math kerning data associated with its vertices."""
+        ...
 
-    originalgid: int
-    """The GID of this glyph in the font it was read from. (readonly)"""
+    @property
+    def originalgid(self) -> int:
+        """The GID of this glyph in the font it was read from. (readonly)"""
+        ...
 
     persistent: object
     """
@@ -2703,11 +2722,13 @@ class glyph:
     right_side_bearing: int
     """The right side bearing of the glyph"""
 
-    script: str
-    """
-    A string containing the OpenType 4 letter tag for the script associated with
-    this glyph (readonly)
-    """
+    @property
+    def script(self) -> str:
+        """
+        A string containing the OpenType 4 letter tag for the script associated
+        with this glyph (readonly)
+        """
+        ...
 
     temporary: object
     """
@@ -2762,133 +2783,135 @@ class glyph:
     starting locations and widths.
     """
 
-    validation_state: int
-    """
-    A bit mask indicating some problems this glyph might have. (readonly)
+    @property
+    def validation_state(self) -> int:
+        """
+        A bit mask indicating some problems this glyph might have. (readonly)
 
-    0x1:
+        0x1:
 
-      If set then this glyph has been validated.
+          If set then this glyph has been validated.
 
-      If unset then other bits are meaningless.
+          If unset then other bits are meaningless.
 
-    0x2:
+        0x2:
 
-      Glyph has an open contour.
+          Glyph has an open contour.
 
-    0x4:
+        0x4:
 
-      Glyph intersects itself somewhere.
+          Glyph intersects itself somewhere.
 
-    0x8:
+        0x8:
 
-      At least one contour is drawn in the wrong direction
+          At least one contour is drawn in the wrong direction
 
-    0x10:
+        0x10:
 
-      At least one reference in the glyph has been flipped
+          At least one reference in the glyph has been flipped
 
-      (and so is drawn in the wrong direction)
+          (and so is drawn in the wrong direction)
 
-    0x20:
+        0x20:
 
-      Missing extrema
+          Missing extrema
 
-    0x40:
+        0x40:
 
-      A glyph name referred to from this glyph, in an opentype table, is not
-      present in the font.
+          A glyph name referred to from this glyph, in an opentype table, is not
+          present in the font.
 
-    0x40000:
+        0x40000:
 
-      Points (or control points) are too far apart. (Coordinates must be
-      within 32767)
+          Points (or control points) are too far apart. (Coordinates must be
+          within 32767)
 
-    **Postscript only**
+        **Postscript only**
 
-    0x80:
+        0x80:
 
-      PostScript has a limit of 1500 points in a glyph.
+          PostScript has a limit of 1500 points in a glyph.
 
-    0x100:
+        0x100:
 
-      PostScript has a limit of 96 hints in a glyph.
+          PostScript has a limit of 96 hints in a glyph.
 
-    0x200:
+        0x200:
 
-      Invalid glyph name.
+          Invalid glyph name.
 
-    **TrueType only, errors in original file**
+        **TrueType only, errors in original file**
 
-    0x400:
+        0x400:
 
-      More points in a glyph than allowed in 'maxp'
+          More points in a glyph than allowed in 'maxp'
 
-    0x800:
+        0x800:
 
-      More paths in a glyph than allowed in 'maxp'
+          More paths in a glyph than allowed in 'maxp'
 
-    0x1000:
+        0x1000:
 
-      More points in a composite glyph than allowed in 'maxp'
+          More points in a composite glyph than allowed in 'maxp'
 
-    0x2000:
+        0x2000:
 
-      More paths in a composite glyph than allowed in 'maxp'
+          More paths in a composite glyph than allowed in 'maxp'
 
-    0x4000:
+        0x4000:
 
-      Instructions longer than allowed in 'maxp'
+          Instructions longer than allowed in 'maxp'
 
-    0x8000:
+        0x8000:
 
-      More references in a glyph than allowed in 'maxp'
+          More references in a glyph than allowed in 'maxp'
 
-    0x10000:
+        0x10000:
 
-      References nested more deeply than allowed in 'maxp'
+          References nested more deeply than allowed in 'maxp'
 
-    0x40000:
+        0x40000:
 
-      Points too far apart. TrueType and Type2 fonts are limited to 16 bit
-      numbers, and so adjacent points must be within 32767 em-units of each other.
+          Points too far apart. TrueType and Type2 fonts are limited to 16 bit
+          numbers, and so adjacent points must be within 32767 em-units of each other.
 
-    0x80000:
+        0x80000:
 
-      Points non-integral. TrueType points and control points must be integer
-      aligned. (FontForge will round them if they aren't)
+          Points non-integral. TrueType points and control points must be integer
+          aligned. (FontForge will round them if they aren't)
 
-    0x100000:
+        0x100000:
 
-      Missing anchor. According to the opentype spec, if a glyph contains an
-      anchor point for one anchor class in a subtable, it must contain anchor
-      points for all anchor classes in the subtable. Even it, logically, they
-      do not apply and are unnecessary.
+          Missing anchor. According to the opentype spec, if a glyph contains an
+          anchor point for one anchor class in a subtable, it must contain anchor
+          points for all anchor classes in the subtable. Even it, logically, they
+          do not apply and are unnecessary.
 
-    0x200000:
+        0x200000:
 
-      Duplicate glyph name. Two (or more) glyphs in this font have the same
-      name. When outputting a PostScript font only one of them will ever be seen.
+          Duplicate glyph name. Two (or more) glyphs in this font have the same
+          name. When outputting a PostScript font only one of them will ever be seen.
 
-      It's a little hard to detect this in normal use, but if you change the
-      encoding to "Glyph Order", and then use Edit->Select->Wildcard and enter
-      the glyph name, both of them should be selected.
+          It's a little hard to detect this in normal use, but if you change the
+          encoding to "Glyph Order", and then use Edit->Select->Wildcard and enter
+          the glyph name, both of them should be selected.
 
-    0x400000:
+        0x400000:
 
-      Duplicate unicode code point. Two (or more) glyphs in this font have the
-      code point. When outputting an sfnt (TrueType/OpenType) font only one of
-      them will ever be seen.
+          Duplicate unicode code point. Two (or more) glyphs in this font have the
+          code point. When outputting an sfnt (TrueType/OpenType) font only one of
+          them will ever be seen.
 
-      It's a little hard to detect this in normal use, but if you change the
-      encoding to "Glyph Order", and then use Edit->Select->Wildcard and enter
-      the code point, both of them should be selected.
+          It's a little hard to detect this in normal use, but if you change the
+          encoding to "Glyph Order", and then use Edit->Select->Wildcard and enter
+          the code point, both of them should be selected.
 
-    0x800000:
+        0x800000:
 
-      Overlapped hints. Either the glyph has no hint masks and there are
-      overlapped hints, or a hint mask specifies two overlapping hints.
-    """
+          Overlapped hints. Either the glyph has no hint masks and there are
+          overlapped hints, or a hint mask specifies two overlapping hints.
+        """
+        ...
 
     verticalComponents: tuple[
         tuple[str]
@@ -2917,12 +2940,20 @@ class glyph:
     verticalComponentItalicCorrection: int
     """The italic correction for any composite glyph made with the verticalComponents."""
 
-    verticalVariants: str
-    """
-    A string containing a list of glyph names. These are alternate forms
-    of the current glyph for use in typesetting math. Presumably the variants
-    are of different sizes.
-    """
+    @property
+    def verticalVariants(self) -> str | None:
+        """
+        A string containing a list of glyph names. These are alternate forms
+        of the current glyph for use in typesetting math. Presumably the variants
+        are of different sizes.
+
+        Although ff will always return a string of glyph names, you may assign to it
+        with a sequence of glyphs and ff will convert that to corresponding names.
+        """
+        ...
+
+    @verticalVariants.setter
+    def verticalVariants(self, value: str | Sequence[glyph] | None) -> None: ...
 
     width: int
     """The advance width of the glyph. See also :attr:`glyph.vwidth`."""
@@ -3338,7 +3369,7 @@ class glyph:
     def importOutlines(
         self,
         filename: str,
-        flags: tuple[Literal["handle_eraser", "correctdir"], ...],
+        flags: _Flags[Literal["handle_eraser", "correctdir"]],
         /,
     ) -> Self:
         """
@@ -3452,7 +3483,7 @@ class glyph:
         self,
         layer: layer | contour,
         layer_index: int | str,
-        flags: tuple[
+        flags: _Flags[
             Literal[
                 "select_none",
                 "select_all",
@@ -3464,7 +3495,6 @@ class glyph:
                 "force",
                 "hvcurve",
             ],
-            ...,
         ] = ("select_all", "by_geom"),
     ) -> Self:
         """
@@ -3542,7 +3572,7 @@ class glyph:
     def simplify(
         self,
         error_bound: float | None = None,
-        flags: tuple[
+        flags: _Flags[
             Literal[
                 "ignoreslopes",
                 "ignoreextrema",
@@ -3554,7 +3584,6 @@ class glyph:
                 "setstarttoextremum",
                 "removesingletonpoints",
             ],
-            ...,
         ] = (),
         tan_bounds: float | None = None,
         linefixup: float | None = None,
@@ -3675,7 +3704,7 @@ class glyph:
     def transform(
         self,
         matrix: tuple[float, float, float, float, float, float],
-        flags: tuple[Literal["partialRefs", "round"], ...] = (),
+        flags: _Flags[Literal["partialRefs", "round"]] = (),
     ) -> Self:
         """
         Transforms the glyph by the matrix. The optional flags argument should be a
@@ -3808,18 +3837,21 @@ class selection:
     This type may not be pickled.
     """
 
-    byGlyphs: selection
-    """
-    Returns another selection, just the same as this one except that its
-    iterator function will return glyphs (rather than encoding slots) and
-    will only return those entries for which glyphs exist.
+    @property
+    def byGlyphs(self) -> selection:
+        """
+        Returns another selection, just the same as this one except that its
+        iterator function will return glyphs (rather than encoding slots) and
+        will only return those entries for which glyphs exist.
 
-    This is read-only.
-    """
-    ...
+        This is read-only.
+        """
+        ...
 
-    font: font | None
-    """Returns the font for which this is a selection."""
+    @property
+    def font(self) -> font | None:
+        """Returns the font for which this is a selection."""
+        ...
 
     def __iter__(self) -> Iterator[Any]:
         """
@@ -3849,8 +3881,8 @@ class selection:
         *args: str
         | int
         | glyph
-        | tuple[
-            Literal["unicode", "encoding", "more", "less", "singletons", "ranges"], ...
+        | _Flags[
+            Literal["unicode", "encoding", "more", "less", "singletons", "ranges"],
         ],
     ) -> Self:
         """
@@ -4530,13 +4562,15 @@ class font(AbstractContextManager[font]):
     created (but not rasterized -- use :meth:`font.regenBitmaps()` for that).
     """
 
-    capHeight: float
-    """
-    (readonly) Computes the Cap Height (the height of capital letters such as
-    "E"). A negative number indicates the value could not be computed (the font
-    might have no capital letters because it was lower case only, or didn't
-    include glyphs for a script with capital letters).
-    """
+    @property
+    def capHeight(self) -> float:
+        """
+        (readonly) Computes the Cap Height (the height of capital letters such as
+        "E"). A negative number indicates the value could not be computed (the font
+        might have no capital letters because it was lower case only, or didn't
+        include glyphs for a script with capital letters).
+        """
+        ...
 
     changed: int
     """
@@ -4572,17 +4606,21 @@ class font(AbstractContextManager[font]):
     simply use .fontname).
     """
 
-    cidsubfontcnt: int
-    """
-    Returns the number of subfonts in this cid-keyed font (or 0 if it is not a
-    cid-keyed font)
-    """
+    @property
+    def cidsubfontcnt(self) -> int:
+        """
+        Returns the number of subfonts in this cid-keyed font (or 0 if it is not a
+        cid-keyed font)
+        """
+        ...
 
-    cidsubfontnames: tuple[str, ...]
-    """
-    Returns a tuple of the subfont names in this cid-keyed font (or None if it
-    is not a cid-keyed font)
-    """
+    @property
+    def cidsubfontnames(self) -> tuple[str, ...] | None:
+        """
+        Returns a tuple of the subfont names in this cid-keyed font (or None if it
+        is not a cid-keyed font)
+        """
+        ...
 
     cidsupplement: int
     """CID Supplement"""
@@ -4599,8 +4637,10 @@ class font(AbstractContextManager[font]):
     copyright: str | None
     """PostScript copyright notice."""
 
-    creationtime: str
-    """Font creation time. (readonly)"""
+    @property
+    def creationtime(self) -> str:
+        """Font creation time. (readonly)"""
+        ...
 
     cvt: Sequence[int]
     """
@@ -4657,13 +4697,13 @@ class font(AbstractContextManager[font]):
     gasp: tuple[
         tuple[
             int,
-            tuple[
+            _Flags[
                 Literal[
                     "gridfit", "antialias", "symmetric-smoothing", "gridfit+smoothing"
                 ],
-                ...,
             ],
-        ]
+        ],
+        ...,
     ]
     """
     Returns a tuple of all gasp table entries. Each item in the tuple is itself
@@ -4679,17 +4719,21 @@ class font(AbstractContextManager[font]):
     gasp_version: int
     """The version of the 'gasp' table. Currently this may be 0 or 1. """
 
-    gpos_lookups: tuple[str, ...]
-    """
-    Returns a tuple of all positioning lookup names in the font.
-    This member cannot be set.
-    """
+    @property
+    def gpos_lookups(self) -> tuple[str, ...]:
+        """
+        Returns a tuple of all positioning lookup names in the font.
+        This member cannot be set.
+        """
+        ...
 
-    gsub_lookups: tuple[str, ...]
-    """
-    Returns a tuple of all substitution lookup names in the font.
-    This member cannot be set.
-    """
+    @property
+    def gsub_lookups(self) -> tuple[str, ...]:
+        """
+        Returns a tuple of all substitution lookup names in the font.
+        This member cannot be set.
+        """
+        ...
 
     guide: layer
     """A copy of the font's guide layer."""
@@ -4819,8 +4863,10 @@ class font(AbstractContextManager[font]):
     (Note: The comma after the ``dflt`` tuple puts it into a one-element tuple.)
     """
 
-    is_cid: int
-    """Indicates whether the font is a cid-keyed font or not. (Read-only)"""
+    @property
+    def is_cid(self) -> int:
+        """Indicates whether the font is a cid-keyed font or not. (Read-only)"""
+        ...
 
     is_quadratic: int
     """
@@ -4832,8 +4878,10 @@ class font(AbstractContextManager[font]):
     on the font's :attr:`font.layers`.
     """
 
-    isnew: int
-    """A flag indicating that this is a new font."""
+    @property
+    def isnew(self) -> int:
+        """A flag indicating that this is a new font."""
+        ...
 
     italicangle: float
     """The Italic angle (skewedness) of the font"""
@@ -4875,81 +4923,86 @@ class font(AbstractContextManager[font]):
     (source https://docs.microsoft.com/en-us/typography/opentype/spec/head)
     """
 
-    layer_cnt: int
-    """
-    The number of layers in the font. (Read only. Can change using ``add``
-    and ``del`` operations on the :attr:`font.layers` array)
-    """
+    @property
+    def layer_cnt(self) -> int:
+        """
+        The number of layers in the font. (Read only. Can change using ``add``
+        and ``del`` operations on the :attr:`font.layers` array)
+        """
+        ...
 
-    layers: dict[str, FontLayerInfo]
-    """
-    Returns a dictionary like object with information on the layers of the
-    font -- a name and a boolean indicating whether the layer is quadratic or not.
+    @property
+    def layers(self) -> dict[str, FontLayerInfo]:
+        """
+        Returns a dictionary like object with information on the layers of the
+        font -- a name and a boolean indicating whether the layer is quadratic or not.
 
-    You may remove a layer with ::
+        You may remove a layer with ::
 
-      del font.layers["unneeded layer"]
+          del font.layers["unneeded layer"]
 
-    You may add a new layer with ::
+        You may add a new layer with ::
 
-      font.layers.add("layer-name",is_quadratic[, is_background])
+          font.layers.add("layer-name",is_quadratic[, is_background])
 
-    You may change a layer's name with ::
+        You may change a layer's name with ::
 
-      font.layers["layer"].name = "new-name"
+          font.layers["layer"].name = "new-name"
 
-    You may change the type of splines in a layer with ::
+        You may change the type of splines in a layer with ::
 
-      font.layers["layer"].is_quadratic = True
+          font.layers["layer"].is_quadratic = True
 
-    You may change whether it is a background layer by ::
+        You may change whether it is a background layer by ::
 
-      font.layers["layer"].is_background = True
-    """
+          font.layers["layer"].is_background = True
+        """
+        ...
 
-    loadState: int
-    """
-    A bitmask indicating non-fatal errors found when loading the font. (readonly)
+    @property
+    def loadState(self) -> int:
+        """
+        A bitmask indicating non-fatal errors found when loading the font. (readonly)
 
-    0x01:
+        0x01:
 
-      Bad PostScript entry in 'name' table
+          Bad PostScript entry in 'name' table
 
-    0x02:
+        0x02:
 
-      Bad 'glyf' or 'loca' table
+          Bad 'glyf' or 'loca' table
 
-    0x04:
+        0x04:
 
-      Bad 'CFF ' table
+          Bad 'CFF ' table
 
-    0x08:
+        0x08:
 
-      Bad 'hhea', 'hmtx', 'vhea' or 'vmtx' table
+          Bad 'hhea', 'hmtx', 'vhea' or 'vmtx' table
 
-    0x10:
+        0x10:
 
-      Bad 'cmap' table
+          Bad 'cmap' table
 
-    0x20:
+        0x20:
 
-      Bad 'EBLC', 'bloc', 'EBDT' or 'bdat' (embedded bitmap) table
+          Bad 'EBLC', 'bloc', 'EBDT' or 'bdat' (embedded bitmap) table
 
-    0x40:
+        0x40:
 
-      Bad Apple GX advanced typography table
+          Bad Apple GX advanced typography table
 
-    0x80:
+        0x80:
 
-      Bad OpenType advanced typography table (GPOS, GSUB, GDEF, BASE)
+          Bad OpenType advanced typography table (GPOS, GSUB, GDEF, BASE)
 
-    0x100:
+        0x100:
 
-      Bad OS/2 version number
+          Bad OS/2 version number
 
-      Windows will reject all fonts with a OS/2 version number of 0 and will
-      reject OT-CFF fonts with a version number of 1
-    """
+          Windows will reject all fonts with a OS/2 version number of 0 and will
+          reject OT-CFF fonts with a version number of 1
+        """
 
     markClasses: tuple[tuple[str, tuple[str, ...]], ...] | None
     """
@@ -4981,8 +5034,10 @@ class font(AbstractContextManager[font]):
     maxp_zones: int
     """The number of zones used in the tt program"""
 
-    multilayer: int
-    """Flag indicating whether the font is multilayered (type3) or not (readonly)"""
+    @property
+    def multilayer(self) -> int:
+        """Flag indicating whether the font is multilayered (type3) or not (readonly)"""
+        ...
 
     onlybitmaps: int
     """A flag indicating that this font only contains bitmaps. No outlines. """
@@ -5101,13 +5156,15 @@ class font(AbstractContextManager[font]):
     os2_xheight: int
     """OS/2 x Height"""
 
-    path: str
-    """
-    (readonly) Returns a string containing the name of the file from which the
-    font was originally read (in this session), or if this is a new font, returns
-    a made up filename in the current directory named something like
-    "Untitled1.sfd". See also :attr:`font.sfd_path`.
-    """
+    @property
+    def path(self) -> str:
+        """
+        (readonly) Returns a string containing the name of the file from which the
+        font was originally read (in this session), or if this is a new font, returns
+        a made up filename in the current directory named something like
+        "Untitled1.sfd". See also :attr:`font.sfd_path`.
+        """
+        ...
 
     persistent: object
     """
@@ -5134,135 +5191,147 @@ class font(AbstractContextManager[font]):
       be stored in the temporary dict described below.
     """
 
-    math: math
-    """
-    Returns a :class:`math` object which provides information on the font's
-    underlying math constant table.  There is only one of these per font.
-    """
+    @property
+    def math(self) -> math:
+        """
+        Returns a :class:`math` object which provides information on the font's
+        underlying math constant table.  There is only one of these per font.
+        """
+        ...
 
-    private: private
-    """
-    Returns a :class:`private` dictionary-like object representing the
-    PostScript private dictionary for the font. Changing entries in this object
-    will change them in the font. (It's a reference, not a copy).
+    @property
+    def private(self) -> private:
+        """
+        Returns a :class:`private` dictionary-like object representing the
+        PostScript private dictionary for the font. Changing entries in this object
+        will change them in the font. (It's a reference, not a copy).
 
-    There is an iterator associated with this entry.
-    """
+        There is an iterator associated with this entry.
+        """
+        ...
 
-    privateState: int
-    """
-    Checks the (PostScript) Private dictionary and returns a bitmask of some
-    common errors.
+    @property
+    def privateState(self) -> int:
+        """
+        Checks the (PostScript) Private dictionary and returns a bitmask of some
+        common errors.
 
-    0x000001:
+        0x000001:
 
-      Odd number of elements in either the BlueValues or OtherBlues array.
+          Odd number of elements in either the BlueValues or OtherBlues array.
 
-    0x000002:
+        0x000002:
 
-      Elements in either the BlueValues or OtherBlues are disordered.
+          Elements in either the BlueValues or OtherBlues are disordered.
 
-    0x000004:
+        0x000004:
 
-      Too many elements in either the BlueValues or OtherBlues array.
+          Too many elements in either the BlueValues or OtherBlues array.
 
-    0x000008:
+        0x000008:
 
-      Elements in either the BlueValues or OtherBlues array are too close
-      (must be at least ``2*BlueFuzz +1`` apart).
+          Elements in either the BlueValues or OtherBlues array are too close
+          (must be at least ``2*BlueFuzz +1`` apart).
 
-    0x000010:
+        0x000010:
 
-      Elements in either the BlueValues or OtherBlues array are not integers.
+          Elements in either the BlueValues or OtherBlues array are not integers.
 
-    0x000020:
+        0x000020:
 
-      Alignment zone height in either the BlueValues or OtherBlues array is too
-      big for the value of BlueScale.
+          Alignment zone height in either the BlueValues or OtherBlues array is too
+          big for the value of BlueScale.
 
-    0x000100:
+        0x000100:
 
-      Odd number of elements in either the FamilyBlues or FamilyOtherBlues array.
+          Odd number of elements in either the FamilyBlues or FamilyOtherBlues array.
 
-    0x000200:
+        0x000200:
 
-      Elements in either the FamilyBlues or FamilyOtherBlues are disordered.
+          Elements in either the FamilyBlues or FamilyOtherBlues are disordered.
 
-    0x000400:
+        0x000400:
 
-      Too many elements in either the FamilyBlues or FamilyOtherBlues array.
+          Too many elements in either the FamilyBlues or FamilyOtherBlues array.
 
-    0x000800:
+        0x000800:
 
-      Elements in either the FamilyBlues or FamilyOtherBlues array are too
-      close (must be at least ``2*BlueFuzz +1`` apart).
+          Elements in either the FamilyBlues or FamilyOtherBlues array are too
+          close (must be at least ``2*BlueFuzz +1`` apart).
 
-    0x001000:
+        0x001000:
 
-      Elements in either the FamilyBlues or FamilyOtherBlues array are not
-      integers.
+          Elements in either the FamilyBlues or FamilyOtherBlues array are not
+          integers.
 
-    0x002000:
+        0x002000:
 
-      Alignment zone height in either the FamilyBlues or FamilyOtherBlues array
-      is too big for the value of BlueScale.
+          Alignment zone height in either the FamilyBlues or FamilyOtherBlues array
+          is too big for the value of BlueScale.
 
-    0x010000:
+        0x010000:
 
-      Missing BlueValues entry.
+          Missing BlueValues entry.
 
-    0x020000:
+        0x020000:
 
-      Bad BlueFuzz entry.
+          Bad BlueFuzz entry.
 
-    0x040000:
+        0x040000:
 
-      Bad BlueScale entry.
+          Bad BlueScale entry.
 
-    0x080000:
+        0x080000:
 
-      Bad StdHW entry.
+          Bad StdHW entry.
 
-    0x100000:
+        0x100000:
 
-      Bad StdVW entry.
+          Bad StdVW entry.
 
-    0x200000:
+        0x200000:
 
-      Bad StemSnapH entry.
+          Bad StemSnapH entry.
 
-    0x400000:
+        0x400000:
 
-      Bad StemSnapV entry.
+          Bad StemSnapV entry.
 
-    0x800000:
+        0x800000:
 
-      StemSnapH does not include StdHW.
+          StemSnapH does not include StdHW.
 
-    0x1000000:
+        0x1000000:
 
-      StemSnapV does not include StdVW.
+          StemSnapV does not include StdVW.
 
-    0x2000000:
+        0x2000000:
 
-      Bad BlueShift entry.
-    """
+          Bad BlueShift entry.
+        """
+        ...
 
-    selection: selection | tuple[int | bool, ...]
-    """
-    Returns a reference to a ``selection`` representing the font's selection.
-    There is one entry for each encoding slot (there may
-    not be a glyph attached to every encoding slot). You may set this with a
-    tuple of integers (or boolean values). There should not be more entries in
-    the tuple than there are encoding slots in the current encoding. A ``True``
-    or non-0 value means the slot is selected.
-    """
+    @property
+    def selection(self) -> selection:
+        """
+        Returns a reference to a ``selection`` representing the font's selection.
+        There is one entry for each encoding slot (there may
+        not be a glyph attached to every encoding slot). You may set this with a
+        sequence of integers (or boolean values). There should not be more entries in
+        the sequence than there are encoding slots in the current encoding. A ``True``
+        or non-0 value means the slot is selected.
+        """
+        ...
 
-    sfd_path: str | None
-    """
-    (readonly) Returns a string (or None) containing the name of the sfd file
-    associated with this font. Sometimes this will be the same as :attr:`font.path`.
-    """
+    @selection.setter
+    def selection(self, value: selection | Sequence[int | bool]) -> None: ...
+    @property
+    def sfd_path(self) -> str | None:
+        """
+        (readonly) Returns a string (or None) containing the name of the sfd file
+        associated with this font. Sometimes this will be the same as :attr:`font.path`.
+        """
+        ...
 
     sfnt_names: tuple[tuple[str | int, str | int, str], ...]
     """
@@ -5354,7 +5423,10 @@ class font(AbstractContextManager[font]):
       the font will be written.
     """
 
-    texparameters: tuple[
+    @property
+    def texparameters(
+        self,
+    ) -> tuple[
         Literal["text", "mathsym", "mathext", "unset"],
         float,
         float,
@@ -5378,18 +5450,19 @@ class font(AbstractContextManager[font]):
         float,
         float,
         float,
-    ]
-    """
-    Returns a tuple of TeX font parameters. TeX font type
-    followed by 22 parameters. Font type is one of:
+    ]:
+        """
+        Returns a tuple of TeX font parameters. TeX font type
+        followed by 22 parameters. Font type is one of:
 
-      * ``text``
-      * ``mathsym``
-      * ``mathext``
-      * ``unset``
+          * ``text``
+          * ``mathsym``
+          * ``mathext``
+          * ``unset``
 
-    In case of ``unset`` default values for font parameters will be returned.
-    """
+        In case of ``unset`` default values for font parameters will be returned.
+        """
+        ...
 
     uniqueid: int
     """PostScript Unique ID"""
@@ -5474,13 +5547,15 @@ class font(AbstractContextManager[font]):
     unparsed xml.
     """
 
-    xHeight: float
-    """
-    (readonly) Computes the X Height (the height of lower case letters such as
-    "x"). A negative number indicates the value could not be computed (the font
-    might have no lower case letters because it was upper case only, or didn't
-    include glyphs for a script with lower case letters).
-    """
+    @property
+    def xHeight(self) -> float:
+        """
+        (readonly) Computes the X Height (the height of lower case letters such as
+        "x"). A negative number indicates the value could not be computed (the font
+        might have no lower case letters because it was upper case only, or didn't
+        include glyphs for a script with lower case letters).
+        """
+        ...
 
     xuid: str
     """
@@ -5972,7 +6047,7 @@ class font(AbstractContextManager[font]):
         self,
         other_font: font,
         filename: str,
-        flags_tuple: tuple[
+        flags: _Flags[
             Literal[
                 "outlines",
                 "outlines-exactly",
@@ -5986,7 +6061,6 @@ class font(AbstractContextManager[font]):
                 "add-outlines",
                 "create-glyphs",
             ],
-            ...,
         ],
     ) -> int:
         """
@@ -6082,7 +6156,7 @@ class font(AbstractContextManager[font]):
         self,
         contour: contour | layer,
         error_bound: float = 0.01,
-        search_flags: tuple[Literal["reverse", "flips", "rotate", "scale"], ...] = (
+        search_flags: _Flags[Literal["reverse", "flips", "rotate", "scale"]] = (
             "reverse",
             "flips",
         ),
@@ -6127,7 +6201,7 @@ class font(AbstractContextManager[font]):
         filename: str,
         *,
         bitmap_type: str | None = None,
-        flags: tuple[
+        flags: _Flags[
             Literal[
                 "afm",
                 "pfm",
@@ -6155,7 +6229,6 @@ class font(AbstractContextManager[font]):
                 "PfEd-background",
                 "symbol",
             ],
-            ...,
         ] = (),
         bitmap_resolution: int | None = None,
         subfont_directory: str | None = None,
@@ -6282,7 +6355,7 @@ class font(AbstractContextManager[font]):
         filename: str,
         others: Sequence[font] | font | None,
         *,
-        flags: tuple[
+        flags: _Flags[
             Literal[
                 "afm",
                 "pfm",
@@ -6298,6 +6371,7 @@ class font(AbstractContextManager[font]):
                 "dummy-dsig",
                 "no-FFTM-table",
                 "TeX-table",
+                "no-mac-names",
                 "round",
                 "no-hints",
                 "no-flex",
@@ -6309,9 +6383,8 @@ class font(AbstractContextManager[font]):
                 "PfEd-background",
                 "symbol",
             ],
-            ...,
         ] = (),
-        ttcflags: tuple[Literal["merge", "cff"], ...] = (),
+        ttcflags: _Flags[Literal["merge", "cff"]] = (),
         namelist: str | None = None,
         layer: str | int | None = None,
     ) -> Self:
@@ -6997,7 +7070,7 @@ class font(AbstractContextManager[font]):
     def simplify(
         self,
         error_bound: float | None = None,
-        flags: tuple[
+        flags: _Flags[
             Literal[
                 "ignoreslopes",
                 "ignoreextrema",
@@ -7009,7 +7082,6 @@ class font(AbstractContextManager[font]):
                 "setstarttoextremum",
                 "removesingletonpoints",
             ],
-            ...,
         ] = (),
         tan_bounds: float | None = None,
         linefixup: float | None = None,
@@ -7114,11 +7186,10 @@ class font(AbstractContextManager[font]):
     def transform(
         self,
         matrix: tuple[float, float, float, float, float, float],
-        flags: tuple[
+        flags: _Flags[
             Literal[
                 "activeLayer", "guide", "noWidth", "round", "simplePos", "kernClasses"
             ],
-            ...,
         ] = (),
     ) -> Self:
         """
