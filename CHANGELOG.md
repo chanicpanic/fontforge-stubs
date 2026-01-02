@@ -7,6 +7,8 @@ and this project uses YYYY.MM.DD [calendar versioning](https://calver.org/).
 
 ## Unreleased
 
+## 2026.1.2 - 2026-01-02
+
 ### Added
 
 - Several missing `fontforge` classes:
