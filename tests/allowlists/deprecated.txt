@@ -1,0 +1,7 @@
+fontforge.activeFontInUI
+fontforge.contour.spiro
+fontforge.font.iscid
+fontforge.font.persistant
+fontforge.font.vertical_origin
+fontforge.glyph.persistant
+fontforge.glyph.userdata

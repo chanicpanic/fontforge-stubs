@@ -542,9 +542,74 @@ def unitShape(n: int) -> contour:
     for n=2,-1,-2.
     """
     ...
+@final
+class awglyph:
+    """FontForge Auto Width/Kern Glyph object"""
+
+    @property
+    def glyph(self) -> glyph | None:
+        """The underlying glyph which this object describes"""
+        ...
+
+    @property
+    def boundingbox(self) -> tuple[float, float, float, float]:
+        """The bounding box of the underlying glyph"""
+        ...
+
+    @property
+    def iminY(self) -> int:
+        """floor(bb.min_y/decimation_height)"""
+        ...
+
+    @property
+    def imaxY(self) -> int:
+        """ceil(bb.max_y/decimation_height)"""
+        ...
+
+    @property
+    def left(self) -> Mapping[int, int]:
+        """Left edge offsets from bounding box"""
+        ...
+
+    @property
+    def right(self) -> Mapping[int, int]:
+        """Right edge offsets from bounding box"""
+        ...
+
+@final
+class awcontext:
+    """FontForge Auto Width/Kern Context object"""
+
+    @property
+    def font(self) -> font:
+        """The underlying font which this object describes"""
+        ...
+
+    @property
+    def emSize(self) -> int:
+        """Font's em-size"""
+        ...
+
+    @property
+    def layer(self) -> int:
+        """active layer during the current operation"""
+        ...
+
+    @property
+    def regionHeight(self) -> int:
+        """
+        The y coordinate line is subdivided into regions, and this is the
+        height of each region
+        """
+        ...
+
+    @property
+    def denom(self) -> float:
+        """A useful small number which varies with the emsize"""
+        ...
 
 def registerGlyphSeparationHook(
-    hook: Callable[[glyph, glyph, Any, _T | None], int] | None = None,
+    hook: Callable[[awglyph, awglyph, awcontext, _T | None], int] | None = None,
     arg: _T | None = None,
 ) -> None:
     """
@@ -2222,18 +2287,38 @@ class glyphPen:
         """
         ...
 
-_GlyphReference: TypeAlias = (
-    tuple[str]
-    | tuple[str, tuple[float, float, float, float, float, float]]
-    | tuple[str, tuple[float, float, float, float, float, float], bool]
-)
+_layer_reference: TypeAlias = tuple[
+    str, tuple[float, float, float, float, float, float], bool
+]
 """
 A tuple of a glyph-name, a transformation matrix, and whether the reference is
 currently selected.
 """
 
-@type_check_only
-class GlyphMathKerning:
+_layer_reference_set: TypeAlias = (
+    tuple[str]
+    | tuple[str, tuple[float, float, float, float, float, float]]
+    | _layer_reference
+)
+
+@final
+class references(Mapping[str | int, tuple[_layer_reference, ...]]):
+    """FontForge layers references array"""
+
+    @override
+    def __iter__(self) -> Iterator[str]: ...
+    @override
+    def __len__(self) -> int: ...
+    @override
+    def __getitem__(self, key: str | int) -> tuple[_layer_reference, ...]: ...
+    def __setitem__(
+        self,
+        key: str | int,
+        value: Sequence[_layer_reference_set],
+    ) -> None: ...
+
+@final
+class mathKern:
     """
     Represents math kerning data for a glyph.
 
@@ -2242,16 +2327,16 @@ class GlyphMathKerning:
     meaningless, but present).
     """
 
-    bottomLeft: tuple[tuple[int, int], tuple[int, int]]
+    bottomLeft: tuple[tuple[int, int], tuple[int, int]] | None
     """The glyph's math kerning data associated with the bottom left vertex."""
 
-    bottomRight: tuple[tuple[int, int], tuple[int, int]]
+    bottomRight: tuple[tuple[int, int], tuple[int, int]] | None
     """The glyph's math kerning data associated with the bottom right vertex."""
 
-    topLeft: tuple[tuple[int, int], tuple[int, int]]
+    topLeft: tuple[tuple[int, int], tuple[int, int]] | None
     """The glyph's math kerning data associated with the top left vertex."""
 
-    topRight: tuple[tuple[int, int], tuple[int, int]]
+    topRight: tuple[tuple[int, int], tuple[int, int]] | None
     """The glyph's math kerning data associated with the top right vertex."""
 
 @type_check_only
@@ -2421,6 +2506,25 @@ class GlyphChangeOptions(TypedDict, total=False):
     Required if ``vCounterType`` is "mapped" or omitted.
     """
 
+@final
+class layer_array:
+    """FontForge layers array"""
+
+    @property
+    def font(self) -> font | None:
+        """Returns the font to which this object belongs"""
+        ...
+
+    @property
+    def glyph(self) -> glyph | None:
+        """Returns the glyph to which this object belongs"""
+        ...
+
+    def __len__(self) -> int: ...
+    def __getitem__(self, key: str | int) -> layer: ...
+    def __setitem__(self, key: str | int, value: layer | contour) -> None: ...
+    def __iter__(self) -> Iterator[str]: ...
+
 # Glyph class
 @final
 class glyph:
@@ -2436,11 +2540,16 @@ class glyph:
     must be created through the font. See :meth:`font.createChar()`.
     """
 
-    activeLayer: int
-    """
-    Returns currently active layer in the glyph (as an integer). May be set to
-    an integer or a layer name to change the active layer.
-    """
+    @property
+    def activeLayer(self) -> int:
+        """
+        Returns currently active layer in the glyph (as an integer). May be set to
+        an integer or a layer name to change the active layer.
+        """
+        ...
+
+    @activeLayer.setter
+    def activeLayer(self, value: int | str) -> None: ...
 
     altuni: tuple[tuple[int, int, int] | int, ...] | None
     """
@@ -2644,7 +2753,7 @@ class glyph:
         ...
 
     @property
-    def layers(self) -> dict[str | int, layer]:
+    def layers(self) -> layer_array:
         """
         A dictionary like object containing the layers of the glyph. It may be
         indexed by either a layer name or an integer between 0 and
@@ -2654,7 +2763,7 @@ class glyph:
         ...
 
     @property
-    def layerrefs(self) -> dict[str | int, _GlyphReference]:
+    def layerrefs(self) -> references:
         """
         A dictionary like object containing the references in the layers of the
         glyph. It may be indexed by either a layer name, or an integer between 0 and
@@ -2684,7 +2793,7 @@ class glyph:
     """
 
     @property
-    def mathKern(self) -> GlyphMathKerning:
+    def mathKern(self) -> mathKern:
         """The glyph's math kerning data associated with its vertices."""
         ...
 
@@ -2700,13 +2809,17 @@ class glyph:
     See also the :attr:`glyph.temporary` field.
     """
 
-    references: tuple[_GlyphReference, ...]
-    """
-    A tuple of tuples containing, for each reference in the foreground, a
-    glyph-name, a transformation matrix, and whether the reference is currently
-    selected. When assigning to the object the matrix and ``selected`` values
-    are optional. See also :attr:`glyph.foreground` and :attr:`glyph.layerrefs`.
-    """
+    @property
+    def references(self) -> tuple[_layer_reference, ...]:
+        """
+        A tuple of tuples containing, for each reference in the foreground, a
+        glyph-name, a transformation matrix, and whether the reference is currently
+        selected. When assigning to the object the matrix and ``selected`` values
+        are optional. See also :attr:`glyph.foreground` and :attr:`glyph.layerrefs`.
+        """
+
+    @references.setter
+    def references(self, value: Sequence[_layer_reference_set]) -> None: ...
 
     right_side_bearing: int
     """The right side bearing of the glyph"""
@@ -3959,12 +4072,6 @@ class private(Mapping[str, str | float | int | tuple[float, ...]]):
         self, key: str, value: str | float | int | tuple[float, ...]
     ) -> None: ...
 
-_DeviceTable: TypeAlias = dict[int, int]
-"""
-A dictionary with keys representing a font size in pixels and values representing
-the corresponding adjustment, e.g. ``{9: -1, 10: -1, 12: -1}``.
-"""
-
 @final
 class math:
     """
@@ -3980,7 +4087,7 @@ class math:
 
     These all take (16 bit) integer values.
 
-    Setting a ``DeviceTable`` property to ``None`` will delete it.
+    Setting a ``device_table`` property to ``None`` will delete it.
 
     Device table entries can also be queried and assigned by font size ::
 
@@ -3988,6 +4095,24 @@ class math:
        adj = font.math.MathLeadingDeviceTable[12]
 
     """
+
+    @final
+    @type_check_only
+    class device_table(Mapping[int, int]):
+        """
+        fontforge device table for math constants
+
+        Keys represent a font size in pixels and values represent the
+        corresponding adjustment.
+        """
+
+        @override
+        def __iter__(self) -> Iterator[int]: ...
+        @override
+        def __len__(self) -> int: ...
+        @override
+        def __getitem__(self, key: int) -> int: ...
+        def __setitem__(self, key: int, value: int | None) -> None: ...
 
     ScriptPercentScaleDown: int
     """Percentage scale down for script level 1."""
@@ -4004,26 +4129,48 @@ class math:
     MathLeading: int
     """White space to be left between math formulae to ensure proper line spacing."""
 
-    MathLeadingDeviceTable: _DeviceTable | None
-    """White space to be left between math formulae to ensure proper line spacing."""
+    @property
+    def MathLeadingDeviceTable(self) -> device_table:
+        """White space to be left between math formulae to ensure proper line spacing."""
+        ...
+
+    @MathLeadingDeviceTable.setter
+    def MathLeadingDeviceTable(self, value: Mapping[int, int] | None) -> None: ...
 
     AxisHeight: int
     """Axis height of the font."""
 
-    AxisHeightDeviceTable: _DeviceTable | None
-    """Axis height of the font."""
+    @property
+    def AxisHeightDeviceTable(self) -> device_table:
+        """Axis height of the font."""
+        ...
+
+    @AxisHeightDeviceTable.setter
+    def AxisHeightDeviceTable(self, value: Mapping[int, int] | None) -> None: ...
 
     AccentBaseHeight: int
     """Maximum (ink) height of accent base that does not require raising the accents."""
 
-    AccentBaseHeightDeviceTable: _DeviceTable | None
-    """Maximum (ink) height of accent base that does not require raising the accents."""
+    @property
+    def AccentBaseHeightDeviceTable(self) -> device_table:
+        """Maximum (ink) height of accent base that does not require raising the accents."""
+        ...
+
+    @AccentBaseHeightDeviceTable.setter
+    def AccentBaseHeightDeviceTable(self, value: Mapping[int, int] | None) -> None: ...
 
     FlattenedAccentBaseHeight: int
     """Maximum (ink) height of accent base that does not require flattening the accents."""
 
-    FlattenedAccentBaseHeightDeviceTable: _DeviceTable | None
-    """Maximum (ink) height of accent base that does not require flattening the accents."""
+    @property
+    def FlattenedAccentBaseHeightDeviceTable(self) -> device_table:
+        """Maximum (ink) height of accent base that does not require flattening the accents."""
+        ...
+
+    @FlattenedAccentBaseHeightDeviceTable.setter
+    def FlattenedAccentBaseHeightDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     SubscriptShiftDown: int
     """
@@ -4031,11 +4178,18 @@ class math:
     moving downward.
     """
 
-    SubscriptShiftDownDeviceTable: _DeviceTable | None
-    """
-    The standard shift down applied to subscript elements. Positive for
-    moving downward.
-    """
+    @property
+    def SubscriptShiftDownDeviceTable(self) -> device_table:
+        """
+        The standard shift down applied to subscript elements. Positive for
+        moving downward.
+        """
+        ...
+
+    @SubscriptShiftDownDeviceTable.setter
+    def SubscriptShiftDownDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     SubscriptTopMax: int
     """
@@ -4043,11 +4197,16 @@ class math:
     subscripts further down.
     """
 
-    SubscriptTopMaxDeviceTable: _DeviceTable | None
-    """
-    Maximum height of the (ink) top of subscripts that does not require moving
-    subscripts further down.
-    """
+    @property
+    def SubscriptTopMaxDeviceTable(self) -> device_table:
+        """
+        Maximum height of the (ink) top of subscripts that does not require moving
+        subscripts further down.
+        """
+        ...
+
+    @SubscriptTopMaxDeviceTable.setter
+    def SubscriptTopMaxDeviceTable(self, value: Mapping[int, int] | None) -> None: ...
 
     SubscriptBaselineDropMin: int
     """
@@ -4056,24 +4215,45 @@ class math:
     Positive for subscript baseline dropped below base bottom.
     """
 
-    SubscriptBaselineDropMinDeviceTable: _DeviceTable | None
-    """
-    Maximum allowed drop of the baseline of subscripts relative to the bottom of
-    the base. Used for bases that are treated as a box or extended shape.
-    Positive for subscript baseline dropped below base bottom.
-    """
+    @property
+    def SubscriptBaselineDropMinDeviceTable(self) -> device_table:
+        """
+        Maximum allowed drop of the baseline of subscripts relative to the bottom of
+        the base. Used for bases that are treated as a box or extended shape.
+        Positive for subscript baseline dropped below base bottom.
+        """
+        ...
+
+    @SubscriptBaselineDropMinDeviceTable.setter
+    def SubscriptBaselineDropMinDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     SuperscriptShiftUp: int
     """Standard shift up applied to superscript elements."""
 
-    SuperscriptShiftUpDeviceTable: _DeviceTable | None
-    """Standard shift up applied to superscript elements."""
+    @property
+    def SuperscriptShiftUpDeviceTable(self) -> device_table:
+        """Standard shift up applied to superscript elements."""
+        ...
+
+    @SuperscriptShiftUpDeviceTable.setter
+    def SuperscriptShiftUpDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     SuperscriptShiftUpCramped: int
     """Standard shift of superscript relative to base in cramped mode."""
 
-    SuperscriptShiftUpCrampedDeviceTable: _DeviceTable | None
-    """Standard shift of superscript relative to base in cramped mode."""
+    @property
+    def SuperscriptShiftUpCrampedDeviceTable(self) -> device_table:
+        """Standard shift of superscript relative to base in cramped mode."""
+        ...
+
+    @SuperscriptShiftUpCrampedDeviceTable.setter
+    def SuperscriptShiftUpCrampedDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     SuperscriptBottomMin: int
     """
@@ -4081,11 +4261,18 @@ class math:
     moving them further up.
     """
 
-    SuperscriptBottomMinDeviceTable: _DeviceTable | None
-    """
-    Minimum allowed height of the bottom of superscripts that does not require
-    moving them further up.
-    """
+    @property
+    def SuperscriptBottomMinDeviceTable(self) -> device_table:
+        """
+        Minimum allowed height of the bottom of superscripts that does not require
+        moving them further up.
+        """
+        ...
+
+    @SuperscriptBottomMinDeviceTable.setter
+    def SuperscriptBottomMinDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     SuperscriptBaselineDropMax: int
     """
@@ -4094,18 +4281,32 @@ class math:
     Positive for superscript baseline below base top.
     """
 
-    SuperscriptBaselineDropMaxDeviceTable: _DeviceTable | None
-    """
-    Maximum allowed drop of the baseline of superscripts relative to the top of
-    the base. Used for bases that are treated as a box or extended shape.
-    Positive for superscript baseline below base top.
-    """
+    @property
+    def SuperscriptBaselineDropMaxDeviceTable(self) -> device_table:
+        """
+        Maximum allowed drop of the baseline of superscripts relative to the top of
+        the base. Used for bases that are treated as a box or extended shape.
+        Positive for superscript baseline below base top.
+        """
+        ...
+
+    @SuperscriptBaselineDropMaxDeviceTable.setter
+    def SuperscriptBaselineDropMaxDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     SubSuperscriptGapMin: int
     """Minimum gap between the superscript and subscript ink."""
 
-    SubSuperscriptGapMinDeviceTable: _DeviceTable | None
-    """Minimum gap between the superscript and subscript ink."""
+    @property
+    def SubSuperscriptGapMinDeviceTable(self) -> device_table:
+        """Minimum gap between the superscript and subscript ink."""
+        ...
+
+    @SubSuperscriptGapMinDeviceTable.setter
+    def SubSuperscriptGapMinDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     SuperscriptBottomMaxWithSubscript: int
     """
@@ -4114,18 +4315,30 @@ class math:
     being moved down.
     """
 
-    SuperscriptBottomMaxWithSubscriptDeviceTable: _DeviceTable | None
-    """
-    The maximum level to which the (ink) bottom of superscript can be pushed to
-    increase the gap between superscript and subscript, before subscript starts
-    being moved down.
-    """
+    @property
+    def SuperscriptBottomMaxWithSubscriptDeviceTable(self) -> device_table:
+        """
+        The maximum level to which the (ink) bottom of superscript can be pushed to
+        increase the gap between superscript and subscript, before subscript starts
+        being moved down.
+        """
+        ...
+
+    @SuperscriptBottomMaxWithSubscriptDeviceTable.setter
+    def SuperscriptBottomMaxWithSubscriptDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     SpaceAfterScript: int
     """Extra white space to be added after each sub/superscript."""
 
-    SpaceAfterScriptDeviceTable: _DeviceTable | None
-    """Extra white space to be added after each sub/superscript."""
+    @property
+    def SpaceAfterScriptDeviceTable(self) -> device_table:
+        """Extra white space to be added after each sub/superscript."""
+        ...
+
+    @SpaceAfterScriptDeviceTable.setter
+    def SpaceAfterScriptDeviceTable(self, value: Mapping[int, int] | None) -> None: ...
 
     UpperLimitGapMin: int
     """
@@ -4133,11 +4346,16 @@ class math:
     operator.
     """
 
-    UpperLimitGapMinDeviceTable: _DeviceTable | None
-    """
-    Minimum gap between the bottom of the upper limit, and the top of the base
-    operator.
-    """
+    @property
+    def UpperLimitGapMinDeviceTable(self) -> device_table:
+        """
+        Minimum gap between the bottom of the upper limit, and the top of the base
+        operator.
+        """
+        ...
+
+    @UpperLimitGapMinDeviceTable.setter
+    def UpperLimitGapMinDeviceTable(self, value: Mapping[int, int] | None) -> None: ...
 
     UpperLimitBaselineRiseMin: int
     """
@@ -4145,11 +4363,18 @@ class math:
     the base operator.
     """
 
-    UpperLimitBaselineRiseMinDeviceTable: _DeviceTable | None
-    """
-    Minimum distance between the baseline of an upper limit and the bottom of
-    the base operator.
-    """
+    @property
+    def UpperLimitBaselineRiseMinDeviceTable(self) -> device_table:
+        """
+        Minimum distance between the baseline of an upper limit and the bottom of
+        the base operator.
+        """
+        ...
+
+    @UpperLimitBaselineRiseMinDeviceTable.setter
+    def UpperLimitBaselineRiseMinDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     LowerLimitGapMin: int
     """
@@ -4157,11 +4382,16 @@ class math:
     base operator.
     """
 
-    LowerLimitGapMinDeviceTable: _DeviceTable | None
-    """
-    Minimum gap between (ink) top of the lower limit, and (ink) bottom of the
-    base operator.
-    """
+    @property
+    def LowerLimitGapMinDeviceTable(self) -> device_table:
+        """
+        Minimum gap between (ink) top of the lower limit, and (ink) bottom of the
+        base operator.
+        """
+        ...
+
+    @LowerLimitGapMinDeviceTable.setter
+    def LowerLimitGapMinDeviceTable(self, value: Mapping[int, int] | None) -> None: ...
 
     LowerLimitBaselineDropMin: int
     """
@@ -4169,27 +4399,46 @@ class math:
     base operator.
     """
 
-    LowerLimitBaselineDropMinDeviceTable: _DeviceTable | None
-    """
-    Minimum distance between the baseline of the lower limit and bottom of the
-    base operator.
-    """
+    @property
+    def LowerLimitBaselineDropMinDeviceTable(self) -> device_table:
+        """
+        Minimum distance between the baseline of the lower limit and bottom of the
+        base operator.
+        """
+        ...
+
+    @LowerLimitBaselineDropMinDeviceTable.setter
+    def LowerLimitBaselineDropMinDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     StackTopShiftUp: int
     """Standard shift up applied to the top element of a stack."""
 
-    StackTopShiftUpDeviceTable: _DeviceTable | None
-    """Standard shift up applied to the top element of a stack."""
+    @property
+    def StackTopShiftUpDeviceTable(self) -> device_table:
+        """Standard shift up applied to the top element of a stack."""
+        ...
+
+    @StackTopShiftUpDeviceTable.setter
+    def StackTopShiftUpDeviceTable(self, value: Mapping[int, int] | None) -> None: ...
 
     StackTopDisplayStyleShiftUp: int
     """
     Standard shift up applied to the top element of a stack in display style.
     """
 
-    StackTopDisplayStyleShiftUpDeviceTable: _DeviceTable | None
-    """
-    Standard shift up applied to the top element of a stack in display style.
-    """
+    @property
+    def StackTopDisplayStyleShiftUpDeviceTable(self) -> device_table:
+        """
+        Standard shift up applied to the top element of a stack in display style.
+        """
+        ...
+
+    @StackTopDisplayStyleShiftUpDeviceTable.setter
+    def StackTopDisplayStyleShiftUpDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     StackBottomShiftDown: int
     """
@@ -4197,11 +4446,18 @@ class math:
     values indicate downward motion.
     """
 
-    StackBottomShiftDownDeviceTable: _DeviceTable | None
-    """
-    Standard shift down applied to the bottom element of a stack. Positive
-    values indicate downward motion.
-    """
+    @property
+    def StackBottomShiftDownDeviceTable(self) -> device_table:
+        """
+        Standard shift down applied to the bottom element of a stack. Positive
+        values indicate downward motion.
+        """
+        ...
+
+    @StackBottomShiftDownDeviceTable.setter
+    def StackBottomShiftDownDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     StackBottomDisplayStyleShiftDown: int
     """
@@ -4209,11 +4465,18 @@ class math:
     style. Positive values indicate downward motion.
     """
 
-    StackBottomDisplayStyleShiftDownDeviceTable: _DeviceTable | None
-    """
-    Standard shift down applied to the bottom element of a stack in display
-    style. Positive values indicate downward motion.
-    """
+    @property
+    def StackBottomDisplayStyleShiftDownDeviceTable(self) -> device_table:
+        """
+        Standard shift down applied to the bottom element of a stack in display
+        style. Positive values indicate downward motion.
+        """
+        ...
+
+    @StackBottomDisplayStyleShiftDownDeviceTable.setter
+    def StackBottomDisplayStyleShiftDownDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     StackGapMin: int
     """
@@ -4221,11 +4484,16 @@ class math:
     the bottom element.
     """
 
-    StackGapMinDeviceTable: _DeviceTable | None
-    """
-    Minimum gap between bottom of the top element of a stack, and the top of
-    the bottom element.
-    """
+    @property
+    def StackGapMinDeviceTable(self) -> device_table:
+        """
+        Minimum gap between bottom of the top element of a stack, and the top of
+        the bottom element.
+        """
+        ...
+
+    @StackGapMinDeviceTable.setter
+    def StackGapMinDeviceTable(self, value: Mapping[int, int] | None) -> None: ...
 
     StackDisplayStyleGapMin: int
     """
@@ -4233,17 +4501,31 @@ class math:
     bottom element in display style.
     """
 
-    StackDisplayStyleGapMinDeviceTable: _DeviceTable | None
-    """
-    Minimum gap between bottom of the top element of a stack and the top of the
-    bottom element in display style.
-    """
+    @property
+    def StackDisplayStyleGapMinDeviceTable(self) -> device_table:
+        """
+        Minimum gap between bottom of the top element of a stack and the top of the
+        bottom element in display style.
+        """
+        ...
+
+    @StackDisplayStyleGapMinDeviceTable.setter
+    def StackDisplayStyleGapMinDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     StretchStackTopShiftUp: int
     """Standard shift up applied to the top element of the stretch stack."""
 
-    StretchStackTopShiftUpDeviceTable: _DeviceTable | None
-    """Standard shift up applied to the top element of the stretch stack."""
+    @property
+    def StretchStackTopShiftUpDeviceTable(self) -> device_table:
+        """Standard shift up applied to the top element of the stretch stack."""
+        ...
+
+    @StretchStackTopShiftUpDeviceTable.setter
+    def StretchStackTopShiftUpDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     StretchStackBottomShiftDown: int
     """
@@ -4251,11 +4533,18 @@ class math:
     Positive values indicate downward motion.
     """
 
-    StretchStackBottomShiftDownDeviceTable: _DeviceTable | None
-    """
-    Standard shift down applied to the bottom element of the stretch stack.
-    Positive values indicate downward motion.
-    """
+    @property
+    def StretchStackBottomShiftDownDeviceTable(self) -> device_table:
+        """
+        Standard shift down applied to the bottom element of the stretch stack.
+        Positive values indicate downward motion.
+        """
+        ...
+
+    @StretchStackBottomShiftDownDeviceTable.setter
+    def StretchStackBottomShiftDownDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     StretchStackGapAboveMin: int
     """
@@ -4263,11 +4552,18 @@ class math:
     the element above.
     """
 
-    StretchStackGapAboveMinDeviceTable: _DeviceTable | None
-    """
-    Minimum gap between the ink of the stretched element and the ink bottom of
-    the element above.
-    """
+    @property
+    def StretchStackGapAboveMinDeviceTable(self) -> device_table:
+        """
+        Minimum gap between the ink of the stretched element and the ink bottom of
+        the element above.
+        """
+        ...
+
+    @StretchStackGapAboveMinDeviceTable.setter
+    def StretchStackGapAboveMinDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     StretchStackGapBelowMin: int
     """
@@ -4275,23 +4571,44 @@ class math:
     the element below.
     """
 
-    StretchStackGapBelowMinDeviceTable: _DeviceTable | None
-    """
-    Minimum gap between the ink of the stretched element and the ink top of
-    the element below.
-    """
+    @property
+    def StretchStackGapBelowMinDeviceTable(self) -> device_table:
+        """
+        Minimum gap between the ink of the stretched element and the ink top of
+        the element below.
+        """
+        ...
+
+    @StretchStackGapBelowMinDeviceTable.setter
+    def StretchStackGapBelowMinDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     FractionNumeratorShiftUp: int
     """Standard shift up applied to the numerator."""
 
-    FractionNumeratorShiftUpDeviceTable: _DeviceTable | None
-    """Standard shift up applied to the numerator."""
+    @property
+    def FractionNumeratorShiftUpDeviceTable(self) -> device_table:
+        """Standard shift up applied to the numerator."""
+        ...
+
+    @FractionNumeratorShiftUpDeviceTable.setter
+    def FractionNumeratorShiftUpDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     FractionNumeratorDisplayStyleShiftUp: int
     """Standard shift up applied to the numerator in display style."""
 
-    FractionNumeratorDisplayStyleShiftUpDeviceTable: _DeviceTable | None
-    """Standard shift up applied to the numerator in display style."""
+    @property
+    def FractionNumeratorDisplayStyleShiftUpDeviceTable(self) -> device_table:
+        """Standard shift up applied to the numerator in display style."""
+        ...
+
+    @FractionNumeratorDisplayStyleShiftUpDeviceTable.setter
+    def FractionNumeratorDisplayStyleShiftUpDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     FractionDenominatorShiftDown: int
     """
@@ -4299,11 +4616,18 @@ class math:
     downward motion.
     """
 
-    FractionDenominatorShiftDownDeviceTable: _DeviceTable | None
-    """
-    Standard shift down applied to the denominator. Positive values indicate
-    downward motion.
-    """
+    @property
+    def FractionDenominatorShiftDownDeviceTable(self) -> device_table:
+        """
+        Standard shift down applied to the denominator. Positive values indicate
+        downward motion.
+        """
+        ...
+
+    @FractionDenominatorShiftDownDeviceTable.setter
+    def FractionDenominatorShiftDownDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     FractionDenominatorDisplayStyleShiftDown: int
     """
@@ -4311,11 +4635,18 @@ class math:
     values indicate downward motion.
     """
 
-    FractionDenominatorDisplayStyleShiftDownDeviceTable: _DeviceTable | None
-    """
-    Standard shift down applied to the denominator in display style. Positive
-    values indicate downward motion.
-    """
+    @property
+    def FractionDenominatorDisplayStyleShiftDownDeviceTable(self) -> device_table:
+        """
+        Standard shift down applied to the denominator in display style. Positive
+        values indicate downward motion.
+        """
+        ...
+
+    @FractionDenominatorDisplayStyleShiftDownDeviceTable.setter
+    def FractionDenominatorDisplayStyleShiftDownDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     FractionNumeratorGapMin: int
     """
@@ -4323,11 +4654,18 @@ class math:
     the fraction bar.
     """
 
-    FractionNumeratorGapMinDeviceTable: _DeviceTable | None
-    """
-    Minimum tolerated gap between the ink bottom of the numerator and the ink of
-    the fraction bar.
-    """
+    @property
+    def FractionNumeratorGapMinDeviceTable(self) -> device_table:
+        """
+        Minimum tolerated gap between the ink bottom of the numerator and the ink of
+        the fraction bar.
+        """
+        ...
+
+    @FractionNumeratorGapMinDeviceTable.setter
+    def FractionNumeratorGapMinDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     FractionNumeratorDisplayStyleGapMin: int
     """
@@ -4335,17 +4673,31 @@ class math:
     the fraction bar in display style.
     """
 
-    FractionNumeratorDisplayStyleGapMinDeviceTable: _DeviceTable | None
-    """
-    Minimum tolerated gap between the ink bottom of the numerator and the ink of
-    the fraction bar in display style.
-    """
+    @property
+    def FractionNumeratorDisplayStyleGapMinDeviceTable(self) -> device_table:
+        """
+        Minimum tolerated gap between the ink bottom of the numerator and the ink of
+        the fraction bar in display style.
+        """
+        ...
+
+    @FractionNumeratorDisplayStyleGapMinDeviceTable.setter
+    def FractionNumeratorDisplayStyleGapMinDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     FractionRuleThickness: int
     """Thickness of the fraction bar."""
 
-    FractionRuleThicknessDeviceTable: _DeviceTable | None
-    """Thickness of the fraction bar."""
+    @property
+    def FractionRuleThicknessDeviceTable(self) -> device_table:
+        """Thickness of the fraction bar."""
+        ...
+
+    @FractionRuleThicknessDeviceTable.setter
+    def FractionRuleThicknessDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     FractionDenominatorGapMin: int
     """
@@ -4353,11 +4705,18 @@ class math:
     the fraction bar.
     """
 
-    FractionDenominatorGapMinDeviceTable: _DeviceTable | None
-    """
-    Minimum tolerated gap between the ink top of the denominator and the ink of
-    the fraction bar.
-    """
+    @property
+    def FractionDenominatorGapMinDeviceTable(self) -> device_table:
+        """
+        Minimum tolerated gap between the ink top of the denominator and the ink of
+        the fraction bar.
+        """
+        ...
+
+    @FractionDenominatorGapMinDeviceTable.setter
+    def FractionDenominatorGapMinDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     FractionDenominatorDisplayStyleGapMin: int
     """
@@ -4365,21 +4724,35 @@ class math:
     the fraction bar in display style.
     """
 
-    FractionDenominatorDisplayStyleGapMinDeviceTable: _DeviceTable | None
-    """
-    Minimum tolerated gap between the ink top of the denominator and the ink of
-    the fraction bar in display style.
-    """
+    @property
+    def FractionDenominatorDisplayStyleGapMinDeviceTable(self) -> device_table:
+        """
+        Minimum tolerated gap between the ink top of the denominator and the ink of
+        the fraction bar in display style.
+        """
+        ...
+
+    @FractionDenominatorDisplayStyleGapMinDeviceTable.setter
+    def FractionDenominatorDisplayStyleGapMinDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     SkewedFractionHorizontalGap: int
     """
     Horizontal distance between the top and bottom elements of a skewed fraction.
     """
 
-    SkewedFractionHorizontalGapDeviceTable: _DeviceTable | None
-    """
-    Horizontal distance between the top and bottom elements of a skewed fraction.
-    """
+    @property
+    def SkewedFractionHorizontalGapDeviceTable(self) -> device_table:
+        """
+        Horizontal distance between the top and bottom elements of a skewed fraction.
+        """
+        ...
+
+    @SkewedFractionHorizontalGapDeviceTable.setter
+    def SkewedFractionHorizontalGapDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     SkewedFractionVerticalGap: int
     """
@@ -4387,53 +4760,109 @@ class math:
     fraction.
     """
 
-    SkewedFractionVerticalGapDeviceTable: _DeviceTable | None
-    """
-    Vertical distance between the ink of the top and bottom elements of a skewed
-    fraction.
-    """
+    @property
+    def SkewedFractionVerticalGapDeviceTable(self) -> device_table:
+        """
+        Vertical distance between the ink of the top and bottom elements of a skewed
+        fraction.
+        """
+        ...
+
+    @SkewedFractionVerticalGapDeviceTable.setter
+    def SkewedFractionVerticalGapDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     OverbarVerticalGap: int
     """Distance between the overbar and the ink top of the base."""
 
-    OverbarVerticalGapDeviceTable: _DeviceTable | None
-    """Distance between the overbar and the ink top of the base."""
+    @property
+    def OverbarVerticalGapDeviceTable(self) -> device_table:
+        """Distance between the overbar and the ink top of the base."""
+        ...
+
+    @OverbarVerticalGapDeviceTable.setter
+    def OverbarVerticalGapDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     OverbarRuleThickness: int
     """Thickness of the overbar."""
 
-    OverbarRuleThicknessDeviceTable: _DeviceTable | None
-    """Thickness of the overbar."""
+    @property
+    def OverbarRuleThicknessDeviceTable(self) -> device_table:
+        """Thickness of the overbar."""
+        ...
+
+    @OverbarRuleThicknessDeviceTable.setter
+    def OverbarRuleThicknessDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     OverbarExtraAscender: int
     """Extra white space reserved above the overbar."""
 
-    OverbarExtraAscenderDeviceTable: _DeviceTable | None
-    """Extra white space reserved above the overbar."""
+    @property
+    def OverbarExtraAscenderDeviceTable(self) -> device_table:
+        """Extra white space reserved above the overbar."""
+        ...
+
+    @OverbarExtraAscenderDeviceTable.setter
+    def OverbarExtraAscenderDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     UnderbarVerticalGap: int
     """Distance between underbar and the (ink) bottom of the base."""
 
-    UnderbarVerticalGapDeviceTable: _DeviceTable | None
-    """Distance between underbar and the (ink) bottom of the base."""
+    @property
+    def UnderbarVerticalGapDeviceTable(self) -> device_table:
+        """Distance between underbar and the (ink) bottom of the base."""
+        ...
+
+    @UnderbarVerticalGapDeviceTable.setter
+    def UnderbarVerticalGapDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     UnderbarRuleThickness: int
     """Thickness of the underbar."""
 
-    UnderbarRuleThicknessDeviceTable: _DeviceTable | None
-    """Thickness of the underbar."""
+    @property
+    def UnderbarRuleThicknessDeviceTable(self) -> device_table:
+        """Thickness of the underbar."""
+        ...
+
+    @UnderbarRuleThicknessDeviceTable.setter
+    def UnderbarRuleThicknessDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     UnderbarExtraDescender: int
     """Extra white space reserved below the underbar."""
 
-    UnderbarExtraDescenderDeviceTable: _DeviceTable | None
-    """Extra white space reserved below the underbar."""
+    @property
+    def UnderbarExtraDescenderDeviceTable(self) -> device_table:
+        """Extra white space reserved below the underbar."""
+        ...
+
+    @UnderbarExtraDescenderDeviceTable.setter
+    def UnderbarExtraDescenderDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     RadicalVerticalGap: int
     """Space between the ink to of the expression and the bar over it."""
 
-    RadicalVerticalGapDeviceTable: _DeviceTable | None
-    """Space between the ink to of the expression and the bar over it."""
+    @property
+    def RadicalVerticalGapDeviceTable(self) -> device_table:
+        """Space between the ink to of the expression and the bar over it."""
+        ...
+
+    @RadicalVerticalGapDeviceTable.setter
+    def RadicalVerticalGapDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     RadicalDisplayStyleVerticalGap: int
     """
@@ -4441,47 +4870,82 @@ class math:
     style.
     """
 
-    RadicalDisplayStyleVerticalGapDeviceTable: _DeviceTable | None
-    """
-    Space between the ink top of the expression and the bar over it in display
-    style.
-    """
+    @property
+    def RadicalDisplayStyleVerticalGapDeviceTable(self) -> device_table:
+        """
+        Space between the ink top of the expression and the bar over it in display
+        style.
+        """
+        ...
+
+    @RadicalDisplayStyleVerticalGapDeviceTable.setter
+    def RadicalDisplayStyleVerticalGapDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     RadicalRuleThickness: int
     """
     Thickness of the radical rule in designed or constructed radical signs.
     """
 
-    RadicalRuleThicknessDeviceTable: _DeviceTable | None
-    """
-    Thickness of the radical rule in designed or constructed radical signs.
-    """
+    @property
+    def RadicalRuleThicknessDeviceTable(self) -> device_table:
+        """
+        Thickness of the radical rule in designed or constructed radical signs.
+        """
+        ...
+
+    @RadicalRuleThicknessDeviceTable.setter
+    def RadicalRuleThicknessDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     RadicalExtraAscender: int
     """Extra white space reserved above the radical."""
 
-    RadicalExtraAscenderDeviceTable: _DeviceTable | None
-    """Extra white space reserved above the radical."""
+    @property
+    def RadicalExtraAscenderDeviceTable(self) -> device_table:
+        """Extra white space reserved above the radical."""
+        ...
+
+    @RadicalExtraAscenderDeviceTable.setter
+    def RadicalExtraAscenderDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     RadicalKernBeforeDegree: int
     """
     Extra horizontal kern before the degree of a radical if such be present.
     """
 
-    RadicalKernBeforeDegreeDeviceTable: _DeviceTable | None
-    """
-    Extra horizontal kern before the degree of a radical if such be present.
-    """
+    @property
+    def RadicalKernBeforeDegreeDeviceTable(self) -> device_table:
+        """
+        Extra horizontal kern before the degree of a radical if such be present.
+        """
+        ...
+
+    @RadicalKernBeforeDegreeDeviceTable.setter
+    def RadicalKernBeforeDegreeDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     RadicalKernAfterDegree: int
     """
     Negative horizontal kern after the degree of a radical if such be present.
     """
 
-    RadicalKernAfterDegreeDeviceTable: _DeviceTable | None
-    """
-    Negative horizontal kern after the degree of a radical if such be present.
-    """
+    @property
+    def RadicalKernAfterDegreeDeviceTable(self) -> device_table:
+        """
+        Negative horizontal kern after the degree of a radical if such be present.
+        """
+        ...
+
+    @RadicalKernAfterDegreeDeviceTable.setter
+    def RadicalKernAfterDegreeDeviceTable(
+        self, value: Mapping[int, int] | None
+    ) -> None: ...
 
     RadicalDegreeBottomRaisePercent: int
     """
@@ -4504,9 +4968,43 @@ class math:
         """Removes any underlying math table from the font."""
         ...
 
-@type_check_only
-class FontLayerInfo:
-    """Information about a layer of a font."""
+@final
+class cvt:
+    """fontforge cvt (control value table) objects"""
+
+    @property
+    def font(self) -> font:
+        """Returns the font for this object"""
+        ...
+
+    def __len__(self) -> int: ...
+    def __add__(self, other: cvt | Sequence[int]) -> Sequence[int]: ...
+    def __iadd__(self, other: cvt | Sequence[int]) -> Self: ...
+    @overload
+    def __getitem__(self, key: int) -> int: ...
+    @overload
+    def __getitem__(self, key: slice) -> Sequence[int]: ...
+    @overload
+    def __setitem__(self, key: int, value: int) -> None: ...
+    @overload
+    def __setitem__(self, key: slice, value: Sequence[int]) -> None: ...
+    def __contains__(self, value: int) -> bool: ...
+    def __iter__(self) -> Iterator[int]: ...
+    def find(self, value: int, low: int = 0, high: int = ...) -> int:
+        """
+        Finds the index of value in the cvt table (or -1 if not found). If low and
+        high are specified then the index will be between ``[low,high)``.
+        """
+        ...
+
+@final
+class layerinfo:
+    """FontForge layer info"""
+
+    @property
+    def font(self) -> font:
+        """Returns the font to which this object belongs"""
+        ...
 
     name: str
     """The name of the layer."""
@@ -4516,6 +5014,27 @@ class FontLayerInfo:
 
     is_background: bool
     """Whether the layer is a background layer."""
+
+@final
+class layerinfo_array:
+    """FontForge layers array"""
+
+    @property
+    def font(self) -> font:
+        """Returns the font for this object"""
+        ...
+
+    def __len__(self) -> int: ...
+    def __getitem__(self, key: str | int) -> layerinfo: ...
+    def __setitem__(self, key: str | int, value: tuple[str, bool]) -> None:
+        """Set a layer's name and is_quadratic"""
+        ...
+
+    def __delitem__(self, key: str | int) -> None: ...
+    def __iter__(self) -> Iterator[str]: ...
+    def add(self, name: str, is_quadratic: bool, background: bool = False) -> Self:
+        """Adds a new layer to the font"""
+        ...
 
 @final
 class font:
@@ -4631,15 +5150,18 @@ class font:
         """Font creation time. (readonly)"""
         ...
 
-    cvt: Sequence[int]
-    """
-    Returns a sequence object containing the font's cvt table. Changes made
-    to this object will be made to the font (this is a reference not a copy).
+    @property
+    def cvt(self) -> cvt:
+        """
+        Returns a sequence object containing the font's cvt table. Changes made
+        to this object will be made to the font (this is a reference not a copy).
 
-    The object has one additional method ``cvt.find(value[,low,high])`` which
-    finds the index of value in the cvt table (or -1 if not found). If low and
-    high are specified then the index will be between ``[low,high)``.
-    """
+        You may set this with a sequence of integers.
+        """
+        ...
+
+    @cvt.setter
+    def cvt(self, value: cvt | Sequence[int]) -> None: ...
 
     default_base_filename: str | None
     """The default base for the filename when generating a font. """
@@ -4921,7 +5443,7 @@ class font:
         ...
 
     @property
-    def layers(self) -> dict[str, FontLayerInfo]:
+    def layers(self) -> layerinfo_array:
         """
         Returns a dictionary like object with information on the layers of the
         font -- a name and a boolean indicating whether the layer is quadratic or not.
