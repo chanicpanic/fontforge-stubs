@@ -2648,7 +2648,10 @@ class glyph:
 
     @property
     def codepoint(self) -> str | None:
-        """Unicode code point for this glyph in U+XXXX format, or ``None``. (readonly)"""
+        """
+        Unicode code point for this glyph in U+XXXX format for the Basic Multilingual
+        Plane, and up to U+XXXXXX for the supplementary planes, or ``None``. (readonly)
+        """
         ...
 
     color: int
@@ -3919,6 +3922,7 @@ class glyph:
         Creates a new glyphPen which will draw into the current glyph. By default
         the pen will replace any existing contours and references, but setting the
         optional keyword argument, ``replace`` to false will retain the old contents.
+        Replacing the foreground layer will also reset the advance.
         """
         ...
 
