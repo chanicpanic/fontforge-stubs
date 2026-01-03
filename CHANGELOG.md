@@ -7,6 +7,35 @@ and this project uses YYYY.MM.DD [calendar versioning](https://calver.org/).
 
 ## Unreleased
 
+## 2026.1.2 - 2026-01-02
+
+### Added
+
+- Several missing `fontforge` classes:
+  - `awglyph`
+  - `awcontext`
+  - `references`
+  - `mathKern`
+  - `layer_array`
+  - `math.device_table`
+  - `cvt`
+  - `layerinfo`
+  - `layerinfo_array`
+
+### Changed
+
+- `GlyphMathKerning` to `mathKern`
+  - `mathKern` attributes to be optional
+- `glyph.activeLayer` to a property with more accurate typing
+- `glyph.references` to a property with more accurate typing
+- `math` "DeviceTable" attributes to properties with more accurate typing
+- `FontLayerInfo` to `layerinfo`
+- `font.cvt` to a property with more accurate typing
+
+### Fixed
+
+- Typing of `registerGlyphSeparationHook` `hook` parameter
+
 ## 2025.12.1 - 2025-12-01
 
 ### Added
