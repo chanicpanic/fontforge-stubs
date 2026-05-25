@@ -7085,6 +7085,7 @@ class font(AbstractContextManager[font]):
         u0448: bool = True,
         u0452: bool = True,
         u045f: bool = True,
+        xheight_percent: float = 0.95,
     ) -> Self:
         """
         This function uses keyword parameters. None are required, if omitted a
@@ -7109,6 +7110,10 @@ class font(AbstractContextManager[font]):
         transformations of glyphs like "f", setting it to 1 will give "f" a tail
         which looks like a rotated version of its head, and setting it to 2 will
         simply extend the main stem of "f" below the baseline.
+
+        The ``xheight_percent`` keyword specifies how much the x-height should be
+        changed by the transformation. The default value is 0.95, which reduces the
+        x-height to 95% of its original size; a value of 1.0 means no change.
         """
         ...
 
