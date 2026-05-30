@@ -6300,8 +6300,8 @@ class font(AbstractContextManager[font]):
         self,
         lookup_name: str,
         new_subtable_name: str,
-        type: Literal["glyph", "coverage", "reversecoverage"],
-        rule: str,
+        type: Literal["glyph"],
+        rule: str | Sequence[str],
         *,
         afterSubtable: str | None = None,
     ) -> Self: ...
@@ -6311,7 +6311,7 @@ class font(AbstractContextManager[font]):
         lookup_name: str,
         new_subtable_name: str,
         type: Literal["class"],
-        rule: str,
+        rule: str | Sequence[str],
         *,
         afterSubtable: str | None = None,
         bclasses: tuple[str | tuple[str, ...]] | None = None,
@@ -6320,6 +6320,16 @@ class font(AbstractContextManager[font]):
         bclassnames: tuple[str, ...] | None = None,
         mclassnames: tuple[str, ...] | None = None,
         fclassnames: tuple[str, ...] | None = None,
+    ) -> Self: ...
+    @overload
+    def addContextualSubtable(
+        self,
+        lookup_name: str,
+        new_subtable_name: str,
+        type: Literal["coverage", "reversecoverage"],
+        rule: str,
+        *,
+        afterSubtable: str | None = None,
     ) -> Self:
         """
         Creates a new subtable within the specified contextual lookup (contextual,
@@ -6329,8 +6339,10 @@ class font(AbstractContextManager[font]):
 
         The ``type`` should be one of the strings "glyph", "class", "coverage" or
         "reversecoverage". The ``rule`` should be a string specifying a string to
-        match and a set of lookups to apply once the match has been made. (See
-        below for more details).
+        match and a set of lookups to apply once the match has been made. For
+        "glyph" and "class" subtables, ``rule`` may also be a sequence of strings;
+        passing a sequence creates one subtable containing multiple contextual rules.
+        (See below for more details).
 
         The remaining arguments are optional, keyword arguments.
 
